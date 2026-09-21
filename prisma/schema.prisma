@@ -1,0 +1,668 @@
+// subsel — connected commerce platform
+// Storefront · Vendors · Inventory · Orders · Warehouse · Hub network · Courier · Returns
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────── Enums ───────────────────────────
+
+enum Role {
+  CUSTOMER
+  VENDOR
+  ADMIN
+  WAREHOUSE
+  HUB
+  COURIER
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+enum HubType {
+  ORIGIN
+  SORTING
+  DELIVERY
+}
+
+enum StockBucket {
+  NONE
+  AVAILABLE
+  RESERVED
+  PICKED
+  PACKED
+  SHIPPED
+}
+
+enum MovementReason {
+  RESTOCK
+  ALLOCATION
+  PICK
+  PACK
+  DISPATCH
+  RETURN
+  RELEASE
+  ADJUSTMENT
+}
+
+enum PaymentMethod {
+  UPI
+  CARD
+  NETBANKING
+  COD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum OrderStatus {
+  PLACED
+  CONFIRMED
+  ALLOCATED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum TxnStatus {
+  INITIATED
+  SUCCESS
+  FAILED
+}
+
+enum ShipmentStatus {
+  ALLOCATED
+  PICKED
+  PACKED
+  LABELLED
+  IN_TRANSIT
+  AT_HUB
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+}
+
+enum PaymentType {
+  PREPAID
+  COD
+}
+
+enum LegStatus {
+  PENDING
+  INBOUND
+  RECEIVED
+  SORTED
+  DEPARTED
+}
+
+enum ScanType {
+  PICK
+  PACK
+  LABEL
+  HANDOVER
+  HUB_INTAKE
+  HUB_SORT
+  HUB_DISPATCH
+  OUT_FOR_DELIVERY
+  DELIVERED
+  DELIVERY_FAILED
+  RETURN_PICKUP
+  RETURN_QC
+}
+
+enum AttemptStatus {
+  DELIVERED
+  FAILED
+}
+
+enum PodType {
+  OTP
+  PHOTO
+  SIGNATURE
+}
+
+enum ReturnStatus {
+  REQUESTED
+  REJECTED
+  PICKUP_SCHEDULED
+  PICKED_UP
+  QC_PASSED
+  QC_FAILED
+}
+
+enum RefundStatus {
+  INITIATED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum RefundMethod {
+  ORIGINAL_SOURCE
+  BANK_TRANSFER
+}
+
+// ─────────────────────── Module 1: Users ───────────────────────
+
+model User {
+  id           String     @id @default(cuid())
+  fullName     String
+  email        String     @unique
+  phone        String?
+  passwordHash String?
+  role         Role       @default(CUSTOMER)
+  status       UserStatus @default(ACTIVE)
+  warehouseId  String?
+  warehouse    Warehouse? @relation(fields: [warehouseId], references: [id])
+  hubId        String?
+  hub          Hub?       @relation(fields: [hubId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  addresses Address[]
+  orders    Order[]
+  cart      Cart?
+  vendor    Vendor?
+  courier   Courier?
+  reviews   Review[]
+  returns   Return[]
+  movements StockMovement[]
+  scans     ScanEvent[]
+  sessions  Session[]
+  wishlist  WishlistItem[]
+}
+
+/// Login session. Only a SHA-256 hash of the cookie token is stored.
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────── Module 2: Catalog ───────────────────────
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  tagline   String
+  imageUrl  String?
+  sortOrder Int       @default(0)
+  products  Product[]
+}
+
+model Brand {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  logoUrl  String?
+  products Product[]
+}
+
+model Vendor {
+  id                String       @id @default(cuid())
+  userId            String       @unique
+  user              User         @relation(fields: [userId], references: [id])
+  businessName      String
+  gstin             String?
+  commissionPercent Float        @default(12)
+  status            VendorStatus @default(APPROVED)
+  createdAt         DateTime     @default(now())
+  products          Product[]
+}
+
+model Product {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  name             String
+  shortDescription String
+  description      String
+  categoryId       String
+  category         Category      @relation(fields: [categoryId], references: [id])
+  brandId          String
+  brand            Brand         @relation(fields: [brandId], references: [id])
+  vendorId         String
+  vendor           Vendor        @relation(fields: [vendorId], references: [id])
+  mrp              Int // ₹, strike-through price
+  sellingPrice     Int // ₹, price charged
+  ratingAvg        Float         @default(0)
+  ratingCount      Int           @default(0)
+  isFeatured       Boolean       @default(false) // "Selected for the week"
+  isNewArrival     Boolean       @default(false) // "Fresh arrivals"
+  status           ProductStatus @default(ACTIVE)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  images   ProductImage[]
+  specs    ProductSpec[]
+  variants     ProductVariant[]
+  reviews      Review[]
+  wishlistedBy WishlistItem[]
+
+  @@index([categoryId])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  sortOrder Int     @default(0)
+}
+
+model ProductSpec {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  key       String
+  value     String
+  sortOrder Int     @default(0)
+}
+
+/// Each variant is one SKU (size / colour option)
+model ProductVariant {
+  id            String  @id @default(cuid())
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku           String  @unique
+  label         String // "UK 8", "Black", "M"
+  priceOverride Int?
+  weightGrams   Int?
+
+  inventory  Inventory[]
+  movements  StockMovement[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  orderItemId String?
+  rating      Int
+  comment     String?
+  createdAt   DateTime @default(now())
+}
+
+// ─────────────────────── Module 3: Locations ───────────────────────
+
+model Warehouse {
+  id         String  @id @default(cuid())
+  name       String
+  code       String  @unique
+  city       String
+  address    String
+  pincode    String
+  isActive   Boolean @default(true)
+  /// First hub a parcel travels to after leaving this warehouse
+  firstHubId String?
+  firstHub   Hub?    @relation("WarehouseFirstHub", fields: [firstHubId], references: [id])
+
+  inventory Inventory[]
+  movements StockMovement[]
+  shipments Shipment[]
+  users     User[]
+}
+
+model Hub {
+  id              String   @id @default(cuid())
+  name            String
+  code            String   @unique
+  type            HubType
+  city            String
+  pincode         String
+  servicePincodes String[] // delivery hubs: pincodes served
+  isOnline        Boolean  @default(true)
+  /// Next hub on the line-haul route (null for a delivery hub)
+  nextHubId       String?
+  nextHub         Hub?     @relation("HubRoute", fields: [nextHubId], references: [id])
+  previousHubs    Hub[]    @relation("HubRoute")
+
+  firstHubFor       Warehouse[]   @relation("WarehouseFirstHub")
+  users             User[]
+  legs              ShipmentLeg[]
+  couriers          Courier[]
+  currentShipments  Shipment[]    @relation("ShipmentCurrentHub")
+  deliveryShipments Shipment[]    @relation("ShipmentDeliveryHub")
+}
+
+// ─────────────────────── Module 4: Inventory ───────────────────────
+
+/// Live stock buckets per SKU per warehouse
+model Inventory {
+  id                String         @id @default(cuid())
+  variantId         String
+  variant           ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  warehouseId       String
+  warehouse         Warehouse      @relation(fields: [warehouseId], references: [id])
+  available         Int            @default(0)
+  reserved          Int            @default(0)
+  picked            Int            @default(0)
+  packed            Int            @default(0)
+  shipped           Int            @default(0) // cumulative units dispatched
+  lowStockThreshold Int            @default(8)
+  updatedAt         DateTime       @updatedAt
+
+  @@unique([variantId, warehouseId])
+}
+
+/// Audit log of every stock bucket change
+model StockMovement {
+  id            String         @id @default(cuid())
+  variantId     String
+  variant       ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  warehouseId   String
+  warehouse     Warehouse      @relation(fields: [warehouseId], references: [id])
+  fromBucket    StockBucket
+  toBucket      StockBucket
+  quantity      Int
+  reason        MovementReason
+  referenceType String? // ORDER | SHIPMENT | RETURN
+  referenceId   String?
+  note          String?
+  performedById String?
+  performedBy   User?          @relation(fields: [performedById], references: [id])
+  createdAt     DateTime       @default(now())
+
+  @@index([createdAt])
+}
+
+// ─────────────────────── Module 5: Cart ───────────────────────
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String         @id @default(cuid())
+  cartId    String
+  cart      Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId String
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  quantity  Int
+
+  @@unique([cartId, variantId])
+}
+
+// ─────────────────────── Module 6: Orders & Payments ───────────────────────
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique // ORD-20260921-000120
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  /// Snapshot: { name, phone, line1, line2, city, state, pincode }
+  shippingAddress Json
+  subtotal        Int
+  discountTotal   Int           @default(0) // 5% platform discount
+  taxTotal        Int           @default(0) // 18% GST
+  shippingFee     Int           @default(0)
+  grandTotal      Int
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(PENDING)
+  status          OrderStatus   @default(PLACED)
+  placedAt        DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items     OrderItem[]
+  payments  Payment[]
+  shipments Shipment[]
+  refunds   Refund[]
+
+  @@index([status])
+}
+
+model OrderItem {
+  id                   String         @id @default(cuid())
+  orderId              String
+  order                Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId            String
+  variant              ProductVariant @relation(fields: [variantId], references: [id])
+  // snapshot at purchase time
+  productName          String
+  variantLabel         String
+  sku                  String
+  imageUrl             String?
+  quantity             Int
+  unitMrp              Int
+  unitPrice            Int
+  lineTotal            Int
+  // fulfilment
+  allocatedWarehouseId String?
+  shipmentId           String?
+  shipment             Shipment?      @relation(fields: [shipmentId], references: [id])
+  pickedQty            Int            @default(0)
+
+  returns Return[]
+}
+
+model Payment {
+  id           String        @id @default(cuid())
+  orderId      String
+  order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method       PaymentMethod
+  gateway      String?
+  gatewayTxnId String?
+  amount       Int
+  status       TxnStatus     @default(INITIATED)
+  paidAt       DateTime?
+  createdAt    DateTime      @default(now())
+  refunds      Refund[]
+}
+
+// ─────────────────────── Module 7: Fulfilment & Shipments ───────────────────────
+
+/// One parcel. An order is split into one shipment per warehouse.
+model Shipment {
+  id               String         @id @default(cuid())
+  shipmentNumber   String         @unique // SHIP-20260921-000450
+  trackingNumber   String         @unique // TRK-771043
+  qrCode           String?        @unique // set when the label is generated
+  deliveryOtp      String
+  orderId          String
+  order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  warehouseId      String
+  warehouse        Warehouse      @relation(fields: [warehouseId], references: [id])
+  deliveryHubId    String?
+  deliveryHub      Hub?           @relation("ShipmentDeliveryHub", fields: [deliveryHubId], references: [id])
+  currentHubId     String?
+  currentHub       Hub?           @relation("ShipmentCurrentHub", fields: [currentHubId], references: [id])
+  courierId        String?
+  courier          Courier?       @relation(fields: [courierId], references: [id])
+  paymentType      PaymentType
+  codAmount        Int            @default(0)
+  status           ShipmentStatus @default(ALLOCATED)
+  labelGeneratedAt DateTime?
+  dispatchedAt     DateTime?
+  deliveredAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  items    OrderItem[]
+  legs     ShipmentLeg[]
+  scans    ScanEvent[]
+  attempts DeliveryAttempt[]
+
+  @@index([status])
+}
+
+/// Planned route: one row per hub the parcel must pass through
+model ShipmentLeg {
+  id         String    @id @default(cuid())
+  shipmentId String
+  shipment   Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  sequence   Int
+  hubId      String
+  hub        Hub       @relation(fields: [hubId], references: [id])
+  status     LegStatus @default(PENDING)
+  receivedAt DateTime?
+  sortedAt   DateTime?
+  departedAt DateTime?
+
+  @@unique([shipmentId, sequence])
+}
+
+/// Every scan at pick, pack, label, handover, hub and doorstep
+model ScanEvent {
+  id            String    @id @default(cuid())
+  shipmentId    String?
+  shipment      Shipment? @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  returnId      String?
+  return        Return?   @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  type          ScanType
+  locationLabel String
+  scannedById   String?
+  scannedBy     User?     @relation(fields: [scannedById], references: [id])
+  qrVerified    Boolean   @default(false)
+  remarks       String?
+  createdAt     DateTime  @default(now())
+
+  @@index([shipmentId, createdAt])
+}
+
+// ─────────────────────── Module 8: Last mile ───────────────────────
+
+model Courier {
+  id            String  @id @default(cuid())
+  userId        String  @unique
+  user          User    @relation(fields: [userId], references: [id])
+  zone          String
+  vehicleNumber String
+  homeHubId     String
+  homeHub       Hub     @relation(fields: [homeHubId], references: [id])
+  isAvailable   Boolean @default(true)
+
+  shipments     Shipment[]
+  attempts      DeliveryAttempt[]
+  returnPickups Return[]
+}
+
+model DeliveryAttempt {
+  id            String        @id @default(cuid())
+  shipmentId    String
+  shipment      Shipment      @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  courierId     String
+  courier       Courier       @relation(fields: [courierId], references: [id])
+  attemptNumber Int
+  status        AttemptStatus
+  qrVerified    Boolean       @default(false)
+  codCollected  Int           @default(0)
+  podType       PodType?
+  podValue      String?
+  failureReason String?
+  attemptedAt   DateTime      @default(now())
+}
+
+// ─────────────────────── Module 9: Returns & Refunds ───────────────────────
+
+model Return {
+  id                 String       @id @default(cuid())
+  returnNumber       String       @unique
+  orderItemId        String
+  orderItem          OrderItem    @relation(fields: [orderItemId], references: [id])
+  userId             String
+  user               User         @relation(fields: [userId], references: [id])
+  quantity           Int
+  reason             String
+  comment            String?
+  status             ReturnStatus @default(REQUESTED)
+  pickupCourierId    String?
+  pickupCourier      Courier?     @relation(fields: [pickupCourierId], references: [id])
+  qcNotes            String?
+  restockWarehouseId String?
+  approvedById       String?
+  approvedAt         DateTime?
+  pickedUpAt         DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  refunds Refund[]
+  scans   ScanEvent[]
+}
+
+model Refund {
+  id            String       @id @default(cuid())
+  refundNumber  String       @unique
+  orderId       String
+  order         Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  returnId      String?
+  return        Return?      @relation(fields: [returnId], references: [id])
+  paymentId     String?
+  payment       Payment?     @relation(fields: [paymentId], references: [id])
+  amount        Int
+  method        RefundMethod
+  status        RefundStatus @default(INITIATED)
+  reason        String?
+  processedById String?
+  createdAt     DateTime     @default(now())
+  completedAt   DateTime?
+}
+
+/// Sequence generator for human-readable numbers
+model Counter {
+  key   String @id
+  value Int
+}
