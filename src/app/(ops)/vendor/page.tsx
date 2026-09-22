@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { staffGate } from "@/lib/auth";
 import { AccessGate } from "@/components/AccessGate";
+import { SellerStatusScreen } from "@/components/vendor/SellerStatusScreen";
+import { StatusBadge } from "@/components/StatusBadge";
+import { ActionButton } from "@/components/ActionButton";
 import { getVendorDashboard } from "@/lib/services/vendor";
 import { inr } from "@/lib/format";
-import { OpsShell, Section, StatCard, Empty } from "@/components/OpsShell";
+import { Board, Empty, OpsShell, Section, StatCard, StatRow } from "@/components/OpsShell";
 import { ProductImage } from "@/components/ProductImage";
 import { RestockForm } from "@/components/vendor/RestockForm";
 import { NewProductForm } from "@/components/vendor/NewProductForm";
@@ -17,18 +20,20 @@ const TABS = [
 export default async function VendorPage() {
   const { user, allowed } = await staffGate("VENDOR");
   if (!allowed || !user.vendor) return <AccessGate need="VENDOR" user={user} />;
+  if (user.vendor.status !== "APPROVED") return <SellerStatusScreen vendor={user.vendor} />;
   const d = await getVendorDashboard(user.vendor.id);
   const warehouses = d.warehouses.map((w) => ({ id: w.id, name: w.name }));
 
   return (
     <OpsShell title={d.vendor.businessName} subtitle={`Vendor console, ${d.vendor.commissionPercent}% platform commission`} tabs={TABS} active="/vendor">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <StatRow>
         <StatCard label="Products" value={d.stats.products} hint="Listed on subsel" />
         <StatCard label="Units in stock" value={d.stats.unitsInStock} hint="Available to sell" />
         <StatCard label="Units sold" value={d.stats.unitsSold} hint="Excluding cancelled orders" />
         <StatCard label="Sales" value={inr(d.stats.revenue)} hint={`Est. payout ${inr(d.stats.payout)}`} tone="pine" />
-      </div>
+      </StatRow>
 
+      <Board className="">
       <Section
         title="Catalogue & stock"
         hint="Add stock to any fulfilment centre. Customers see it instantly."
@@ -47,7 +52,21 @@ export default async function VendorPage() {
                     <ProductImage src={p.images[0]?.url} alt={p.name} className="h-full w-full" />
                   </div>
                   <div>
-                    <Link href={`/product/${p.slug}`} className="text-sm font-bold hover:underline">{p.name}</Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {p.status === "ACTIVE" ? (
+                        <Link href={`/product/${p.slug}`} className="text-sm font-bold hover:underline">{p.name}</Link>
+                      ) : (
+                        <span className="text-sm font-bold">{p.name}</span>
+                      )}
+                      <StatusBadge status={p.status === "ACTIVE" ? "LIVE" : p.status} />
+                    </div>
+                    {p.status === "PENDING_REVIEW" && <p className="text-xs text-amber">Waiting for admin review. It goes live once approved.</p>}
+                    {p.status === "REJECTED" && (
+                      <div className="mt-1 space-y-1.5">
+                        <p className="text-xs text-sale">Sent back: {p.reviewNote}</p>
+                        <ActionButton url={`/api/vendor/products/${p.id}`} body={{ action: "resubmit" }} label="Resubmit for review" variant="outline" />
+                      </div>
+                    )}
                     <p className="text-xs text-slate">{p.brand.name}, {p.category.name}</p>
                     <p className="mt-1 text-sm font-semibold tabular">
                       {inr(p.sellingPrice)} <span className="text-xs font-normal text-slate line-through">{inr(p.mrp)}</span>
@@ -93,6 +112,7 @@ export default async function VendorPage() {
           </ul>
         )}
       </Section>
+      </Board>
     </OpsShell>
   );
 }

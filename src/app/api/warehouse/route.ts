@@ -31,3 +31,5 @@ export const POST = handle(async (req) => {
       return handoverShipment(b.shipmentId, b.code, user);
   }
 });
+
+export const dynamic = "force-dynamic";

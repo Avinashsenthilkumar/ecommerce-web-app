@@ -23,3 +23,5 @@ export const POST = handle(async (req) => {
   await createSession(user.id);
   return { name: user.fullName };
 });
+
+export const dynamic = "force-dynamic";

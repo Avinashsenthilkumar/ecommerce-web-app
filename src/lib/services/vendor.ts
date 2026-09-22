@@ -74,7 +74,8 @@ const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").repla
 
 export async function createVendorProduct(user: CurrentUser, input: z.infer<typeof createProductSchema>) {
   const vendor = user.vendor;
-  if (!vendor) throw new ApiError(403, "Only vendor accounts can list products.");
+  if (!vendor) throw new ApiError(403, "Only seller accounts can list products.");
+  if (vendor.status !== "APPROVED") throw new ApiError(403, "Your seller account must be approved before you can list products.");
 
   return prisma.$transaction(async (tx) => {
     let slug = slugify(input.name);
@@ -93,6 +94,7 @@ export async function createVendorProduct(user: CurrentUser, input: z.infer<type
         mrp: input.mrp,
         sellingPrice: input.sellingPrice,
         isNewArrival: true,
+        status: "PENDING_REVIEW", // goes live after admin review
         images: input.imageUrl ? { create: [{ url: input.imageUrl, alt: input.name }] } : undefined,
       },
     });
@@ -132,6 +134,7 @@ export async function restockVariant(user: CurrentUser, input: z.infer<typeof re
   const variant = await prisma.productVariant.findUnique({ where: { id: input.variantId }, include: { product: true } });
   if (!variant) throw new ApiError(404, "SKU not found.");
   if (user.role !== "ADMIN" && variant.product.vendorId !== vendor?.id) throw new ApiError(403, "You can only restock your own products.");
+  if (user.role !== "ADMIN" && vendor?.status !== "APPROVED") throw new ApiError(403, "Your seller account is not active.");
 
   await prisma.$transaction((tx) =>
     moveStock(tx, {

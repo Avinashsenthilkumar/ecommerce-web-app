@@ -8,3 +8,5 @@ export const POST = handle(async (req) => {
   const body = await parseBody(req, restockSchema);
   return restockVariant(user, body);
 });
+
+export const dynamic = "force-dynamic";

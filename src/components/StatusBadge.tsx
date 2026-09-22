@@ -8,6 +8,9 @@ const TONE: Record<string, string> = {
   SUCCESS: "bg-pineSoft text-pine",
   COMPLETED: "bg-pineSoft text-pine",
   QC_PASSED: "bg-pineSoft text-pine",
+  APPROVED: "bg-pineSoft text-pine",
+  ACTIVE: "bg-pineSoft text-pine",
+  LIVE: "bg-pineSoft text-pine",
   // in motion
   IN_TRANSIT: "bg-sky-50 text-sky-800",
   AT_HUB: "bg-sky-50 text-sky-800",
@@ -22,11 +25,13 @@ const TONE: Record<string, string> = {
   REQUESTED: "bg-amberSoft text-amber",
   INITIATED: "bg-amberSoft text-amber",
   PICKUP_SCHEDULED: "bg-amberSoft text-amber",
+  PENDING_REVIEW: "bg-amberSoft text-amber",
   // negative
   CANCELLED: "bg-red-50 text-sale",
   FAILED: "bg-red-50 text-sale",
   REJECTED: "bg-red-50 text-sale",
   QC_FAILED: "bg-red-50 text-sale",
+  SUSPENDED: "bg-red-50 text-sale",
   REFUNDED: "bg-mist text-slate",
   PARTIALLY_REFUNDED: "bg-mist text-slate",
 };

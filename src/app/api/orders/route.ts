@@ -14,3 +14,5 @@ export const POST = handle(async (req) => {
   const body = await parseBody(req, placeOrderSchema);
   return placeOrder(user.id, body);
 });
+
+export const dynamic = "force-dynamic";

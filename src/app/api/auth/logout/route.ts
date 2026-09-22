@@ -6,3 +6,5 @@ export const POST = handle(async () => {
   await destroySession();
   return { signedOut: true };
 });
+
+export const dynamic = "force-dynamic";

@@ -9,3 +9,5 @@ export const GET = handle(async (_req, { params }) => {
   if (!order) throw new ApiError(404, "Order not found.");
   return order;
 });
+
+export const dynamic = "force-dynamic";

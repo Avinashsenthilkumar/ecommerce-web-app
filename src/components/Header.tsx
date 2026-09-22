@@ -21,7 +21,7 @@ export async function Header() {
   const count = user && isCustomer ? await cartCount(user.id) : 0;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-line bg-paper/90 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <div className="shell relative flex h-16 items-center gap-6">
         <Logo />
 
@@ -38,13 +38,15 @@ export async function Header() {
 
         <div className="ml-auto flex items-center gap-2">
           <HeaderSearch />
-          <AccountMenu
-            user={user ? { firstName: user.fullName.split(" ")[0], isCustomer, consoleHref: isCustomer ? null : ROLE_HOME[user.role] } : null}
-          />
-          <Link href="/wishlist" className="icon-btn" aria-label="Wishlist">
+          <div className="hidden lg:block">
+            <AccountMenu
+              user={user ? { firstName: user.fullName.split(" ")[0], isCustomer, consoleHref: isCustomer ? null : ROLE_HOME[user.role] } : null}
+            />
+          </div>
+          <Link href="/wishlist" className="icon-btn hidden lg:inline-flex" aria-label="Wishlist">
             <Heart size={16} />
           </Link>
-          <Link href="/cart" className="icon-btn border-ink bg-ink text-white hover:bg-ink/85" aria-label={`Bag, ${count} items`}>
+          <Link href="/cart" className="icon-btn hidden border-ink bg-ink text-white hover:bg-ink/85 lg:inline-flex" aria-label={`Bag, ${count} items`}>
             <ShoppingBag size={16} />
             {count > 0 && (
               <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-paper bg-white px-1 text-[10px] font-semibold text-ink tabular">

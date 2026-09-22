@@ -17,6 +17,9 @@ export function handle(fn: (req: Request, ctx: Ctx) => Promise<unknown>) {
       const data = await fn(req, ctx);
       return NextResponse.json({ ok: true, data });
     } catch (e) {
+      // Let Next.js' own control-flow signals through (dynamic rendering, redirect, notFound)
+      const digest = typeof e === "object" && e !== null && "digest" in e ? String((e as { digest: unknown }).digest) : "";
+      if (digest === "DYNAMIC_SERVER_USAGE" || digest.startsWith("NEXT_")) throw e;
       if (e instanceof ApiError) {
         return NextResponse.json({ ok: false, error: e.message }, { status: e.status });
       }

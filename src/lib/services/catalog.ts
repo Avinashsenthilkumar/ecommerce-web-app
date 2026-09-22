@@ -34,7 +34,7 @@ export function listProducts(opts: {
   newArrival?: boolean;
   take?: number;
 }) {
-  const where: Prisma.ProductWhereInput = { status: "ACTIVE" };
+  const where: Prisma.ProductWhereInput = { status: "ACTIVE", vendor: { status: "APPROVED" } };
   if (opts.category && opts.category !== "all") where.category = { slug: opts.category };
   if (opts.featured) where.isFeatured = true;
   if (opts.newArrival) where.isNewArrival = true;
@@ -66,7 +66,7 @@ export function getProductBySlug(slug: string) {
     include: {
       brand: true,
       category: true,
-      vendor: { select: { businessName: true } },
+      vendor: { select: { businessName: true, status: true } },
       images: { orderBy: { sortOrder: "asc" } },
       specs: { orderBy: { sortOrder: "asc" } },
       variants: {
@@ -81,7 +81,7 @@ export type ProductDetail = NonNullable<Awaited<ReturnType<typeof getProductBySl
 
 export function relatedProducts(productId: string, take = 4) {
   return prisma.product.findMany({
-    where: { status: "ACTIVE", id: { not: productId } },
+    where: { status: "ACTIVE", vendor: { status: "APPROVED" }, id: { not: productId } },
     orderBy: [{ isNewArrival: "desc" }, { ratingCount: "desc" }],
     take,
     include: productCardInclude,

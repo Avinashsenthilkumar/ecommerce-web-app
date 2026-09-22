@@ -7,3 +7,5 @@ export const POST = handle(async (_req, { params }) => {
   const admin = await requireRole(["ADMIN"]);
   return advanceRefund(params.id, admin);
 });
+
+export const dynamic = "force-dynamic";

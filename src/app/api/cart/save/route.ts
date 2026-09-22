@@ -9,3 +9,5 @@ export const POST = handle(async (req) => {
   const { itemId } = await parseBody(req, z.object({ itemId: z.string().min(1) }));
   return saveForLater(user.id, itemId);
 });
+
+export const dynamic = "force-dynamic";

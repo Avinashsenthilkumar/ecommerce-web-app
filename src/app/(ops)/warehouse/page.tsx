@@ -1,7 +1,7 @@
 import { staffGate } from "@/lib/auth";
 import { getWarehouseFloor } from "@/lib/services/fulfilment";
 import { AccessGate } from "@/components/AccessGate";
-import { Empty, OpsShell, Section, StatCard } from "@/components/OpsShell";
+import { Board, Empty, OpsShell, Section, StatCard, StatRow } from "@/components/OpsShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActionButton } from "@/components/ActionButton";
 import { ScanForm } from "@/components/ScanForm";
@@ -12,6 +12,7 @@ export const metadata = { title: "Warehouse management — pick, pack, QR label 
 const TABS = [
   { href: "/warehouse", label: "Floor" },
   { href: "/admin", label: "Admin" },
+  { href: "/admin/sellers", label: "Sellers" },
   { href: "/hub", label: "Hub" },
   { href: "/courier", label: "Courier" },
 ];
@@ -25,13 +26,14 @@ export default async function WarehousePage() {
 
   return (
     <OpsShell title="Warehouse management" subtitle="Chennai & Thanjavur fulfilment centres" tabs={TABS} active="/warehouse">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <StatRow>
         <StatCard label="Work queue" value={stats.ordersOnFloor} hint="Orders on the floor" />
         <StatCard label="Reserved units" value={stats.reservedUnits} hint="Awaiting pick" />
         <StatCard label="Packed units" value={stats.packedUnits} hint="Ready to ship" />
         <StatCard label="Labels pending" value={stats.labelsPending} hint="QR not generated" tone={stats.labelsPending ? "warn" : undefined} />
-      </div>
+      </StatRow>
 
+      <Board className="xl:grid-cols-2">
       <Section title="Pick & pack queue" hint="Scan each item before marking picked">
         {pickPack.length === 0 ? (
           <Empty>Nothing on the floor. Allocate an order from the admin console.</Empty>
@@ -43,7 +45,7 @@ export default async function WarehousePage() {
               const picked = s.items.reduce((a, i) => a + Math.min(i.pickedQty, i.quantity), 0);
               const addr = s.order.shippingAddress as unknown as Addr;
               return (
-                <li key={s.id} className="grid gap-5 px-5 py-5 lg:grid-cols-[1fr_1.1fr]">
+                <li key={s.id} className="grid gap-5 px-5 py-5 2xl:grid-cols-[1fr_1.1fr]">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-bold tabular">{s.shipmentNumber}</p>
@@ -68,7 +70,7 @@ export default async function WarehousePage() {
                       ))}
                     </ul>
                   </div>
-                  <div className="space-y-3 lg:border-l lg:border-line lg:pl-5">
+                  <div className="space-y-3 2xl:border-l 2xl:border-line 2xl:pl-5">
                     {s.status === "ALLOCATED" ? (
                       <ScanForm
                         url="/api/warehouse"
@@ -132,6 +134,7 @@ export default async function WarehousePage() {
           </ul>
         )}
       </Section>
+      </Board>
     </OpsShell>
   );
 }

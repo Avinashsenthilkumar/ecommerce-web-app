@@ -23,3 +23,5 @@ export const PATCH = handle(async (req) => {
   const body = await parseBody(req, z.object({ itemId: z.string().min(1), quantity: z.number().int().min(0).max(20) }));
   return setCartItemQty(user.id, body.itemId, body.quantity);
 });
+
+export const dynamic = "force-dynamic";

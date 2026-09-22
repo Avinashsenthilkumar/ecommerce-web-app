@@ -56,6 +56,10 @@ export async function getAdminDashboard() {
   const awaitingConfirmation = orders.filter((o) => o.status === "PLACED").length;
   const awaitingAllocation = await prisma.order.count({ where: { status: "CONFIRMED" } });
   const lowStock = inventory.filter((i) => i.available <= i.lowStockThreshold);
+  const [sellerApplications, listingsToReview] = await Promise.all([
+    prisma.vendor.count({ where: { status: "PENDING" } }),
+    prisma.product.count({ where: { status: "PENDING_REVIEW" } }),
+  ]);
 
   return {
     stats: {
@@ -66,7 +70,7 @@ export async function getAdminDashboard() {
       returns: returnsTotal,
       refunds: refundsTotal,
     },
-    queue: { awaitingConfirmation, awaitingAllocation, lowStock: lowStock.length },
+    queue: { awaitingConfirmation, awaitingAllocation, lowStock: lowStock.length, sellerApplications, listingsToReview },
     orders,
     returns,
     refunds,

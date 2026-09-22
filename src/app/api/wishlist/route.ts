@@ -15,3 +15,5 @@ export const POST = handle(async (req) => {
   const { productId } = await parseBody(req, z.object({ productId: z.string().min(1) }));
   return toggleWishlist(user.id, productId);
 });
+
+export const dynamic = "force-dynamic";

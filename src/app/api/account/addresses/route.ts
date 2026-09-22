@@ -16,3 +16,5 @@ export const POST = handle(async (req) => {
   const b = await parseBody(req, z.object({ address: addressSchema, isDefault: z.boolean().optional() }));
   return addAddress(user.id, b.address, b.isDefault);
 });
+
+export const dynamic = "force-dynamic";

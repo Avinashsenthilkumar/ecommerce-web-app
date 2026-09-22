@@ -9,7 +9,10 @@ export function middleware(req: NextRequest) {
   const next = encodeURIComponent(pathname + search);
   const to = (path: string) => NextResponse.redirect(new URL(`${path}?next=${next}`, req.url));
 
-  if (pathname.startsWith("/vendor")) return pathname.startsWith("/vendor/login") ? NextResponse.next() : to("/vendor/login");
+  if (pathname.startsWith("/vendor")) {
+    const open = pathname.startsWith("/vendor/login") || pathname.startsWith("/vendor/register");
+    return open ? NextResponse.next() : to("/vendor/login");
+  }
   if (["/admin", "/warehouse", "/hub", "/courier"].some((p) => pathname.startsWith(p))) return to("/staff/login");
   return to("/login");
 }

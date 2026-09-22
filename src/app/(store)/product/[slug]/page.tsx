@@ -3,6 +3,11 @@ import { notFound } from "next/navigation";
 import { Truck, RotateCcw, ShieldCheck } from "lucide-react";
 import { getProductBySlug, relatedProducts } from "@/lib/services/catalog";
 import { getWishlistIds } from "@/lib/services/wishlist";
+import { listReviews, reviewEligibility } from "@/lib/services/reviews";
+import { getCurrentUser } from "@/lib/auth";
+import { fmtDate } from "@/lib/format";
+import { ReviewForm } from "@/components/ReviewForm";
+import { Star, BadgeCheck } from "lucide-react";
 import { ProductImage } from "@/components/ProductImage";
 import { Price, Rating } from "@/components/Price";
 import { BuyBox } from "@/components/BuyBox";
@@ -21,8 +26,14 @@ const PROMISES = [
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   const product = await getProductBySlug(params.slug);
-  if (!product || product.status !== "ACTIVE") notFound();
-  const [related, saved] = await Promise.all([relatedProducts(product.id), getWishlistIds()]);
+  if (!product || product.status !== "ACTIVE" || product.vendor.status !== "APPROVED") notFound();
+  const user = await getCurrentUser();
+  const [related, saved, reviews, eligibility] = await Promise.all([
+    relatedProducts(product.id),
+    getWishlistIds(),
+    listReviews(product.id),
+    user?.role === "CUSTOMER" ? reviewEligibility(user.id, product.id) : Promise.resolve(null),
+  ]);
 
   const variants = product.variants.map((v) => {
     const best = [...v.inventory].sort((a, b) => b.available - a.available)[0];
@@ -93,6 +104,59 @@ export default async function ProductPage({ params }: { params: { slug: string }
           </div>
         </div>
       </div>
+
+      <section className="pt-24" id="reviews">
+        <div className="grid gap-10 lg:grid-cols-[20rem_1fr]">
+          <div>
+            <h2 className="section-title text-[2.2rem] sm:text-[2.6rem]">Customer reviews</h2>
+            <div className="mt-5 flex items-baseline gap-3">
+              <span className="font-display text-5xl font-medium tabular">{product.ratingAvg.toFixed(1)}</span>
+              <span className="text-sm text-slate">out of 5</span>
+            </div>
+            <div className="mt-2 flex gap-0.5" aria-hidden>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Star key={n} size={16} className={n <= Math.round(product.ratingAvg) ? "fill-ink text-ink" : "text-line"} />
+              ))}
+            </div>
+            <p className="mt-2 text-sm text-slate">{product.ratingCount.toLocaleString("en-IN")} ratings</p>
+            <div className="mt-6">
+              {eligibility?.canReview ? (
+                <ReviewForm productId={product.id} />
+              ) : eligibility?.reviewed ? (
+                <p className="text-sm text-pine">Thanks, you reviewed this product.</p>
+              ) : (
+                <p className="text-sm text-slate">Only customers who received this product can review it.</p>
+              )}
+            </div>
+          </div>
+          <div>
+            {reviews.length === 0 ? (
+              <p className="rounded-[24px] border border-line bg-white p-6 text-sm text-slate">No written reviews yet.</p>
+            ) : (
+              <ul className="divide-y divide-line rounded-[24px] border border-line bg-white">
+                {reviews.map((r) => {
+                  const [first, last] = r.user.fullName.split(" ");
+                  return (
+                    <li key={r.id} className="p-6">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex gap-0.5" aria-label={`${r.rating} out of 5`}>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Star key={n} size={14} className={n <= r.rating ? "fill-ink text-ink" : "text-line"} />
+                          ))}
+                        </div>
+                        <span className="text-sm font-medium">{first} {last ? `${last[0]}.` : ""}</span>
+                        <span className="inline-flex items-center gap-1 text-xs text-pine"><BadgeCheck size={13} /> Verified purchase</span>
+                        <span className="text-xs text-slate">{fmtDate(r.createdAt)}</span>
+                      </div>
+                      {r.comment && <p className="mt-3 text-[15px] leading-relaxed text-ink/80">{r.comment}</p>}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </div>
+      </section>
 
       {related.length > 0 && (
         <section className="pt-28">

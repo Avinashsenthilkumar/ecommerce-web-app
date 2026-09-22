@@ -8,3 +8,5 @@ export const POST = handle(async (req) => {
   const body = await parseBody(req, returnRequestSchema);
   return requestReturn(user, body);
 });
+
+export const dynamic = "force-dynamic";

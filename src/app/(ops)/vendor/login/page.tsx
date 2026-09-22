@@ -28,8 +28,9 @@ export default async function VendorLoginPage() {
           <h2 className="text-2xl font-bold">Seller login</h2>
           <p className="mb-6 mt-1 text-sm text-slate">Manage your catalogue, stock and sales.</p>
           <LoginForm portal="vendor" submitLabel="Sign in to Seller Central" />
+          <Link href="/vendor/register" className="btn-outline mt-4 w-full">New seller? Apply to sell on subsel</Link>
           <p className="mt-6 text-sm text-slate">
-            Shopping instead? <Link href="/login" className="font-semibold text-pine hover:underline">Customer sign in</Link>
+            Shopping instead? <Link href="/login" className="text-ink underline underline-offset-4">Customer sign in</Link>
           </p>
           <DemoAccounts accounts={[["Seller", "aureli@subsel.demo"], ["Seller", "coastal@subsel.demo"]]} />
         </div>

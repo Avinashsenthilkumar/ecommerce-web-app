@@ -9,3 +9,5 @@ export const POST = handle(async (req, { params }) => {
   const { action } = await parseBody(req, z.object({ action: z.enum(["default", "delete"]) }));
   return action === "default" ? setDefaultAddress(user.id, params.id) : deleteAddress(user.id, params.id);
 });
+
+export const dynamic = "force-dynamic";

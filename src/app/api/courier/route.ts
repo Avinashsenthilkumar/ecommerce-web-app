@@ -38,3 +38,5 @@ export const POST = handle(async (req) => {
       return qcReturn(b.returnId, b.pass, b.notes, user);
   }
 });
+
+export const dynamic = "force-dynamic";

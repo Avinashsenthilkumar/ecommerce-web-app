@@ -15,3 +15,5 @@ export const POST = handle(async (req) => {
   const b = await parseBody(req, z.object({ hubId: z.string().min(1), code: z.string().min(1, "Scan or type a tracking number") }));
   return hubScan(b.hubId, b.code, user);
 });
+
+export const dynamic = "force-dynamic";

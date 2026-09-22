@@ -67,9 +67,9 @@ export async function cartCount(userId: string) {
 export async function addToCart(userId: string, variantId: string, qty: number) {
   const variant = await prisma.productVariant.findUnique({
     where: { id: variantId },
-    include: { inventory: true, product: { select: { status: true, name: true } } },
+    include: { inventory: true, product: { select: { status: true, name: true, vendor: { select: { status: true } } } } },
   });
-  if (!variant || variant.product.status !== "ACTIVE") throw new ApiError(404, "This product is no longer available.");
+  if (!variant || variant.product.status !== "ACTIVE" || variant.product.vendor.status !== "APPROVED") throw new ApiError(404, "This product is no longer available.");
 
   const stock = sumAvailable(variant.inventory);
   const cart = await prisma.cart.upsert({ where: { userId }, create: { userId }, update: {} });

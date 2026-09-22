@@ -61,9 +61,7 @@ export function NewProductForm({ categories, warehouses }: { categories: Opt[]; 
   if (!open) {
     return (
       <div className="flex items-center gap-3">
-        {done && (
-          <a href={`/product/${done}`} className="text-xs font-semibold text-pine underline">View new listing</a>
-        )}
+        {done && <span className="text-xs text-pine">Submitted. It goes live after admin review.</span>}
         <button type="button" onClick={() => setOpen(true)} className="btn-primary btn-sm">List a new product</button>
       </div>
     );
@@ -127,7 +125,7 @@ export function NewProductForm({ categories, warehouses }: { categories: Opt[]; 
         </div>
       </div>
       <div className="flex gap-2">
-        <button disabled={busy} className="btn-primary">{busy ? "Publishing…" : "Publish product"}</button>
+        <button disabled={busy} className="btn-primary">{busy ? "Submitting…" : "Submit for review"}</button>
         <button type="button" onClick={() => setOpen(false)} className="btn-ghost">Cancel</button>
       </div>
       {error && <p className="text-sm font-medium text-sale">{error}</p>}

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Inter_Tight } from "next/font/google";
 import "./globals.css";
+import { PwaRegister } from "@/components/PwaRegister";
 
 const display = Inter_Tight({ subsets: ["latin"], variable: "--font-display", weight: ["400", "500", "600"] });
 const sans = DM_Sans({ subsets: ["latin"], variable: "--font-sans", weight: ["400", "500", "600", "700"] });
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
   title: "subsel — Premium multi-category commerce, end to end",
   description:
     "Shop apparel, electronics, accessories and home objects. Every order is fulfilled through a connected warehouse, hub and last-mile network with live tracking.",
-  icons: { icon: "/brand/subsel-logo.png" },
+  icons: { icon: "/icons/favicon-32.png", apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "subsel", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
   openGraph: {
     title: "subsel — Premium multi-category commerce",
     description: "A connected commerce platform: storefront, fulfilment, hub network and last mile in one operating system.",
@@ -17,12 +20,15 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#FAF8F5" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable}`}>
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        {children}
+        <PwaRegister />
+      </body>
     </html>
   );
 }

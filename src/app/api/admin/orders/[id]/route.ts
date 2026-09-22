@@ -11,3 +11,5 @@ export const POST = handle(async (req, { params }) => {
   if (action === "allocate") return allocateOrder(params.id, admin);
   return cancelOrder(params.id, admin);
 });
+
+export const dynamic = "force-dynamic";

@@ -8,6 +8,14 @@
 
 body {
   @apply bg-paper text-ink font-sans antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Installed app: no rubber-band overscroll behind the header */
+@media (display-mode: standalone) {
+  body {
+    overscroll-behavior-y: none;
+  }
 }
 
 .tabular {

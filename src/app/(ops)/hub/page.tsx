@@ -2,7 +2,7 @@ import { staffGate } from "@/lib/auth";
 import { getHubOverview, nextHubAction } from "@/lib/services/network";
 import { humanize } from "@/lib/format";
 import { AccessGate } from "@/components/AccessGate";
-import { Empty, OpsShell, Section, StatCard } from "@/components/OpsShell";
+import { Board, Empty, OpsShell, Section, StatCard, StatRow } from "@/components/OpsShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ScanForm } from "@/components/ScanForm";
 import { HubScanDesk } from "@/components/HubScanDesk";
@@ -12,6 +12,7 @@ export const metadata = { title: "Hub management — intake, sorting & dispatch 
 const TABS = [
   { href: "/hub", label: "Hubs" },
   { href: "/admin", label: "Admin" },
+  { href: "/admin/sellers", label: "Sellers" },
   { href: "/warehouse", label: "Warehouse" },
   { href: "/courier", label: "Courier" },
 ];
@@ -25,16 +26,17 @@ export default async function HubPage() {
 
   return (
     <OpsShell title="Hub management" subtitle={hubs.map((h) => h.name.replace(" Delivery Hub", "").replace(" Hub", "")).join(", ")} tabs={TABS} active="/hub">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <StatRow>
         <StatCard label="In network" value={stats.inNetwork} hint="Parcels between hubs" />
         <StatCard label="Awaiting intake" value={stats.awaitingIntake} hint="Scan on arrival" tone={stats.awaitingIntake ? "warn" : undefined} />
         <StatCard label="Out for delivery" value={stats.outForDelivery} hint="Last mile" />
         <StatCard label="Hubs online" value={stats.hubsOnline} hint="Origin, sorting, delivery" tone="pine" />
-      </div>
+      </StatRow>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <Board className="xl:grid-cols-[16rem_1fr]">
+      <div className="grid content-start gap-3 md:grid-cols-3 xl:grid-cols-1 xl:overflow-y-auto">
         {hubs.map((h) => (
-          <div key={h.id} className="panel p-5">
+          <div key={h.id} className="rounded-2xl border border-line bg-white p-4">
             <p className="text-xs font-semibold text-slate">{TYPE_LABEL[h.type]}</p>
             <p className="mt-1 text-lg font-bold">{h.name}</p>
             <p className="mt-2 text-sm text-slate">
@@ -105,6 +107,7 @@ export default async function HubPage() {
           </ul>
         )}
       </Section>
+      </Board>
     </OpsShell>
   );
 }

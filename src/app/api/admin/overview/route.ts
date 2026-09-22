@@ -7,3 +7,5 @@ export const GET = handle(async () => {
   await requireRole(["ADMIN"]);
   return getAdminDashboard();
 });
+
+export const dynamic = "force-dynamic";

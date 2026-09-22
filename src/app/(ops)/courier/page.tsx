@@ -2,7 +2,7 @@ import { staffGate } from "@/lib/auth";
 import { getCourierBoard } from "@/lib/services/network";
 import { inr } from "@/lib/format";
 import { AccessGate } from "@/components/AccessGate";
-import { Empty, OpsShell, Section, StatCard } from "@/components/OpsShell";
+import { Board, Empty, OpsShell, Section, StatCard, StatRow } from "@/components/OpsShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActionButton } from "@/components/ActionButton";
 import { DeliverForm } from "@/components/DeliverForm";
@@ -12,6 +12,7 @@ export const metadata = { title: "Courier app — last mile delivery & POD | sub
 const TABS = [
   { href: "/courier", label: "Runsheet" },
   { href: "/admin", label: "Admin" },
+  { href: "/admin/sellers", label: "Sellers" },
   { href: "/warehouse", label: "Warehouse" },
   { href: "/hub", label: "Hub" },
 ];
@@ -25,16 +26,17 @@ export default async function CourierPage() {
 
   return (
     <OpsShell title="Courier management" subtitle="Last mile runsheet & proof of delivery" tabs={TABS} active="/courier">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <StatRow>
         <StatCard label="On runsheet" value={stats.onRunsheet} hint="Out for delivery now" />
         <StatCard label="Return pickups" value={stats.returnPickups} hint="Reverse logistics" />
         <StatCard label="Delivered" value={stats.delivered} hint="All time" tone="pine" />
         <StatCard label="Riders" value={stats.riders} hint="Chennai & Thanjavur" />
-      </div>
+      </StatRow>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <Board className="xl:grid-cols-[15rem_1.5fr_1fr]">
+      <div className="grid content-start gap-3 md:grid-cols-2 xl:grid-cols-1 xl:overflow-y-auto">
         {couriers.map((c) => (
-          <div key={c.id} className="panel flex items-center justify-between p-5">
+          <div key={c.id} className="flex items-center justify-between rounded-2xl border border-line bg-white p-4">
             <div>
               <p className="text-xs font-semibold text-slate">{c.zone}</p>
               <p className="mt-1 text-lg font-bold">{c.user.fullName}</p>
@@ -57,7 +59,7 @@ export default async function CourierPage() {
             {runsheet.map((s) => {
               const a = s.order.shippingAddress as unknown as Addr;
               return (
-                <li key={s.id} className="grid gap-5 px-5 py-5 lg:grid-cols-[1.2fr_1fr]">
+                <li key={s.id} className="grid gap-5 px-5 py-5 2xl:grid-cols-[1.2fr_1fr]">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-bold tabular">{s.trackingNumber}</p>
@@ -81,7 +83,7 @@ export default async function CourierPage() {
                       </p>
                     )}
                   </div>
-                  <div className="lg:border-l lg:border-line lg:pl-5">
+                  <div className="2xl:border-l 2xl:border-line 2xl:pl-5">
                     <DeliverForm shipmentId={s.id} isCod={s.paymentType === "COD"} codAmount={s.codAmount} demoCode={s.qrCode ?? s.trackingNumber} demoOtp={s.deliveryOtp} />
                   </div>
                 </li>
@@ -130,6 +132,7 @@ export default async function CourierPage() {
           </ul>
         )}
       </Section>
+      </Board>
     </OpsShell>
   );
 }

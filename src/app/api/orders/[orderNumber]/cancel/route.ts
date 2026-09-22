@@ -10,3 +10,5 @@ export const POST = handle(async (_req, { params }) => {
   if (!order || order.userId !== user.id) throw new ApiError(404, "Order not found.");
   return cancelOrder(order.id, user);
 });
+
+export const dynamic = "force-dynamic";

@@ -22,3 +22,5 @@ export const GET = handle(async (req) => {
     variants: p.variants.map((v) => ({ id: v.id, sku: v.sku, label: v.label })),
   }));
 });
+
+export const dynamic = "force-dynamic";
