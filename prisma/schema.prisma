@@ -27,15 +27,18 @@ enum UserStatus {
 }
 
 enum VendorStatus {
-  PENDING
-  APPROVED
-  SUSPENDED
+  PENDING // applied, waiting for admin
+  APPROVED // can list and sell
+  REJECTED // application declined (reason stored)
+  SUSPENDED // was approved, now blocked; listings hidden
 }
 
 enum ProductStatus {
   DRAFT
-  ACTIVE
-  INACTIVE
+  PENDING_REVIEW // submitted by a seller, waiting for admin
+  ACTIVE // live on the store
+  REJECTED // admin sent it back (note stored)
+  INACTIVE // hidden
 }
 
 enum HubType {
@@ -261,7 +264,12 @@ model Vendor {
   businessName      String
   gstin             String?
   commissionPercent Float        @default(12)
-  status            VendorStatus @default(APPROVED)
+  status            VendorStatus @default(PENDING)
+  storeDescription  String?
+  pickupAddress     String?
+  rejectionReason   String?
+  approvedAt        DateTime?
+  approvedById      String?
   createdAt         DateTime     @default(now())
   products          Product[]
 }
@@ -285,6 +293,7 @@ model Product {
   isFeatured       Boolean       @default(false) // "Selected for the week"
   isNewArrival     Boolean       @default(false) // "Fresh arrivals"
   status           ProductStatus @default(ACTIVE)
+  reviewNote       String? // admin note when a listing is rejected
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -341,6 +350,8 @@ model Review {
   rating      Int
   comment     String?
   createdAt   DateTime @default(now())
+
+  @@unique([userId, productId])
 }
 
 // ─────────────────────── Module 3: Locations ───────────────────────

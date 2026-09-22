@@ -89,8 +89,18 @@ async function main() {
 
   const aureliUser = await prisma.user.create({ data: { passwordHash: pw, fullName: "Aureli Studio", email: "aureli@subsel.demo", role: "VENDOR" } });
   const coastalUser = await prisma.user.create({ data: { passwordHash: pw, fullName: "Coastal Goods Co.", email: "coastal@subsel.demo", role: "VENDOR" } });
-  const aureli = await prisma.vendor.create({ data: { userId: aureliUser.id, businessName: "Aureli Studio Pvt Ltd", gstin: "33AAACA1234F1Z5", commissionPercent: 12 } });
-  const coastal = await prisma.vendor.create({ data: { userId: coastalUser.id, businessName: "Coastal Goods Co.", gstin: "33AABCC5678K1Z2", commissionPercent: 10 } });
+  const aureli = await prisma.vendor.create({
+    data: { userId: aureliUser.id, businessName: "Aureli Studio Pvt Ltd", gstin: "33AAACA1234F1Z5", commissionPercent: 12, status: "APPROVED", approvedAt: hoursAgo(24 * 60), approvedById: admin.id, pickupAddress: "22, Anna Salai, Chennai 600002", storeDescription: "Linen shirts, knitwear, leather goods and kidswear" },
+  });
+  const coastal = await prisma.vendor.create({
+    data: { userId: coastalUser.id, businessName: "Coastal Goods Co.", gstin: "33AABCC5678K1Z2", commissionPercent: 10, status: "APPROVED", approvedAt: hoursAgo(24 * 45), approvedById: admin.id, pickupAddress: "8, Medical College Road, Thanjavur 613004", storeDescription: "Footwear, audio and home goods" },
+  });
+
+  // A new seller application waiting for admin approval (demo)
+  const lotusUser = await prisma.user.create({ data: { passwordHash: pw, fullName: "Lakshmi Sundaram", email: "lotus@subsel.demo", phone: "98940 55120", role: "VENDOR" } });
+  await prisma.vendor.create({
+    data: { userId: lotusUser.id, businessName: "Lotus Handlooms", gstin: "33AAFCL9012M1Z8", status: "PENDING", pickupAddress: "14, Weavers Street, Kumbakonam 612001", storeDescription: "Handwoven cotton and silk sarees, stoles and dhotis from Kumbakonam weavers" },
+  });
 
   // ── Categories
   const catData = [
@@ -320,6 +330,42 @@ async function main() {
     data: { shipmentId: shipment.id, courierId: ravi.id, attemptNumber: 1, status: "DELIVERED", qrVerified: true, podType: "OTP", podValue: "OTP verified", attemptedAt: hoursAgo(40) },
   });
 
+  // A listing submitted by a seller, waiting for admin review (demo)
+  const stoleBrand = await prisma.brand.upsert({ where: { name: "Aureli Studio" }, create: { name: "Aureli Studio" }, update: {} });
+  const stole = await prisma.product.create({
+    data: {
+      slug: "handwoven-cotton-stole",
+      name: "Handwoven Cotton Stole",
+      shortDescription: "Light, breathable handloom stole with tasselled ends.",
+      description: "Woven on a pit loom from fine combed cotton, with a soft hand-feel and tasselled ends. Wear it draped over a kurta or as a light summer wrap.",
+      categoryId: cats["women"],
+      brandId: stoleBrand.id,
+      vendorId: aureli.id,
+      mrp: 1799,
+      sellingPrice: 1399,
+      isNewArrival: true,
+      status: "PENDING_REVIEW",
+      specs: { create: [{ key: "Fabric", value: "100% cotton handloom", sortOrder: 0 }, { key: "Size", value: "200 × 70 cm", sortOrder: 1 }] },
+    },
+  });
+  const stoleVariant = await prisma.productVariant.create({ data: { productId: stole.id, sku: "AUR-STL-IVR", label: "Ivory" } });
+  await prisma.inventory.create({ data: { variantId: stoleVariant.id, warehouseId: chennaiFC.id, available: 30 } });
+
+  // Verified reviews from other customers (ratings stay as seeded; these are the written ones)
+  const arun = await prisma.user.create({ data: { passwordHash: pw, fullName: "Arun Kumar", email: "arun@subsel.demo", role: "CUSTOMER" } });
+  const divya = await prisma.user.create({ data: { passwordHash: pw, fullName: "Divya Srinivasan", email: "divya@subsel.demo", role: "CUSTOMER" } });
+  const productIds = Object.fromEntries((await prisma.product.findMany({ select: { id: true, slug: true } })).map((p) => [p.slug, p.id]));
+  const reviews: [string, string, number, string, number][] = [
+    [arun.id, "nike-pegasus-run", 5, "Very comfortable on long runs. True to size and the grip is good on wet roads too.", 96],
+    [divya.id, "nike-pegasus-run", 4, "Light and cushioned. Took a week to break in but now it is my daily pair.", 170],
+    [divya.id, "relaxed-knit-sweater", 5, "Soft, not itchy at all, and the colour is exactly as shown. Delivered in two days.", 60],
+    [arun.id, "anc-headphones", 5, "Noise cancelling is excellent on the bus. Battery easily lasts the week.", 210],
+    [divya.id, "adidas-essential-tee", 4, "Thick cotton and holds its shape after washing. Slightly long on me.", 130],
+  ];
+  for (const [userId, slug, rating, comment, h] of reviews) {
+    await prisma.review.create({ data: { userId, productId: productIds[slug], rating, comment, createdAt: hoursAgo(h) } });
+  }
+
   // Sequence counters continue after the seeded numbers
   await prisma.counter.createMany({
     data: [
@@ -334,6 +380,7 @@ async function main() {
   console.log(`  All demo accounts use the password ${DEMO_PASSWORD}`);
   console.log("  Customer  priya@subsel.demo      → /login");
   console.log("  Seller    aureli@subsel.demo     → /vendor/login");
+  console.log("  Seller    lotus@subsel.demo      → /vendor/login (application pending, approve it in Admin → Sellers)");
   console.log(`  Admin     ${admin.email}      → /staff/login`);
   console.log("  Warehouse floor@subsel.demo      → /staff/login");
   console.log("  Hub       hub@subsel.demo        → /staff/login");

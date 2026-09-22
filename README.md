@@ -1,5 +1,7 @@
 # subsel — connected commerce platform (Next.js full stack)
 
+**Read [FLOW.md](FLOW.md) for the complete end-to-end flow and a 15-minute demo script.**
+
 Storefront, vendor console, admin control tower, warehouse floor, hub network and courier app in one Next.js 14 project, backed by PostgreSQL through Prisma. Every screen in the Lovable prototype is here and every button calls a real API route that changes the database.
 
 ## Stack
@@ -11,7 +13,7 @@ Next.js 14 (App Router, server components) · TypeScript · Tailwind CSS · Pris
 ```bash
 npm install
 cp .env.example .env          # set DATABASE_URL to your PostgreSQL database
-npx prisma db push            # creates all 29 tables
+npx prisma db push            # creates all tables
 npm run db:seed               # loads the prototype catalogue, hubs, riders and one delivered order
 npm run images                # downloads the prototype photos + logo into public/
 npm run dev                   # http://localhost:3000
@@ -28,7 +30,7 @@ Like Amazon or Flipkart, shoppers never see anything about staff or roles.
 | Who | Where they sign in | What they get |
 |---|---|---|
 | Customers | `/login` and `/register` (from the Account menu) | Cart, checkout, orders, returns, wishlist, saved addresses |
-| Sellers | `/vendor/login` ("Sell on subsel" in the footer) | Seller console: list products, add stock, see sales |
+| Sellers | `/vendor/register` to apply, `/vendor/login` ("Sell on subsel" in the footer) | After admin approval: list products (each reviewed by admin), add stock, see sales |
 | Staff | `/staff/login` ("Staff login" in the footer) | Admin, warehouse, hub or courier console for their role only |
 
 Guests can browse and search freely. Adding to cart, wishlist or checkout sends them to sign in and brings them back to the same page.
@@ -41,6 +43,7 @@ Security: passwords are hashed with scrypt; sessions are random tokens in an htt
 |---|---|---|
 | Customer | priya@subsel.demo | /login |
 | Seller | aureli@subsel.demo, coastal@subsel.demo | /vendor/login |
+| Seller (pending approval) | lotus@subsel.demo | /vendor/login |
 | Admin | admin@subsel.demo | /staff/login |
 | Warehouse | floor@subsel.demo | /staff/login |
 | Hub | hub@subsel.demo | /staff/login |
@@ -88,7 +91,12 @@ All responses are `{ ok: true, data }` or `{ ok: false, error }` with a proper H
 | GET / POST | `/api/warehouse` | warehouse | `{action: pick, shipmentId, code}` · `pack` · `label` · `{action: handover, shipmentId, code}` |
 | GET / POST | `/api/hub` | hub | `{hubId, code}` — server decides intake / sort / dispatch |
 | GET / POST | `/api/courier` | courier | `deliver {shipmentId, code, otp, codCollected?}` · `fail {shipmentId, reason}` · `pickup {returnId}` · `qc {returnId, pass}` |
-| POST | `/api/vendor/products` | vendor | New product with variants and opening stock |
+| POST | `/api/vendor/register` | public | Seller application (status Pending) |
+| POST | `/api/vendor/products` | seller | New product (status Pending review) |
+| POST | `/api/vendor/products/:id` | seller | `{action: resubmit}` a rejected listing |
+| POST | `/api/admin/sellers/:id` | admin | `{action: approve\|reject\|suspend\|reinstate, reason?}` |
+| POST | `/api/admin/listings/:id` | admin | `{action: approve\|reject, reason?}` |
+| POST | `/api/reviews` | customer | `{productId, rating, comment?}` verified buyers only |
 | POST | `/api/vendor/restock` | vendor | `{variantId, warehouseId, quantity}` |
 | POST | `/api/auth/register` | public | `{fullName, email, phone, password}` new customer, signed in |
 | POST | `/api/auth/login` | public | `{email, password, portal: customer\|vendor\|staff}` |
@@ -110,3 +118,7 @@ All responses are `{ ok: true, data }` or `{ ok: false, error }` with a proper H
 - **Bag pricing** (same as the prototype): subtotal − 5% discount, + 18% GST on the discounted amount, + shipping (free from ₹999, otherwise ₹99). Example: ₹23,298 → −₹1,165 → +₹3,984 GST → ₹26,117. Change `DISCOUNT_RATE` / `GST_RATE` in `src/lib/services/cart.ts`.
 - Payment methods: UPI, Card, Netbanking (simulated gateway) and COD. "Save for later" moves a bag item to the wishlist.
 - Money is stored as whole rupees (Int).
+
+## Mobile app (PWA)
+
+On phones the store uses an app layout with a bottom tab bar, and it can be installed to the home screen (`src/app/manifest.ts`, `public/sw.js`, icons in `public/icons/`). The service worker only runs in production builds, so test installation with `npm run build && npm start` on `localhost`, or on the live HTTPS deployment.
