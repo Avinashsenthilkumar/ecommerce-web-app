@@ -22,7 +22,7 @@ export default async function HomePage() {
       {/* Hero */}
       <section className="shell pt-4">
         <div className="relative min-h-[460px] overflow-hidden rounded-[24px] border border-line bg-mist sm:rounded-[32px] md:min-h-[560px] lg:min-h-[700px]">
-          <ProductImage src={s["home.heroImage"]} alt={s["home.headline"]} className="absolute inset-0 h-full w-full object-[70%_center]" />
+          <ProductImage src={s["home.heroImage"]} alt={s["home.headline"]} priority className="absolute inset-0 h-full w-full object-[70%_center]" />
           <div className="absolute inset-0 bg-gradient-to-r from-paper/90 via-paper/45 to-transparent md:from-paper/70 md:via-paper/10" aria-hidden />
           <div className="relative flex min-h-[460px] max-w-[34rem] flex-col justify-center px-6 py-12 sm:px-12 sm:py-16 md:min-h-[560px] lg:min-h-[700px]">
             <p className="eyebrow">{s["home.eyebrow"]}</p>

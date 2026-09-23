@@ -23,6 +23,19 @@ const PRESETS: { name: string; colors: Record<string, string> }[] = [
 
 const PAYMENTS = ["UPI", "CARD", "NETBANKING", "COD"];
 
+/** WCAG relative luminance, used to warn about unreadable colour combinations. */
+function luminance(hex: string) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return 1;
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16) / 255);
+  const f = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+}
+function contrast(a: string, b: string) {
+  const [l1, l2] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (l1 + 0.05) / (l2 + 0.05);
+}
+
 export function SettingsForm({ groups, initial }: { groups: Group[]; initial: Record<string, string> }) {
   const router = useRouter();
   const [, start] = useTransition();
@@ -106,6 +119,11 @@ export function SettingsForm({ groups, initial }: { groups: Group[]; initial: Re
           <p className="text-xs text-slate">{group.hint}</p>
         </div>
 
+        {group.id === "theme" && contrast(values["theme.ink"] ?? "#000", values["theme.paper"] ?? "#fff") < 4.5 && (
+          <p className="border-b border-line bg-amberSoft px-5 py-3 text-xs text-amber">
+            Low contrast: text in this Primary colour will be hard to read on this background. Pick a darker Primary or a lighter background.
+          </p>
+        )}
         {group.id === "theme" && (
           <div className="flex flex-wrap gap-2 border-b border-line px-5 py-4">
             <span className="self-center text-xs text-slate">Quick themes:</span>

@@ -5,8 +5,10 @@ prototype set — p-chinos, p-derby, p-dress, p-jeans, p-kurta, p-jacket, p-jogg
 p-kidshoes, p-backpack, p-romper, p-earbuds, p-speaker, p-band, p-charger, p-watch,
 p-sunglasses, p-belt, p-weekender, p-dinnerset, p-throw, p-candle, p-basket, p-stole.
 
-Fetched by `npm run images` from the prototype: hero.jpg, cat-men.jpg, cat-women.jpg,
-cat-children.jpg, cat-electronics.jpg, cat-accessories.jpg, cat-home.jpg, p-shoe.jpg,
+Also included (generated): hero.jpg and the six cat-*.jpg category tiles, plus
+../brand/subsel-logo.png.
+
+Fetched by `npm run images` from the prototype, replacing the generated ones: p-shoe.jpg,
 p-tshirt.jpg, p-shirt.jpg, p-sweater.jpg, p-headphones.jpg, p-wallet.jpg, p-coffee.jpg,
 p-hoodie.jpg.
 

@@ -1,20 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-/** Uses the logo from admin settings when set; otherwise draws the built-in mark. */
+/** Logo from admin settings, with the built-in mark drawn if the file is missing. */
 export function LogoMark({ src, size = 30 }: { src?: string; size?: number }) {
   const [failed, setFailed] = useState(false);
+  const ref = useRef<HTMLImageElement>(null);
   const url = src || "/brand/subsel-logo.png";
+
+  useEffect(() => {
+    const el = ref.current;
+    if (el && el.complete && el.naturalWidth === 0) setFailed(true);
+  }, [url]);
+
   if (!failed) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" width={size} height={size} className="object-contain" style={{ height: size, width: "auto", maxWidth: size * 2.4 }} onError={() => setFailed(true)} />;
+    return (
+      <img ref={ref} src={url} alt="" width={size} height={size} decoding="async"
+        style={{ height: size, width: "auto", maxWidth: size * 2.4 }} className="object-contain" onError={() => setFailed(true)} />
+    );
   }
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
-      <path d="M4 9c6-6 18-6 22 1-7-3-14-2-19 4-2-1-3-3-3-5z" fill="#F5B400" />
-      <path d="M28 23c-6 6-18 6-22-1 7 3 14 2 19-4 2 1 3 3 3 5z" fill="#1E9BD7" />
-      <path d="M8 16c5-4 12-4 16 0-5-2-11-2-16 0z" fill="#F08A00" />
+      <path d="M5.5 12.5a11 11 0 0 1 21 0" fill="none" stroke="#F5B400" strokeWidth="3.6" strokeLinecap="round" />
+      <path d="M26.5 19.5a11 11 0 0 1-21 0" fill="none" stroke="#1E9BD7" strokeWidth="3.6" strokeLinecap="round" />
+      <path d="M10.5 15.2a6 6 0 0 1 11 0" fill="none" stroke="#F08A00" strokeWidth="2.2" strokeLinecap="round" />
     </svg>
   );
 }
