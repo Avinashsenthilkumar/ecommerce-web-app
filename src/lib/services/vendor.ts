@@ -2,6 +2,7 @@ import { z } from "zod";
 import { prisma } from "../prisma";
 import { ApiError } from "../api";
 import { moveStock } from "./inventory";
+import { getSettings, rulesFrom } from "../settings";
 import type { CurrentUser } from "../auth";
 
 export function listVendors() {
@@ -77,6 +78,7 @@ export async function createVendorProduct(user: CurrentUser, input: z.infer<type
   if (!vendor) throw new ApiError(403, "Only seller accounts can list products.");
   if (vendor.status !== "APPROVED") throw new ApiError(403, "Your seller account must be approved before you can list products.");
 
+  const threshold = rulesFrom(await getSettings()).lowStockThreshold;
   return prisma.$transaction(async (tx) => {
     let slug = slugify(input.name);
     if (await tx.product.findUnique({ where: { slug } })) slug = `${slug}-${Date.now().toString(36)}`;
@@ -103,7 +105,7 @@ export async function createVendorProduct(user: CurrentUser, input: z.infer<type
       const sku = `${input.skuPrefix}-${v.label.toUpperCase().replace(/[^A-Z0-9]+/g, "")}`;
       if (await tx.productVariant.findUnique({ where: { sku } })) throw new ApiError(409, `SKU ${sku} already exists.`);
       const variant = await tx.productVariant.create({ data: { productId: product.id, sku, label: v.label } });
-      await tx.inventory.create({ data: { variantId: variant.id, warehouseId: input.warehouseId } });
+      await tx.inventory.create({ data: { variantId: variant.id, warehouseId: input.warehouseId, lowStockThreshold: threshold } });
       if (v.stock > 0) {
         await moveStock(tx, {
           variantId: variant.id,

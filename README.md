@@ -14,14 +14,14 @@ Next.js 14 (App Router, server components) · TypeScript · Tailwind CSS · Pris
 npm install
 cp .env.example .env          # set DATABASE_URL to your PostgreSQL database
 npx prisma db push            # creates all tables
-npm run db:seed               # loads the prototype catalogue, hubs, riders and one delivered order
+npm run db:seed               # loads 30 products (5 per category), hubs, riders and one delivered order
 npm run images                # downloads the prototype photos + logo into public/
 npm run dev                   # http://localhost:3000
 ```
 
 `npm run db:reset` wipes and re-seeds at any time.
 
-Photos: `npm run images` pulls every photo and the logo from the Lovable prototype (needs internet). Anything it can't find is listed at the end; drop those files into `public/products/` with the names in `public/products/README.md`. Until then the UI shows clean placeholders.
+Photos: 23 product images ship inside `public/products`. `npm run images` additionally pulls the 8 original prototype photos, the category tiles and the logo (needs internet). Anything it can't find is listed at the end; drop those files into `public/products/` with the names in `public/products/README.md`. Until then the UI shows clean placeholders.
 
 ## Accounts and logins
 
@@ -55,7 +55,8 @@ These hints also appear under the login forms in development only (`npm run dev`
 
 ```
 prisma/
-  schema.prisma          29 tables
+  schema.prisma          30 tables
+  catalog.json           the 30 products, edit here to change seed data
 scripts/
   download-images.mjs    fetches prototype photos (npm run images) in 9 modules (the data structure)
   seed.ts                prototype data
@@ -115,10 +116,24 @@ All responses are `{ ok: true, data }` or `{ ok: false, error }` with a proper H
 - **Proof of delivery**: QR match + customer OTP. Three failed attempts mark the parcel Failed.
 - **Returns**: 7-day window from delivery, quantity-aware. QC pass restocks the original warehouse and raises a refund (original source for prepaid, bank transfer for COD).
 - **Order status** is derived from its shipments after every step, so it never drifts.
-- **Bag pricing** (same as the prototype): subtotal − 5% discount, + 18% GST on the discounted amount, + shipping (free from ₹999, otherwise ₹99). Example: ₹23,298 → −₹1,165 → +₹3,984 GST → ₹26,117. Change `DISCOUNT_RATE` / `GST_RATE` in `src/lib/services/cart.ts`.
+- **Bag pricing**: subtotal − discount %, + GST % on the discounted amount, + shipping (free above a threshold). Defaults: 5%, 18%, free from ₹999 else ₹99 — ₹23,298 → −₹1,165 → +₹3,984 GST → ₹26,117. All four are editable in **Admin → Settings → Store rules** (no code change).
 - Payment methods: UPI, Card, Netbanking (simulated gateway) and COD. "Save for later" moves a bag item to the wishlist.
 - Money is stored as whole rupees (Int).
 
 ## Mobile app (PWA)
 
 On phones the store uses an app layout with a bottom tab bar, and it can be installed to the home screen (`src/app/manifest.ts`, `public/sw.js`, icons in `public/icons/`). The service worker only runs in production builds, so test installation with `npm run build && npm start` on `localhost`, or on the live HTTPS deployment.
+
+## Admin settings (no-code configuration)
+
+**Admin → Settings** (`/admin/settings`) lets the admin change the site without touching code. Values live in the `Setting` table; anything unset falls back to the defaults in `src/lib/settings.ts`.
+
+| Section | What can be changed |
+|---|---|
+| Brand & logo | Store name, logo (upload under 250 KB or paste a URL), footer tagline |
+| Theme colours | Primary, accent, background, panel and border colours, with four ready-made themes. Applied site-wide through CSS variables |
+| Homepage content | Eyebrow, headline, sub text, both buttons and their links, hero image, every section title, the delivery block text and all four statistics |
+| Store rules | Discount %, GST %, free-delivery threshold, delivery fee, return window, low-stock level, which payment methods appear at checkout |
+| Announcement & contact | Top announcement bar (on/off + text), support email, phone, address, footer note |
+
+Each section has its own "Reset this section" button. Saving takes effect immediately for new page loads (settings are cached for 2 seconds).

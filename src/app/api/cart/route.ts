@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { handle, parseBody } from "@/lib/api";
 import { requireCustomer } from "@/lib/auth";
-import { addToCart, cartTotals, getCart, setCartItemQty } from "@/lib/services/cart";
+import { addToCart, cartTotals, getCart, setCartItemQty, storeRules } from "@/lib/services/cart";
 
 // GET /api/cart
 export const GET = handle(async () => {
   const user = await requireCustomer();
   const cart = await getCart(user.id);
-  return { items: cart.items, totals: cartTotals(cart.items) };
+  return { items: cart.items, totals: cartTotals(cart.items, await storeRules()) };
 });
 
 // POST /api/cart  { variantId, quantity }

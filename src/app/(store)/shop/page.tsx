@@ -24,7 +24,7 @@ export default async function ShopPage({ searchParams }: { searchParams: { categ
   return (
     <div className="shell pt-12">
       <p className="eyebrow">Catalogue</p>
-      <h1 className="h-display mt-4 text-[3rem] leading-none sm:text-[3.5rem]">{q ? `“${q}”` : current?.name ?? "All products"}</h1>
+      <h1 className="h-display mt-4 text-[2.2rem] leading-none sm:text-[3.5rem]">{q ? `“${q}”` : current?.name ?? "All products"}</h1>
       <p className="mt-4 text-[15px] text-slate">{q ? `Search results in ${current?.name ?? "all departments"}` : current?.tagline ?? "Every department in one place"}</p>
 
       <nav className="mt-8 flex flex-wrap gap-2" aria-label="Categories">

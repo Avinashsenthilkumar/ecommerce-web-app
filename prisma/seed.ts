@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../src/lib/password";
+import catalog from "./catalog.json";
 
 const prisma = new PrismaClient();
 
@@ -118,129 +119,51 @@ async function main() {
   }
 
   // ── Products (exact prototype catalogue)
-  type Seed = {
-    slug: string;
-    name: string;
-    brand: string;
-    category: string;
-    vendorId: string;
-    mrp: number;
-    price: number;
-    rating: number;
-    reviews: number;
-    image: string;
-    short: string;
-    description: string;
-    specs: [string, string][];
-    variants: { sku: string; label: string; stock: number }[];
-    warehouseId: string;
-    featured?: boolean;
-    newArrival?: boolean;
+  // ── Products: 5 live listings in every category (prisma/catalog.json)
+  type SeedProduct = {
+    slug: string; name: string; brand: string; cat: string; vendor: "A" | "C";
+    mrp: number; price: number; rating: number; reviews: number; image: string; wh: "CHN" | "TNJ";
+    short: string; desc: string; specs: [string, string][]; variants: [string, string, number][];
+    featured?: boolean; new?: boolean;
   };
-
-  const products: Seed[] = [
-    {
-      slug: "nike-pegasus-run", name: "Nike Pegasus Trail Running Shoe", brand: "Nike", category: "men", vendorId: coastal.id,
-      mrp: 10999, price: 8499, rating: 4.7, reviews: 1284, image: "/products/p-shoe.jpg",
-      short: "Responsive daily trainer built for long neutral miles.",
-      description: "A daily running shoe with a breathable engineered knit upper and a dual-density foam midsole. Designed for neutral runners logging steady weekly mileage on road and light trail.",
-      specs: [["Upper", "Recycled engineered knit"], ["Midsole", "Dual-density responsive foam"], ["Drop", "10 mm"], ["Weight", "268 g (UK 9)"]],
-      variants: [{ sku: "NKE-PEG-UK8", label: "UK 8", stock: 42 }, { sku: "NKE-PEG-UK9", label: "UK 9", stock: 42 }, { sku: "NKE-PEG-UK10", label: "UK 10", stock: 42 }],
-      warehouseId: chennaiFC.id, newArrival: true,
-    },
-    {
-      slug: "adidas-essential-tee", name: "Adidas Essentials Cotton T-Shirt", brand: "Adidas", category: "men", vendorId: coastal.id,
-      mrp: 1799, price: 1299, rating: 4.5, reviews: 862, image: "/products/p-tshirt.jpg",
-      short: "Heavyweight jersey with a clean, squared shoulder.",
-      description: "Cut from 220 gsm combed cotton with a ribbed collar that holds its shape through repeated washing. A wardrobe base layer in a relaxed, modern fit.",
-      specs: [["Fabric", "220 gsm combed cotton"], ["Fit", "Relaxed"], ["Origin", "Tiruppur, India"]],
-      variants: [{ sku: "ADI-TEE-S", label: "S", stock: 42 }, { sku: "ADI-TEE-M", label: "M", stock: 42 }, { sku: "ADI-TEE-L", label: "L", stock: 42 }],
-      warehouseId: thanjavurFC.id, newArrival: true,
-    },
-    {
-      slug: "linen-mao-shirt", name: "100% Linen Mao Collar Shirt", brand: "Aureli Studio", category: "men", vendorId: aureli.id,
-      mrp: 4599, price: 3499, rating: 4.6, reviews: 214, image: "/products/p-shirt.jpg",
-      short: "Breathable pure linen with a band collar and relaxed drape.",
-      description: "Garment-washed European linen shirt with a mandarin collar, horn-effect buttons and a relaxed body that softens with every wear.",
-      specs: [["Fabric", "100% European linen"], ["Collar", "Mao / band"], ["Fit", "Relaxed"], ["Finish", "Garment washed"]],
-      variants: [{ sku: "AUR-LIN-M", label: "M", stock: 42 }, { sku: "AUR-LIN-L", label: "L", stock: 42 }],
-      warehouseId: chennaiFC.id, newArrival: true,
-    },
-    {
-      slug: "relaxed-knit-sweater", name: "Relaxed Fit Knit Sweater", brand: "Norra", category: "women", vendorId: aureli.id,
-      mrp: 5499, price: 4299, rating: 4.8, reviews: 341, image: "/products/p-sweater.jpg",
-      short: "Chunky rib knit with dropped shoulders for easy layering.",
-      description: "A relaxed sweater in a soft wool-cotton blend with dropped shoulders and deep ribbed cuffs. Layers over shirts or dresses alike.",
-      specs: [["Fabric", "60% cotton, 40% merino wool"], ["Knit", "Chunky rib"], ["Fit", "Relaxed, dropped shoulder"], ["Care", "Hand wash"]],
-      variants: [{ sku: "NOR-KNT-S", label: "S", stock: 42 }, { sku: "NOR-KNT-M", label: "M", stock: 42 }],
-      warehouseId: thanjavurFC.id, newArrival: true, featured: true,
-    },
-    {
-      slug: "anc-headphones", name: "Studio ANC Wireless Headphones", brand: "Kestrel Audio", category: "electronics", vendorId: coastal.id,
-      mrp: 24999, price: 18999, rating: 4.7, reviews: 2109, image: "/products/p-headphones.jpg",
-      short: "Adaptive noise cancelling with 40-hour battery life.",
-      description: "Over-ear wireless headphones with adaptive active noise cancelling, 40 mm drivers and multipoint Bluetooth. Fold flat into the included case.",
-      specs: [["Drivers", "40 mm dynamic"], ["Battery", "Up to 40 hours (ANC on)"], ["Charging", "USB-C, 10 min = 5 h"], ["Connectivity", "Bluetooth 5.3, multipoint"]],
-      variants: [{ sku: "KES-ANC-BLK", label: "Charcoal", stock: 6 }, { sku: "KES-ANC-SND", label: "Sand", stock: 6 }],
-      warehouseId: chennaiFC.id, featured: true,
-    },
-    {
-      slug: "leather-card-holder", name: "Vegetable Tanned Card Holder", brand: "Halden", category: "accessories", vendorId: aureli.id,
-      mrp: 2499, price: 1899, rating: 4.6, reviews: 428, image: "/products/p-wallet.jpg",
-      short: "Slim four-slot card holder in full-grain leather.",
-      description: "Cut from full-grain vegetable-tanned leather that darkens with use. Four card slots and a central pocket for folded notes.",
-      specs: [["Material", "Full-grain vegetable-tanned leather"], ["Capacity", "4 slots + centre pocket"], ["Size", "10 × 7.5 cm"], ["Edges", "Hand burnished"]],
-      variants: [{ sku: "HAL-CRD-TAN", label: "Tan", stock: 42 }],
-      warehouseId: chennaiFC.id, featured: true,
-    },
-    {
-      slug: "pourover-set", name: "Stoneware Pour-Over Set", brand: "Terra Maison", category: "home", vendorId: coastal.id,
-      mrp: 3499, price: 2899, rating: 4.4, reviews: 176, image: "/products/p-coffee.jpg",
-      short: "Hand-glazed dripper, carafe and two cups.",
-      description: "A stoneware pour-over dripper with matching 600 ml carafe and two cups, finished in a speckled sand glaze. Fits standard #2 filters.",
-      specs: [["Material", "Hand-glazed stoneware"], ["Carafe", "600 ml"], ["Includes", "Dripper, carafe, 2 cups"], ["Filter", "Standard #2"]],
-      variants: [{ sku: "TER-POR-SND", label: "Sand", stock: 9 }],
-      warehouseId: thanjavurFC.id, featured: true,
-    },
-    {
-      slug: "kids-terry-hoodie", name: "Kids Terry Hoodie", brand: "Norra Mini", category: "children", vendorId: aureli.id,
-      mrp: 2099, price: 1599, rating: 4.5, reviews: 93, image: "/products/p-hoodie.jpg",
-      short: "Soft looped terry with a roomy hood and kangaroo pocket.",
-      description: "A brushed cotton terry hoodie made for everyday play, with a relaxed fit that leaves room to grow and ribbed cuffs that stay put.",
-      specs: [["Fabric", "100% cotton terry"], ["Fit", "Relaxed, room to grow"], ["Pocket", "Kangaroo"], ["Care", "Machine wash warm"]],
-      variants: [{ sku: "NRM-HOD-23", label: "2–3Y", stock: 42 }, { sku: "NRM-HOD-45", label: "4–5Y", stock: 42 }],
-      warehouseId: thanjavurFC.id,
-    },
-  ];
-
+  const WH: Record<string, string> = { CHN: chennaiFC.id, TNJ: thanjavurFC.id };
+  const VENDOR: Record<string, string> = { A: aureli.id, C: coastal.id };
   const variantIds: Record<string, string> = {};
-  for (const p of products) {
+
+  async function createListing(p: SeedProduct, status: "ACTIVE" | "PENDING_REVIEW") {
     const brand = await prisma.brand.upsert({ where: { name: p.brand }, create: { name: p.brand }, update: {} });
-    const created = await prisma.product.create({
+    const product = await prisma.product.create({
       data: {
         slug: p.slug,
         name: p.name,
         shortDescription: p.short,
-        description: p.description,
-        categoryId: cats[p.category],
+        description: p.desc,
+        categoryId: cats[p.cat],
         brandId: brand.id,
-        vendorId: p.vendorId,
+        vendorId: VENDOR[p.vendor],
         mrp: p.mrp,
         sellingPrice: p.price,
         ratingAvg: p.rating,
         ratingCount: p.reviews,
         isFeatured: !!p.featured,
-        isNewArrival: !!p.newArrival,
+        isNewArrival: !!p.new,
+        status,
         images: { create: [{ url: p.image, alt: p.name }] },
         specs: { create: p.specs.map(([key, value], i) => ({ key, value, sortOrder: i })) },
       },
     });
-    for (const v of p.variants) {
-      const variant = await prisma.productVariant.create({ data: { productId: created.id, sku: v.sku, label: v.label } });
-      variantIds[v.sku] = variant.id;
-      await prisma.inventory.create({ data: { variantId: variant.id, warehouseId: p.warehouseId, available: v.stock } });
+    for (const [sku, label, stock] of p.variants) {
+      const variant = await prisma.productVariant.create({ data: { productId: product.id, sku, label } });
+      variantIds[sku] = variant.id;
+      await prisma.inventory.create({ data: { variantId: variant.id, warehouseId: WH[p.wh], available: stock } });
     }
+    return product;
   }
+
+  for (const p of catalog.products as unknown as SeedProduct[]) await createListing(p, "ACTIVE");
+  // one listing still waiting for admin review, so the approval flow can be demonstrated
+  await createListing(catalog.pendingListing as unknown as SeedProduct, "PENDING_REVIEW");
+  console.log(`  ${catalog.products.length} live products across ${Object.keys(cats).length} categories`);
 
   // ── One delivered order, matching the prototype's admin console
   const orderNo = `ORD-${ymd()}-000120`;
@@ -329,27 +252,6 @@ async function main() {
   await prisma.deliveryAttempt.create({
     data: { shipmentId: shipment.id, courierId: ravi.id, attemptNumber: 1, status: "DELIVERED", qrVerified: true, podType: "OTP", podValue: "OTP verified", attemptedAt: hoursAgo(40) },
   });
-
-  // A listing submitted by a seller, waiting for admin review (demo)
-  const stoleBrand = await prisma.brand.upsert({ where: { name: "Aureli Studio" }, create: { name: "Aureli Studio" }, update: {} });
-  const stole = await prisma.product.create({
-    data: {
-      slug: "handwoven-cotton-stole",
-      name: "Handwoven Cotton Stole",
-      shortDescription: "Light, breathable handloom stole with tasselled ends.",
-      description: "Woven on a pit loom from fine combed cotton, with a soft hand-feel and tasselled ends. Wear it draped over a kurta or as a light summer wrap.",
-      categoryId: cats["women"],
-      brandId: stoleBrand.id,
-      vendorId: aureli.id,
-      mrp: 1799,
-      sellingPrice: 1399,
-      isNewArrival: true,
-      status: "PENDING_REVIEW",
-      specs: { create: [{ key: "Fabric", value: "100% cotton handloom", sortOrder: 0 }, { key: "Size", value: "200 × 70 cm", sortOrder: 1 }] },
-    },
-  });
-  const stoleVariant = await prisma.productVariant.create({ data: { productId: stole.id, sku: "AUR-STL-IVR", label: "Ivory" } });
-  await prisma.inventory.create({ data: { variantId: stoleVariant.id, warehouseId: chennaiFC.id, available: 30 } });
 
   // Verified reviews from other customers (ratings stay as seeded; these are the written ones)
   const arun = await prisma.user.create({ data: { passwordHash: pw, fullName: "Arun Kumar", email: "arun@subsel.demo", role: "CUSTOMER" } });

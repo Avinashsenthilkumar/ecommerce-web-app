@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { OrderDetail } from "@/lib/services/orders";
-import { RETURN_WINDOW_DAYS } from "@/lib/services/orders";
 import { fmtDate, fmtDateTime, humanize, inr } from "@/lib/format";
 import { StatusBadge } from "./StatusBadge";
 import { ProductImage } from "./ProductImage";
@@ -10,7 +9,7 @@ import { ActionButton } from "./ActionButton";
 
 type Addr = { name: string; line1: string; line2?: string; city: string; state: string; pincode: string; phone: string };
 
-export function OrderCard({ order, expanded = false }: { order: OrderDetail; expanded?: boolean }) {
+export function OrderCard({ order, expanded = false, returnWindowDays = 7 }: { order: OrderDetail; expanded?: boolean; returnWindowDays?: number }) {
   const addr = order.shippingAddress as unknown as Addr;
   const unallocated = order.items.filter((i) => !i.shipmentId);
 
@@ -55,7 +54,7 @@ export function OrderCard({ order, expanded = false }: { order: OrderDetail; exp
         {order.shipments.map((s, idx) => {
           const items = order.items.filter((i) => i.shipmentId === s.id);
           const deliveredDaysAgo = s.deliveredAt ? (Date.now() - new Date(s.deliveredAt).getTime()) / 86_400_000 : null;
-          const canReturn = s.status === "DELIVERED" && deliveredDaysAgo !== null && deliveredDaysAgo <= RETURN_WINDOW_DAYS;
+          const canReturn = s.status === "DELIVERED" && deliveredDaysAgo !== null && deliveredDaysAgo <= returnWindowDays;
           return (
             <section key={s.id} className="rounded-xl border border-line">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
@@ -122,7 +121,7 @@ export function OrderCard({ order, expanded = false }: { order: OrderDetail; exp
               {s.deliveredAt && (
                 <p className="border-t border-line px-4 py-2.5 text-xs text-slate">
                   Delivered {fmtDate(s.deliveredAt)}.{" "}
-                  {canReturn ? `Returns open until ${fmtDate(new Date(new Date(s.deliveredAt).getTime() + RETURN_WINDOW_DAYS * 86_400_000))}.` : "Return window closed."}
+                  {canReturn ? `Returns open until ${fmtDate(new Date(new Date(s.deliveredAt).getTime() + returnWindowDays * 86_400_000))}.` : "Return window closed."}
                 </p>
               )}
             </section>
@@ -142,9 +141,9 @@ export function OrderCard({ order, expanded = false }: { order: OrderDetail; exp
             </div>
             <dl className="space-y-1.5 tabular">
               <div className="flex justify-between"><dt className="text-slate">Subtotal</dt><dd>{inr(order.subtotal)}</dd></div>
-              <div className="flex justify-between"><dt className="text-slate">Discount (5%)</dt><dd>− {inr(order.discountTotal)}</dd></div>
+              <div className="flex justify-between"><dt className="text-slate">Discount</dt><dd>− {inr(order.discountTotal)}</dd></div>
               <div className="flex justify-between"><dt className="text-slate">Shipping</dt><dd>{order.shippingFee ? inr(order.shippingFee) : "Free"}</dd></div>
-              <div className="flex justify-between"><dt className="text-slate">GST (18%)</dt><dd>{inr(order.taxTotal)}</dd></div>
+              <div className="flex justify-between"><dt className="text-slate">GST</dt><dd>{inr(order.taxTotal)}</dd></div>
               <div className="flex justify-between font-bold"><dt>Total</dt><dd>{inr(order.grandTotal)}</dd></div>
               {order.refunds.map((r) => (
                 <div key={r.id} className="flex justify-between text-xs">

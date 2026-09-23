@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { getSettings, rulesFrom } from "@/lib/settings";
 import { listOrdersForUser } from "@/lib/services/orders";
 import { OrderCard } from "@/components/OrderCard";
 
@@ -9,11 +10,12 @@ export const metadata = { title: "My orders — subsel" };
 export default async function OrdersPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") redirect("/login?next=/orders");
-  const orders = await listOrdersForUser(user.id);
+  const [orders, settings] = await Promise.all([listOrdersForUser(user.id), getSettings()]);
+  const windowDays = rulesFrom(settings).returnWindowDays;
 
   return (
     <div className="shell max-w-4xl py-10">
-      <h1 className="h-display text-5xl">My orders</h1>
+      <h1 className="h-display text-[2.2rem] sm:text-5xl">My orders</h1>
       <p className="mt-2 text-sm text-slate">Signed in as {user.fullName}. Every parcel shows its live scan trail.</p>
 
       {orders.length === 0 ? (
@@ -25,7 +27,7 @@ export default async function OrdersPage() {
       ) : (
         <div className="mt-8 space-y-6">
           {orders.map((o) => (
-            <OrderCard key={o.id} order={o} />
+            <OrderCard key={o.id} order={o} returnWindowDays={windowDays} />
           ))}
         </div>
       )}

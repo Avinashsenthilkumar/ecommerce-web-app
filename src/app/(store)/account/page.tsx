@@ -29,7 +29,7 @@ export default async function AccountPage() {
     <div className="shell max-w-5xl py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="h-display text-5xl">Your account</h1>
+          <h1 className="h-display text-[2.2rem] sm:text-5xl">Your account</h1>
           <p className="mt-2 text-sm text-slate">
             {user.fullName}, {user.email}
             {user.phone ? `, ${user.phone}` : ""}. Customer since {fmtDate(user.createdAt)}.

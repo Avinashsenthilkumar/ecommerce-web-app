@@ -6,13 +6,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#1C1917", // near-black text and primary buttons
+        // themeable via CSS variables set from admin settings (src/lib/settings.ts)
+        ink: "rgb(var(--c-ink) / <alpha-value>)", // text and primary buttons
         slate: "#78716C", // secondary text
-        mist: "#F1EEE9", // warm panels (fulfilment block, selected options)
-        paper: "#FAF8F5", // page background
-        line: "#E7E2DA", // hairline borders
-        pine: "#3F7D58", // discount green / success
-        pineSoft: "#E4EFE7",
+        mist: "rgb(var(--c-mist) / <alpha-value>)", // warm panels
+        paper: "rgb(var(--c-paper) / <alpha-value>)", // page background
+        line: "rgb(var(--c-line) / <alpha-value>)", // hairline borders
+        pine: "rgb(var(--c-pine) / <alpha-value>)", // accent / discounts
+        pineSoft: "rgb(var(--c-pine) / 0.12)",
         sale: "#B42318", // errors
         amber: "#B7791F",
         amberSoft: "#F6EBD5",

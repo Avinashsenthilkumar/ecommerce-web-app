@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { getSettings, rulesFrom } from "@/lib/settings";
 import { getOrderForUser } from "@/lib/services/orders";
 import { OrderCard } from "@/components/OrderCard";
 
@@ -12,7 +13,7 @@ export async function generateMetadata({ params }: { params: { orderNumber: stri
 export default async function OrderDetailPage({ params, searchParams }: { params: { orderNumber: string }; searchParams: { placed?: string } }) {
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") redirect("/login?next=/orders");
-  const order = await getOrderForUser(params.orderNumber, user);
+  const [order, settings] = await Promise.all([getOrderForUser(params.orderNumber, user), getSettings()]);
   if (!order) notFound();
 
   return (
@@ -30,7 +31,7 @@ export default async function OrderDetailPage({ params, searchParams }: { params
         </div>
       )}
       <h1 className="h-display mb-6 mt-4 text-4xl">Track order</h1>
-      <OrderCard order={order} expanded />
+      <OrderCard order={order} expanded returnWindowDays={rulesFrom(settings).returnWindowDays} />
     </div>
   );
 }

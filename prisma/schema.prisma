@@ -672,6 +672,14 @@ model Refund {
   completedAt   DateTime?
 }
 
+/// Editable site settings (branding, theme, home content, store rules).
+/// One row per key; anything missing falls back to the defaults in src/lib/settings.ts
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 /// Sequence generator for human-readable numbers
 model Counter {
   key   String @id

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import clsx from "clsx";
-import { LayoutDashboard, Store, Warehouse, Network, Truck, Package, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Store, Warehouse, Network, Truck, Package, Settings, ExternalLink } from "lucide-react";
 import type { Role } from "@prisma/client";
 import { getCurrentUser, ROLE_HOME, ROLE_LABEL } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -16,6 +16,7 @@ const STAFF_NAV = [
   { href: "/warehouse", label: "Warehouse", icon: Warehouse },
   { href: "/hub", label: "Hub", icon: Network },
   { href: "/courier", label: "Courier", icon: Truck },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 /** Work waiting in each console, shown as badges in the sidebar. */
@@ -181,7 +182,7 @@ export function Section({
         </div>
         {action}
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+      <div className="min-h-0 flex-1 overflow-auto">{children}</div>
     </section>
   );
 }

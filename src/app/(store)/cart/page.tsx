@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { cartTotals, getCart, lineUnitPrice } from "@/lib/services/cart";
+import { cartTotals, getCart, lineUnitPrice, storeRules } from "@/lib/services/cart";
 import { listAddresses } from "@/lib/services/account";
 import { CartView, type CartLineView } from "@/components/CartView";
 
@@ -9,7 +9,7 @@ export const metadata = { title: "Cart — subsel" };
 export default async function CartPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") redirect("/login?next=/cart");
-  const [cart, addresses] = await Promise.all([getCart(user.id), listAddresses(user.id)]);
+  const [cart, addresses, rules] = await Promise.all([getCart(user.id), listAddresses(user.id), storeRules()]);
 
   const lines: CartLineView[] = cart.items.map((l) => ({
     id: l.id,
@@ -29,7 +29,8 @@ export default async function CartPage() {
     <div className="shell pt-10">
       <CartView
         lines={lines}
-        totals={cartTotals(cart.items)}
+        totals={cartTotals(cart.items, rules)}
+        rules={{ discountPercent: rules.discountPercent, gstPercent: rules.gstPercent, paymentMethods: rules.paymentMethods }}
         addresses={addresses.map((a) => ({
           id: a.id,
           isDefault: a.isDefault,

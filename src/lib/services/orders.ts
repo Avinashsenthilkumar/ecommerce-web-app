@@ -3,11 +3,11 @@ import type { OrderStatus, Prisma } from "@prisma/client";
 import { prisma, type Tx } from "../prisma";
 import { ApiError } from "../api";
 import { gatewayTxn, orderNumber, returnNumber } from "../codes";
-import { cartInclude, cartTotals, lineUnitPrice } from "./cart";
+import { cartInclude, cartTotals, lineUnitPrice, storeRules } from "./cart";
 import { sumAvailable } from "./inventory";
 import type { CurrentUser } from "../auth";
 
-export const RETURN_WINDOW_DAYS = 7;
+
 
 export const addressSchema = z.object({
   name: z.string().trim().min(2, "Enter the receiver's name"),
@@ -39,7 +39,7 @@ export async function placeOrder(userId: string, input: z.infer<typeof placeOrde
         }
       }
 
-      const totals = cartTotals(cart.items);
+      const totals = cartTotals(cart.items, await storeRules());
       const prepaid = input.paymentMethod !== "COD";
 
       const order = await tx.order.create({
@@ -151,8 +151,9 @@ export async function requestReturn(user: CurrentUser, input: z.infer<typeof ret
     if (!item.shipment || item.shipment.status !== "DELIVERED" || !item.shipment.deliveredAt) {
       throw new ApiError(409, "Returns open once the item is delivered.");
     }
+    const windowDays = (await storeRules()).returnWindowDays;
     const ageDays = (Date.now() - item.shipment.deliveredAt.getTime()) / 86_400_000;
-    if (ageDays > RETURN_WINDOW_DAYS) throw new ApiError(409, `The ${RETURN_WINDOW_DAYS}-day return window has closed.`);
+    if (ageDays > windowDays) throw new ApiError(409, `The ${windowDays}-day return window has closed.`);
 
     const alreadyReturning = item.returns
       .filter((r) => r.status !== "REJECTED" && r.status !== "QC_FAILED")

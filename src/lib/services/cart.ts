@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 import { ApiError } from "../api";
 import { sumAvailable } from "./inventory";
+import { getSettings, rulesFrom, type StoreRules } from "../settings";
 
 export const cartInclude = {
   items: {
@@ -22,10 +23,9 @@ export const cartInclude = {
 export type CartData = Prisma.CartGetPayload<{ include: typeof cartInclude }>;
 export type CartLine = CartData["items"][number];
 
-export const FREE_SHIPPING_FROM = 999;
-export const SHIPPING_FEE = 99;
-export const DISCOUNT_RATE = 0.05; // shown as "Discount (5%)"
-export const GST_RATE = 0.18; // shown as "GST (18%)"
+export async function storeRules() {
+  return rulesFrom(await getSettings());
+}
 
 export function getCart(userId: string) {
   return prisma.cart.upsert({ where: { userId }, create: { userId }, update: {}, include: cartInclude });
@@ -36,23 +36,23 @@ export function lineUnitPrice(line: CartLine) {
 }
 
 /**
- * Bag pricing, same as the prototype:
- * subtotal − 5% discount = taxable, + 18% GST, + shipping (free from ₹999).
- * Example: ₹23,298 − ₹1,165 = ₹22,133, + ₹3,984 GST = ₹26,117.
+ * Bag pricing, using the percentages saved in admin settings:
+ * subtotal − discount = taxable, + GST, + shipping (free above the threshold).
+ * Default example: ₹23,298 − 5% = ₹22,133, + 18% GST = ₹26,117.
  */
-export function priceBreakdown(subtotal: number) {
-  const discountTotal = Math.round(subtotal * DISCOUNT_RATE);
+export function priceBreakdown(subtotal: number, r: StoreRules) {
+  const discountTotal = Math.round(subtotal * r.discountRate);
   const taxable = subtotal - discountTotal;
-  const taxTotal = Math.round(taxable * GST_RATE);
-  const shippingFee = subtotal === 0 || subtotal >= FREE_SHIPPING_FROM ? 0 : SHIPPING_FEE;
+  const taxTotal = Math.round(taxable * r.gstRate);
+  const shippingFee = subtotal === 0 || subtotal >= r.freeShippingFrom ? 0 : r.shippingFee;
   return { subtotal, discountTotal, taxTotal, shippingFee, grandTotal: taxable + taxTotal + shippingFee };
 }
 
-export function cartTotals(items: CartLine[]) {
+export function cartTotals(items: CartLine[], r: StoreRules) {
   const subtotal = items.reduce((s, l) => s + lineUnitPrice(l) * l.quantity, 0);
   const mrpTotal = items.reduce((s, l) => s + l.variant.product.mrp * l.quantity, 0);
   return {
-    ...priceBreakdown(subtotal),
+    ...priceBreakdown(subtotal, r),
     mrpTotal,
     savedVsMrp: Math.max(0, mrpTotal - subtotal),
     units: items.reduce((s, l) => s + l.quantity, 0),

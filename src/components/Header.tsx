@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Heart, ShoppingBag } from "lucide-react";
 import { getCurrentUser, ROLE_HOME } from "@/lib/auth";
+import { getSettings } from "@/lib/settings";
 import { cartCount } from "@/lib/services/cart";
 import { Logo } from "./Logo";
 import { AccountMenu } from "./AccountMenu";
@@ -16,12 +17,15 @@ const NAV = [
 ];
 
 export async function Header() {
-  const user = await getCurrentUser();
+  const [user, s] = await Promise.all([getCurrentUser(), getSettings()]);
   const isCustomer = user?.role === "CUSTOMER";
   const count = user && isCustomer ? await cartCount(user.id) : 0;
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/90 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+      {s["announcement.enabled"] === "1" && s["announcement.text"] && (
+        <p className="bg-ink px-4 py-2 text-center text-xs text-white">{s["announcement.text"]}</p>
+      )}
       <div className="shell relative flex h-16 items-center gap-6">
         <Logo />
 

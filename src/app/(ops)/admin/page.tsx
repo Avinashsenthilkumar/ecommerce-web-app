@@ -88,7 +88,7 @@ export default async function AdminPage() {
         {/* 2. Inventory */}
         <div id="inventory" className="contents">
           <Section title="Inventory" hint="Live stock buckets across warehouses" className="max-h-[36rem] xl:max-h-none">
-            <table className="w-full text-xs tabular">
+            <table className="w-full min-w-[520px] text-xs tabular">
               <thead className="sticky top-0 bg-white">
                 <tr className="border-b border-line text-left text-slate">
                   <th className="px-4 py-2 font-medium">SKU</th>

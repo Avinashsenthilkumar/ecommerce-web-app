@@ -13,7 +13,7 @@ export default async function WishlistPage() {
 
   return (
     <div className="shell py-10">
-      <h1 className="h-display text-5xl">Your wishlist</h1>
+      <h1 className="h-display text-[2.2rem] sm:text-5xl">Your wishlist</h1>
       <p className="mt-2 text-sm text-slate">{items.length} saved item(s). Prices and stock update live.</p>
       {items.length === 0 ? (
         <div className="py-20 text-center">

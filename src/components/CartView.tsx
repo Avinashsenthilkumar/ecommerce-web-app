@@ -27,23 +27,19 @@ export type CartLineView = {
 type Totals = { subtotal: number; discountTotal: number; taxTotal: number; shippingFee: number; grandTotal: number; units: number };
 type SavedAddress = AddressValue & { id: string; isDefault: boolean };
 
-const PAYMENT = [
-  { key: "UPI", label: "UPI" },
-  { key: "CARD", label: "Card" },
-  { key: "NETBANKING", label: "Netbanking" },
-  { key: "COD", label: "COD" },
-] as const;
-type PaymentKey = (typeof PAYMENT)[number]["key"];
+const PAYMENT_LABEL: Record<string, string> = { UPI: "UPI", CARD: "Card", NETBANKING: "Netbanking", COD: "Cash on delivery" };
+type PaymentKey = "UPI" | "CARD" | "NETBANKING" | "COD";
+type Rules = { discountPercent: number; gstPercent: number; paymentMethods: PaymentKey[] };
 
 const pick = (a: SavedAddress): AddressValue => ({ name: a.name, phone: a.phone, line1: a.line1, line2: a.line2, city: a.city, state: a.state, pincode: a.pincode });
 
-export function CartView({ lines, totals, addresses, userName, userPhone }: { lines: CartLineView[]; totals: Totals; addresses: SavedAddress[]; userName: string; userPhone: string }) {
+export function CartView({ lines, totals, addresses, userName, userPhone, rules }: { lines: CartLineView[]; totals: Totals; addresses: SavedAddress[]; userName: string; userPhone: string; rules: Rules }) {
   const router = useRouter();
   const [, start] = useTransition();
   const initial = addresses.find((a) => a.isDefault) ?? addresses[0];
   const [savedId, setSavedId] = useState<string | null>(initial?.id ?? null);
   const [addr, setAddr] = useState<AddressValue>(initial ? pick(initial) : emptyAddress(userName, userPhone));
-  const [payment, setPayment] = useState<PaymentKey>("UPI");
+  const [payment, setPayment] = useState<PaymentKey>(rules.paymentMethods[0] ?? "UPI");
   const [lineError, setLineError] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [placing, setPlacing] = useState(false);
@@ -89,7 +85,7 @@ export function CartView({ lines, totals, addresses, userName, userPhone }: { li
 
   return (
     <form onSubmit={placeOrder}>
-      <h1 className="h-display text-[3rem] leading-none">Your bag</h1>
+      <h1 className="h-display text-[2.2rem] leading-none sm:text-[3rem]">Your bag</h1>
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.55fr_1fr]">
         <div className="space-y-6">
           {/* Items */}
@@ -189,19 +185,19 @@ export function CartView({ lines, totals, addresses, userName, userPhone }: { li
               <h2 className="text-sm font-medium">Payment method</h2>
             </header>
             <div className="space-y-2.5 px-5 py-5" role="radiogroup" aria-label="Payment method">
-              {PAYMENT.map((p) => (
+              {rules.paymentMethods.map((key) => (
                 <button
-                  key={p.key}
+                  key={key}
                   type="button"
                   role="radio"
-                  aria-checked={payment === p.key}
-                  onClick={() => setPayment(p.key)}
+                  aria-checked={payment === key}
+                  onClick={() => setPayment(key)}
                   className={clsx(
                     "flex h-12 w-full items-center rounded-full border px-5 text-left text-sm transition-colors",
-                    payment === p.key ? "border-ink/30 bg-mist" : "border-line bg-white hover:border-ink/30",
+                    payment === key ? "border-ink/30 bg-mist" : "border-line bg-white hover:border-ink/30",
                   )}
                 >
-                  {p.label}
+                  {PAYMENT_LABEL[key]}
                 </button>
               ))}
             </div>
@@ -215,9 +211,9 @@ export function CartView({ lines, totals, addresses, userName, userPhone }: { li
             <div className="px-5 py-5">
               <dl className="space-y-4 text-sm tabular">
                 <div className="flex justify-between"><dt className="text-slate">Subtotal</dt><dd>{inr(totals.subtotal)}</dd></div>
-                <div className="flex justify-between"><dt className="text-slate">Discount (5%)</dt><dd>− {inr(totals.discountTotal)}</dd></div>
+                <div className="flex justify-between"><dt className="text-slate">Discount ({rules.discountPercent}%)</dt><dd>− {inr(totals.discountTotal)}</dd></div>
                 <div className="flex justify-between"><dt className="text-slate">Shipping</dt><dd>{totals.shippingFee === 0 ? "Free" : inr(totals.shippingFee)}</dd></div>
-                <div className="flex justify-between"><dt className="text-slate">GST (18%)</dt><dd>{inr(totals.taxTotal)}</dd></div>
+                <div className="flex justify-between"><dt className="text-slate">GST ({rules.gstPercent}%)</dt><dd>{inr(totals.taxTotal)}</dd></div>
                 <div className="flex justify-between border-t border-line pt-5"><dt className="text-slate">Total payable</dt><dd className="font-medium">{inr(totals.grandTotal)}</dd></div>
               </dl>
               <button type="submit" disabled={placing} className="btn-primary mt-6 h-12 w-full">

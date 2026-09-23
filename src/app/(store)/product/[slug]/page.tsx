@@ -64,7 +64,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
         <div className="lg:pl-2">
           <p className="eyebrow">{product.brand.name}</p>
-          <h1 className="h-display mt-3 text-[2.4rem] leading-[1.05] sm:text-[2.75rem]">{product.name}</h1>
+          <h1 className="h-display mt-3 text-[1.9rem] leading-[1.05] sm:text-[2.75rem]">{product.name}</h1>
           <p className="mt-3 text-[15px] text-slate">{product.shortDescription}</p>
           <div className="mt-5">
             <Rating avg={product.ratingAvg} count={product.ratingCount} suffix=" reviews" />
@@ -105,7 +105,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
         </div>
       </div>
 
-      <section className="pt-24" id="reviews">
+      <section className="pt-16 sm:pt-24" id="reviews">
         <div className="grid gap-10 lg:grid-cols-[20rem_1fr]">
           <div>
             <h2 className="section-title text-[2.2rem] sm:text-[2.6rem]">Customer reviews</h2>
@@ -159,7 +159,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
       </section>
 
       {related.length > 0 && (
-        <section className="pt-28">
+        <section className="pt-16 sm:pt-28">
           <h2 className="section-title mb-10">You may also like</h2>
           <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4">
             {related.map((p) => (

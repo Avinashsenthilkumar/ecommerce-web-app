@@ -4,6 +4,12 @@
 
 :root {
   color-scheme: light;
+  /* defaults; overridden by the theme saved in admin settings */
+  --c-ink: 28 25 23;
+  --c-pine: 63 125 88;
+  --c-paper: 250 248 245;
+  --c-mist: 241 238 233;
+  --c-line: 231 226 218;
 }
 
 body {
@@ -23,7 +29,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid #1c1917;
+  outline: 2px solid rgb(var(--c-ink));
   outline-offset: 2px;
 }
 
