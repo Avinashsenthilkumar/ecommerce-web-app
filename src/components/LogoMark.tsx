@@ -10,7 +10,9 @@ export function LogoMark({ src, size = 30 }: { src?: string; size?: number }) {
 
   useEffect(() => {
     const el = ref.current;
-    if (el && el.complete && el.naturalWidth === 0) setFailed(true);
+    // currentSrc stays empty for lazy images the browser has not fetched yet —
+    // only a real, finished, empty load counts as a failure.
+    if (el && el.complete && el.currentSrc !== "" && el.naturalWidth === 0) setFailed(true);
   }, [url]);
 
   if (!failed) {

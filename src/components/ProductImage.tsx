@@ -14,7 +14,9 @@ export function ProductImage({ src, alt, className, priority = false }: { src?: 
 
   useEffect(() => {
     const el = ref.current;
-    if (el && el.complete && el.naturalWidth === 0) setFailed(true);
+    // currentSrc stays empty for lazy images the browser has not fetched yet —
+    // only a real, finished, empty load counts as a failure.
+    if (el && el.complete && el.currentSrc !== "" && el.naturalWidth === 0) setFailed(true);
   }, [src]);
 
   if (failed || !src) {
@@ -39,6 +41,7 @@ export function ProductImage({ src, alt, className, priority = false }: { src?: 
       loading={priority ? "eager" : "lazy"}
       decoding="async"
       className={clsx("object-cover", className)}
+      onLoad={(e) => e.currentTarget.naturalWidth > 0 && setFailed(false)}
       onError={() => setFailed(true)}
     />
   );
