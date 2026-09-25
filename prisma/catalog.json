@@ -1,1421 +1,784 @@
 {
- "products": [
-  {
-   "slug": "nike-pegasus-run",
-   "name": "Nike Pegasus Trail Running Shoe",
-   "brand": "Nike",
-   "cat": "men",
-   "vendor": "C",
-   "mrp": 10999,
-   "price": 8499,
-   "rating": 4.7,
-   "reviews": 1284,
-   "image": "/products/p-shoe.jpg",
-   "wh": "CHN",
-   "new": true,
-   "short": "Responsive daily trainer built for long neutral miles.",
-   "desc": "A daily running shoe with a breathable engineered knit upper and a dual-density foam midsole. Designed for neutral runners logging steady weekly mileage on road and light trail.",
-   "specs": [
-    [
-     "Upper",
-     "Recycled engineered knit"
-    ],
-    [
-     "Midsole",
-     "Dual-density responsive foam"
-    ],
-    [
-     "Drop",
-     "10 mm"
-    ],
-    [
-     "Weight",
-     "268 g (UK 9)"
-    ]
-   ],
-   "variants": [
-    [
-     "NKE-PEG-UK8",
-     "UK 8",
-     42
-    ],
-    [
-     "NKE-PEG-UK9",
-     "UK 9",
-     42
-    ],
-    [
-     "NKE-PEG-UK10",
-     "UK 10",
-     42
-    ]
-   ]
-  },
-  {
-   "slug": "adidas-essential-tee",
-   "name": "Adidas Essentials Cotton T-Shirt",
-   "brand": "Adidas",
-   "cat": "men",
-   "vendor": "C",
-   "mrp": 1799,
-   "price": 1299,
-   "rating": 4.5,
-   "reviews": 862,
-   "image": "/products/p-tshirt.jpg",
-   "wh": "TNJ",
-   "new": true,
-   "short": "Heavyweight jersey with a clean, squared shoulder.",
-   "desc": "Cut from 220 gsm combed cotton with a ribbed collar that holds its shape through repeated washing. A wardrobe base layer in a relaxed, modern fit.",
-   "specs": [
-    [
-     "Fabric",
-     "220 gsm combed cotton"
-    ],
-    [
-     "Fit",
-     "Relaxed"
-    ],
-    [
-     "Origin",
-     "Tiruppur, India"
-    ]
-   ],
-   "variants": [
-    [
-     "ADI-TEE-S",
-     "S",
-     42
-    ],
-    [
-     "ADI-TEE-M",
-     "M",
-     42
-    ],
-    [
-     "ADI-TEE-L",
-     "L",
-     42
-    ]
-   ]
-  },
-  {
-   "slug": "linen-mao-shirt",
-   "name": "100% Linen Mao Collar Shirt",
-   "brand": "Aureli Studio",
-   "cat": "men",
-   "vendor": "A",
-   "mrp": 4599,
-   "price": 3499,
-   "rating": 4.6,
-   "reviews": 214,
-   "image": "/products/p-shirt.jpg",
-   "wh": "CHN",
-   "new": true,
-   "short": "Breathable pure linen with a band collar and relaxed drape.",
-   "desc": "Garment-washed European linen shirt with a mandarin collar, horn-effect buttons and a relaxed body that softens with every wear.",
-   "specs": [
-    [
-     "Fabric",
-     "100% European linen"
-    ],
-    [
-     "Collar",
-     "Mao / band"
-    ],
-    [
-     "Fit",
-     "Relaxed"
-    ],
-    [
-     "Finish",
-     "Garment washed"
-    ]
-   ],
-   "variants": [
-    [
-     "AUR-LIN-M",
-     "M",
-     42
-    ],
-    [
-     "AUR-LIN-L",
-     "L",
-     42
-    ]
-   ]
-  },
-  {
-   "slug": "tapered-cotton-chinos",
-   "name": "Tapered Cotton Chinos",
-   "brand": "Norra",
-   "cat": "men",
-   "vendor": "A",
-   "mrp": 3699,
-   "price": 2799,
-   "rating": 4.4,
-   "reviews": 376,
-   "image": "/products/p-chinos.jpg",
-   "wh": "TNJ",
-   "short": "Mid-rise stretch cotton with a clean tapered leg.",
-   "desc": "Twill chinos in a comfort-stretch cotton blend, cut mid-rise with a tapered leg that breaks cleanly over a shoe. Finished with a curtained waistband and angled pockets.",
-   "specs": [
-    [
-     "Fabric",
-     "98% cotton, 2% elastane twill"
-    ],
-    [
-     "Rise",
-     "Mid"
-    ],
-    [
-     "Leg",
-     "Tapered"
-    ],
-    [
-     "Care",
-     "Machine wash cold"
-    ]
-   ],
-   "variants": [
-    [
-     "NOR-CHN-30",
-     "30",
-     36
-    ],
-    [
-     "NOR-CHN-32",
-     "32",
-     36
-    ],
-    [
-     "NOR-CHN-34",
-     "34",
-     36
-    ]
-   ]
-  },
-  {
-   "slug": "leather-derby-shoes",
-   "name": "Hand-Stitched Leather Derbys",
-   "brand": "Halden",
-   "cat": "men",
-   "vendor": "A",
-   "mrp": 7999,
-   "price": 5999,
-   "rating": 4.6,
-   "reviews": 158,
-   "image": "/products/p-derby.jpg",
-   "wh": "CHN",
-   "featured": true,
-   "short": "Full-grain leather uppers on a stitched leather sole.",
-   "desc": "A classic three-eyelet derby in full-grain calf leather, hand-stitched to a leather sole that moulds to the foot. Resoleable, so it lasts for years.",
-   "specs": [
-    [
-     "Upper",
-     "Full-grain calf leather"
-    ],
-    [
-     "Sole",
-     "Stitched leather"
-    ],
-    [
-     "Lining",
-     "Vegetable-tanned leather"
-    ],
-    [
-     "Made in",
-     "Chennai, India"
-    ]
-   ],
-   "variants": [
-    [
-     "HAL-DRB-UK8",
-     "UK 8",
-     18
-    ],
-    [
-     "HAL-DRB-UK9",
-     "UK 9",
-     18
-    ]
-   ]
-  },
-  {
-   "slug": "relaxed-knit-sweater",
-   "name": "Relaxed Fit Knit Sweater",
-   "brand": "Norra",
-   "cat": "women",
-   "vendor": "A",
-   "mrp": 5499,
-   "price": 4299,
-   "rating": 4.8,
-   "reviews": 341,
-   "image": "/products/p-sweater.jpg",
-   "wh": "TNJ",
-   "new": true,
-   "featured": true,
-   "short": "Chunky rib knit with dropped shoulders for easy layering.",
-   "desc": "A relaxed sweater in a soft wool-cotton blend with dropped shoulders and deep ribbed cuffs. Layers over shirts or dresses alike.",
-   "specs": [
-    [
-     "Fabric",
-     "60% cotton, 40% merino wool"
-    ],
-    [
-     "Knit",
-     "Chunky rib"
-    ],
-    [
-     "Fit",
-     "Relaxed, dropped shoulder"
-    ],
-    [
-     "Care",
-     "Hand wash"
-    ]
-   ],
-   "variants": [
-    [
-     "NOR-KNT-S",
-     "S",
-     42
-    ],
-    [
-     "NOR-KNT-M",
-     "M",
-     42
-    ]
-   ]
-  },
-  {
-   "slug": "linen-wrap-dress",
-   "name": "Belted Linen Wrap Dress",
-   "brand": "Aureli Studio",
-   "cat": "women",
-   "vendor": "A",
-   "mrp": 6499,
-   "price": 4899,
-   "rating": 4.7,
-   "reviews": 268,
-   "image": "/products/p-dress.jpg",
-   "wh": "CHN",
-   "new": true,
-   "short": "Midi wrap dress in washed linen with a self belt.",
-   "desc": "A midi-length wrap dress in washed European linen, with a deep V neckline, three-quarter sleeves and a self-tie belt that shapes the waist.",
-   "specs": [
-    [
-     "Fabric",
-     "100% washed linen"
-    ],
-    [
-     "Length",
-     "Midi, 118 cm"
-    ],
-    [
-     "Closure",
-     "Wrap with self belt"
-    ],
-    [
-     "Care",
-     "Machine wash gentle"
-    ]
-   ],
-   "variants": [
-    [
-     "AUR-DRS-S",
-     "S",
-     30
-    ],
-    [
-     "AUR-DRS-M",
-     "M",
-     30
-    ],
-    [
-     "AUR-DRS-L",
-     "L",
-     30
-    ]
-   ]
-  },
-  {
-   "slug": "high-rise-straight-jeans",
-   "name": "High-Rise Straight Jeans",
-   "brand": "Norra",
-   "cat": "women",
-   "vendor": "A",
-   "mrp": 4299,
-   "price": 3299,
-   "rating": 4.5,
-   "reviews": 512,
-   "image": "/products/p-jeans.jpg",
-   "wh": "TNJ",
-   "short": "Rigid-feel denim with a clean straight leg.",
-   "desc": "High-rise jeans in a rigid-feel cotton denim with a touch of stretch, cut straight through the leg and finished with a raw-edge hem option.",
-   "specs": [
-    [
-     "Fabric",
-     "99% cotton, 1% elastane denim"
-    ],
-    [
-     "Rise",
-     "High, 28 cm"
-    ],
-    [
-     "Leg",
-     "Straight"
-    ],
-    [
-     "Inseam",
-     "76 cm"
-    ]
-   ],
-   "variants": [
-    [
-     "NOR-JNS-26",
-     "26",
-     40
-    ],
-    [
-     "NOR-JNS-28",
-     "28",
-     40
-    ],
-    [
-     "NOR-JNS-30",
-     "30",
-     40
-    ]
-   ]
-  },
-  {
-   "slug": "everyday-cotton-kurta",
-   "name": "Everyday Cotton Kurta",
-   "brand": "Meera",
-   "cat": "women",
-   "vendor": "A",
-   "mrp": 2499,
-   "price": 1899,
-   "rating": 4.6,
-   "reviews": 430,
-   "image": "/products/p-kurta.jpg",
-   "wh": "TNJ",
-   "short": "Soft handloom cotton with side slits and a mandarin collar.",
-   "desc": "A straight-cut kurta in breathable handloom cotton with a mandarin collar, wooden buttons and deep side slits for easy movement.",
-   "specs": [
-    [
-     "Fabric",
-     "100% handloom cotton"
-    ],
-    [
-     "Length",
-     "Knee, 96 cm"
-    ],
-    [
-     "Collar",
-     "Mandarin"
-    ],
-    [
-     "Care",
-     "Machine wash cold"
-    ]
-   ],
-   "variants": [
-    [
-     "MEE-KUR-S",
-     "S",
-     45
-    ],
-    [
-     "MEE-KUR-M",
-     "M",
-     45
-    ],
-    [
-     "MEE-KUR-L",
-     "L",
-     45
-    ]
-   ]
-  },
-  {
-   "slug": "quilted-city-jacket",
-   "name": "Quilted City Jacket",
-   "brand": "Norra",
-   "cat": "women",
-   "vendor": "A",
-   "mrp": 6999,
-   "price": 5499,
-   "rating": 4.4,
-   "reviews": 126,
-   "image": "/products/p-jacket.jpg",
-   "wh": "CHN",
-   "short": "Lightweight diamond-quilted jacket for cool mornings.",
-   "desc": "A diamond-quilted jacket with a recycled shell, snap front and jersey-lined pockets. Light enough to layer under a coat.",
-   "specs": [
-    [
-     "Shell",
-     "Recycled polyester"
-    ],
-    [
-     "Fill",
-     "Lightweight wadding"
-    ],
-    [
-     "Closure",
-     "Snap front"
-    ],
-    [
-     "Pockets",
-     "Jersey-lined, two"
-    ]
-   ],
-   "variants": [
-    [
-     "NOR-JKT-S",
-     "S",
-     22
-    ],
-    [
-     "NOR-JKT-M",
-     "M",
-     22
-    ]
-   ]
-  },
-  {
-   "slug": "kids-terry-hoodie",
-   "name": "Kids Terry Hoodie",
-   "brand": "Norra Mini",
-   "cat": "children",
-   "vendor": "A",
-   "mrp": 2099,
-   "price": 1599,
-   "rating": 4.5,
-   "reviews": 93,
-   "image": "/products/p-hoodie.jpg",
-   "wh": "TNJ",
-   "short": "Soft looped terry with a roomy hood and kangaroo pocket.",
-   "desc": "A brushed cotton terry hoodie made for everyday play, with a relaxed fit that leaves room to grow and ribbed cuffs that stay put.",
-   "specs": [
-    [
-     "Fabric",
-     "100% cotton terry"
-    ],
-    [
-     "Fit",
-     "Relaxed, room to grow"
-    ],
-    [
-     "Pocket",
-     "Kangaroo"
-    ],
-    [
-     "Care",
-     "Machine wash warm"
-    ]
-   ],
-   "variants": [
-    [
-     "NRM-HOD-23",
-     "2–3Y",
-     42
-    ],
-    [
-     "NRM-HOD-45",
-     "4–5Y",
-     42
-    ]
-   ]
-  },
-  {
-   "slug": "kids-cotton-joggers",
-   "name": "Kids Cotton Joggers",
-   "brand": "Norra Mini",
-   "cat": "children",
-   "vendor": "A",
-   "mrp": 1499,
-   "price": 1099,
-   "rating": 4.4,
-   "reviews": 78,
-   "image": "/products/p-joggers.jpg",
-   "wh": "TNJ",
-   "short": "Stretch waistband joggers that survive the playground.",
-   "desc": "Soft fleece-back joggers with an elasticated drawcord waist, tapered legs and reinforced knees for daily wear.",
-   "specs": [
-    [
-     "Fabric",
-     "Cotton fleece-back jersey"
-    ],
-    [
-     "Waist",
-     "Elastic with drawcord"
-    ],
-    [
-     "Knees",
-     "Reinforced"
-    ],
-    [
-     "Care",
-     "Machine wash warm"
-    ]
-   ],
-   "variants": [
-    [
-     "NRM-JOG-23",
-     "2–3Y",
-     40
-    ],
-    [
-     "NRM-JOG-45",
-     "4–5Y",
-     40
-    ],
-    [
-     "NRM-JOG-67",
-     "6–7Y",
-     40
-    ]
-   ]
-  },
-  {
-   "slug": "kids-canvas-sneakers",
-   "name": "Kids Canvas Sneakers",
-   "brand": "Trot",
-   "cat": "children",
-   "vendor": "C",
-   "mrp": 2399,
-   "price": 1799,
-   "rating": 4.5,
-   "reviews": 141,
-   "image": "/products/p-kidshoes.jpg",
-   "wh": "CHN",
-   "new": true,
-   "short": "Washable canvas with a hook-and-loop strap.",
-   "desc": "Lightweight canvas sneakers with a single hook-and-loop strap little ones can manage alone, a flexible rubber sole and a washable upper.",
-   "specs": [
-    [
-     "Upper",
-     "Cotton canvas"
-    ],
-    [
-     "Closure",
-     "Hook and loop"
-    ],
-    [
-     "Sole",
-     "Flexible rubber"
-    ],
-    [
-     "Care",
-     "Machine washable"
-    ]
-   ],
-   "variants": [
-    [
-     "TRT-SNK-10",
-     "UK 10",
-     26
-    ],
-    [
-     "TRT-SNK-11",
-     "UK 11",
-     26
-    ],
-    [
-     "TRT-SNK-12",
-     "UK 12",
-     26
-    ]
-   ]
-  },
-  {
-   "slug": "school-backpack-18l",
-   "name": "School Backpack 18L",
-   "brand": "Halden",
-   "cat": "children",
-   "vendor": "A",
-   "mrp": 1999,
-   "price": 1499,
-   "rating": 4.6,
-   "reviews": 205,
-   "image": "/products/p-backpack.jpg",
-   "wh": "CHN",
-   "short": "Padded straps, laptop sleeve and a water-repellent base.",
-   "desc": "An 18-litre school backpack with padded shoulder straps, a padded sleeve for a tablet or small laptop, two bottle pockets and a water-repellent base panel.",
-   "specs": [
-    [
-     "Capacity",
-     "18 litres"
-    ],
-    [
-     "Sleeve",
-     "Fits 13-inch laptop"
-    ],
-    [
-     "Material",
-     "Recycled polyester canvas"
-    ],
-    [
-     "Base",
-     "Water-repellent"
-    ]
-   ],
-   "variants": [
-    [
-     "HAL-BAG-NVY",
-     "Navy",
-     30
-    ],
-    [
-     "HAL-BAG-RED",
-     "Red",
-     30
-    ]
-   ]
-  },
-  {
-   "slug": "organic-baby-romper",
-   "name": "Organic Cotton Baby Romper",
-   "brand": "Norra Mini",
-   "cat": "children",
-   "vendor": "A",
-   "mrp": 1399,
-   "price": 999,
-   "rating": 4.7,
-   "reviews": 64,
-   "image": "/products/p-romper.jpg",
-   "wh": "TNJ",
-   "short": "GOTS-certified cotton with easy popper fastening.",
-   "desc": "A short-sleeve romper in GOTS-certified organic cotton, with poppers along the inside leg for quick changes and flat seams that sit softly on new skin.",
-   "specs": [
-    [
-     "Fabric",
-     "GOTS organic cotton"
-    ],
-    [
-     "Fastening",
-     "Poppers, inside leg"
-    ],
-    [
-     "Seams",
-     "Flat-locked"
-    ],
-    [
-     "Care",
-     "Machine wash warm"
-    ]
-   ],
-   "variants": [
-    [
-     "NRM-RMP-06",
-     "0–6M",
-     35
-    ],
-    [
-     "NRM-RMP-612",
-     "6–12M",
-     35
-    ]
-   ]
-  },
-  {
-   "slug": "anc-headphones",
-   "name": "Studio ANC Wireless Headphones",
-   "brand": "Kestrel Audio",
-   "cat": "electronics",
-   "vendor": "C",
-   "mrp": 24999,
-   "price": 18999,
-   "rating": 4.7,
-   "reviews": 2109,
-   "image": "/products/p-headphones.jpg",
-   "wh": "CHN",
-   "featured": true,
-   "short": "Adaptive noise cancelling with 40-hour battery life.",
-   "desc": "Over-ear wireless headphones with adaptive active noise cancelling, 40 mm drivers and multipoint Bluetooth. Fold flat into the included case.",
-   "specs": [
-    [
-     "Drivers",
-     "40 mm dynamic"
-    ],
-    [
-     "Battery",
-     "Up to 40 hours (ANC on)"
-    ],
-    [
-     "Charging",
-     "USB-C, 10 min = 5 h"
-    ],
-    [
-     "Connectivity",
-     "Bluetooth 5.3, multipoint"
-    ]
-   ],
-   "variants": [
-    [
-     "KES-ANC-BLK",
-     "Charcoal",
-     6
-    ],
-    [
-     "KES-ANC-SND",
-     "Sand",
-     6
-    ]
-   ]
-  },
-  {
-   "slug": "wireless-earbuds-pro",
-   "name": "Wireless Earbuds Pro",
-   "brand": "Kestrel Audio",
-   "cat": "electronics",
-   "vendor": "C",
-   "mrp": 8999,
-   "price": 6999,
-   "rating": 4.5,
-   "reviews": 1640,
-   "image": "/products/p-earbuds.jpg",
-   "wh": "CHN",
-   "new": true,
-   "short": "Compact ANC earbuds with a 28-hour charging case.",
-   "desc": "In-ear buds with hybrid noise cancelling, transparency mode and four microphones for calls. The pocketable case adds three extra charges.",
-   "specs": [
-    [
-     "Drivers",
-     "11 mm dynamic"
-    ],
-    [
-     "Battery",
-     "7 h buds, 28 h with case"
-    ],
-    [
-     "Water resistance",
-     "IPX4"
-    ],
-    [
-     "Connectivity",
-     "Bluetooth 5.3"
-    ]
-   ],
-   "variants": [
-    [
-     "KES-BUD-WHT",
-     "White",
-     24
-    ],
-    [
-     "KES-BUD-BLK",
-     "Black",
-     24
-    ]
-   ]
-  },
-  {
-   "slug": "portable-bluetooth-speaker",
-   "name": "Portable Bluetooth Speaker",
-   "brand": "Kestrel Audio",
-   "cat": "electronics",
-   "vendor": "C",
-   "mrp": 5999,
-   "price": 4499,
-   "rating": 4.4,
-   "reviews": 870,
-   "image": "/products/p-speaker.jpg",
-   "wh": "TNJ",
-   "short": "Room-filling sound in a bag-sized speaker, IP67 rated.",
-   "desc": "A passive-radiator speaker that plays far louder than its size suggests, with 16 hours of playback and an IP67 dust and water rating for outdoors.",
-   "specs": [
-    [
-     "Output",
-     "20 W RMS"
-    ],
-    [
-     "Battery",
-     "Up to 16 hours"
-    ],
-    [
-     "Rating",
-     "IP67 dust and water"
-    ],
-    [
-     "Extras",
-     "Stereo pairing, USB-C"
-    ]
-   ],
-   "variants": [
-    [
-     "KES-SPK-CHR",
-     "Charcoal",
-     20
-    ],
-    [
-     "KES-SPK-OLV",
-     "Olive",
-     20
-    ]
-   ]
-  },
-  {
-   "slug": "smart-fitness-band",
-   "name": "Smart Fitness Band",
-   "brand": "Vertex",
-   "cat": "electronics",
-   "vendor": "C",
-   "mrp": 4499,
-   "price": 3499,
-   "rating": 4.3,
-   "reviews": 1195,
-   "image": "/products/p-band.jpg",
-   "wh": "CHN",
-   "short": "AMOLED display, heart rate and 14-day battery.",
-   "desc": "A slim tracker with a 1.5-inch AMOLED display, continuous heart-rate and SpO2 tracking, 60 workout modes and up to 14 days between charges.",
-   "specs": [
-    [
-     "Display",
-     "1.5-inch AMOLED"
-    ],
-    [
-     "Battery",
-     "Up to 14 days"
-    ],
-    [
-     "Sensors",
-     "Heart rate, SpO2, accelerometer"
-    ],
-    [
-     "Water resistance",
-     "5 ATM"
-    ]
-   ],
-   "variants": [
-    [
-     "VTX-BND-BLK",
-     "Black",
-     28
-    ],
-    [
-     "VTX-BND-BLU",
-     "Blue",
-     28
-    ]
-   ]
-  },
-  {
-   "slug": "65w-gan-charger",
-   "name": "65 W GaN Fast Charger",
-   "brand": "Vertex",
-   "cat": "electronics",
-   "vendor": "C",
-   "mrp": 2999,
-   "price": 2299,
-   "rating": 4.6,
-   "reviews": 540,
-   "image": "/products/p-charger.jpg",
-   "wh": "TNJ",
-   "short": "Charges a laptop and a phone at the same time.",
-   "desc": "A compact gallium-nitride charger with two USB-C ports and one USB-A, delivering up to 65 W to a laptop or splitting power across three devices.",
-   "specs": [
-    [
-     "Output",
-     "65 W total"
-    ],
-    [
-     "Ports",
-     "2 × USB-C, 1 × USB-A"
-    ],
-    [
-     "Technology",
-     "GaN II"
-    ],
-    [
-     "Safety",
-     "Over-current and thermal protection"
-    ]
-   ],
-   "variants": [
-    [
-     "VTX-CHG-WHT",
-     "White",
-     34
-    ]
-   ]
-  },
-  {
-   "slug": "leather-card-holder",
-   "name": "Vegetable Tanned Card Holder",
-   "brand": "Halden",
-   "cat": "accessories",
-   "vendor": "A",
-   "mrp": 2499,
-   "price": 1899,
-   "rating": 4.6,
-   "reviews": 428,
-   "image": "/products/p-wallet.jpg",
-   "wh": "CHN",
-   "featured": true,
-   "short": "Slim four-slot card holder in full-grain leather.",
-   "desc": "Cut from full-grain vegetable-tanned leather that darkens with use. Four card slots and a central pocket for folded notes.",
-   "specs": [
-    [
-     "Material",
-     "Full-grain vegetable-tanned leather"
-    ],
-    [
-     "Capacity",
-     "4 slots + centre pocket"
-    ],
-    [
-     "Size",
-     "10 × 7.5 cm"
-    ],
-    [
-     "Edges",
-     "Hand burnished"
-    ]
-   ],
-   "variants": [
-    [
-     "HAL-CRD-TAN",
-     "Tan",
-     42
-    ]
-   ]
-  },
-  {
-   "slug": "minimal-steel-watch",
-   "name": "Minimal Steel Watch",
-   "brand": "Vertex",
-   "cat": "accessories",
-   "vendor": "C",
-   "mrp": 9999,
-   "price": 7499,
-   "rating": 4.5,
-   "reviews": 312,
-   "image": "/products/p-watch.jpg",
-   "wh": "CHN",
-   "new": true,
-   "short": "36 mm brushed steel case on a sapphire crystal.",
-   "desc": "A pared-back three-hand watch with a 36 mm brushed steel case, sapphire crystal and a Japanese quartz movement, on a quick-release strap.",
-   "specs": [
-    [
-     "Case",
-     "36 mm brushed steel"
-    ],
-    [
-     "Crystal",
-     "Sapphire"
-    ],
-    [
-     "Movement",
-     "Japanese quartz"
-    ],
-    [
-     "Water resistance",
-     "5 ATM"
-    ]
-   ],
-   "variants": [
-    [
-     "VTX-WCH-SLV",
-     "Silver",
-     14
-    ],
-    [
-     "VTX-WCH-BLK",
-     "Black",
-     14
-    ]
-   ]
-  },
-  {
-   "slug": "polarised-sunglasses",
-   "name": "Polarised Acetate Sunglasses",
-   "brand": "Halden",
-   "cat": "accessories",
-   "vendor": "A",
-   "mrp": 3999,
-   "price": 2999,
-   "rating": 4.4,
-   "reviews": 276,
-   "image": "/products/p-sunglasses.jpg",
-   "wh": "TNJ",
-   "short": "Hand-polished acetate with UV400 polarised lenses.",
-   "desc": "Hand-polished Italian acetate frames with polarised UV400 lenses that cut glare on the road, plus adjustable nose pads and a hard case.",
-   "specs": [
-    [
-     "Frame",
-     "Italian acetate"
-    ],
-    [
-     "Lenses",
-     "Polarised UV400"
-    ],
-    [
-     "Width",
-     "142 mm"
-    ],
-    [
-     "Includes",
-     "Hard case and cloth"
-    ]
-   ],
-   "variants": [
-    [
-     "HAL-SUN-TRT",
-     "Tortoise",
-     25
-    ],
-    [
-     "HAL-SUN-BLK",
-     "Black",
-     25
-    ]
-   ]
-  },
-  {
-   "slug": "full-grain-leather-belt",
-   "name": "Full-Grain Leather Belt",
-   "brand": "Halden",
-   "cat": "accessories",
-   "vendor": "A",
-   "mrp": 2299,
-   "price": 1699,
-   "rating": 4.6,
-   "reviews": 198,
-   "image": "/products/p-belt.jpg",
-   "wh": "CHN",
-   "short": "35 mm strap with a solid brass buckle.",
-   "desc": "A 35 mm full-grain leather belt with a solid brass roller buckle, hand-finished edges and five holes for adjustment.",
-   "specs": [
-    [
-     "Material",
-     "Full-grain leather"
-    ],
-    [
-     "Width",
-     "35 mm"
-    ],
-    [
-     "Buckle",
-     "Solid brass roller"
-    ],
-    [
-     "Finish",
-     "Hand-burnished edges"
-    ]
-   ],
-   "variants": [
-    [
-     "HAL-BLT-32",
-     "32",
-     30
-    ],
-    [
-     "HAL-BLT-34",
-     "34",
-     30
-    ],
-    [
-     "HAL-BLT-36",
-     "36",
-     30
-    ]
-   ]
-  },
-  {
-   "slug": "canvas-weekender-bag",
-   "name": "Canvas Weekender Bag",
-   "brand": "Halden",
-   "cat": "accessories",
-   "vendor": "A",
-   "mrp": 5499,
-   "price": 4299,
-   "rating": 4.7,
-   "reviews": 154,
-   "image": "/products/p-weekender.jpg",
-   "wh": "TNJ",
-   "short": "Waxed canvas with leather handles and a shoe pocket.",
-   "desc": "A 40-litre weekender in waxed cotton canvas with bridle leather handles, a detachable shoulder strap and a separate base pocket for shoes.",
-   "specs": [
-    [
-     "Capacity",
-     "40 litres"
-    ],
-    [
-     "Material",
-     "Waxed cotton canvas"
-    ],
-    [
-     "Handles",
-     "Bridle leather"
-    ],
-    [
-     "Extras",
-     "Shoe pocket, detachable strap"
-    ]
-   ],
-   "variants": [
-    [
-     "HAL-WKD-OLV",
-     "Olive",
-     16
-    ],
-    [
-     "HAL-WKD-SND",
-     "Sand",
-     16
-    ]
-   ]
-  },
-  {
-   "slug": "pourover-set",
-   "name": "Stoneware Pour-Over Set",
-   "brand": "Terra Maison",
-   "cat": "home",
-   "vendor": "C",
-   "mrp": 3499,
-   "price": 2899,
-   "rating": 4.4,
-   "reviews": 176,
-   "image": "/products/p-coffee.jpg",
-   "wh": "TNJ",
-   "featured": true,
-   "short": "Hand-glazed dripper, carafe and two cups.",
-   "desc": "A stoneware pour-over dripper with matching 600 ml carafe and two cups, finished in a speckled sand glaze. Fits standard #2 filters.",
-   "specs": [
-    [
-     "Material",
-     "Hand-glazed stoneware"
-    ],
-    [
-     "Carafe",
-     "600 ml"
-    ],
-    [
-     "Includes",
-     "Dripper, carafe, 2 cups"
-    ],
-    [
-     "Filter",
-     "Standard #2"
-    ]
-   ],
-   "variants": [
-    [
-     "TER-POR-SND",
-     "Sand",
-     9
-    ]
-   ]
-  },
-  {
-   "slug": "stoneware-dinner-set",
-   "name": "Stoneware Dinner Set for Four",
-   "brand": "Terra Maison",
-   "cat": "home",
-   "vendor": "C",
-   "mrp": 6999,
-   "price": 5499,
-   "rating": 4.6,
-   "reviews": 208,
-   "image": "/products/p-dinnerset.jpg",
-   "wh": "TNJ",
-   "new": true,
-   "short": "Twelve pieces of reactive-glaze stoneware.",
-   "desc": "Four dinner plates, four side plates and four bowls in a reactive glaze, so no two pieces are identical. Dishwasher and microwave safe.",
-   "specs": [
-    [
-     "Pieces",
-     "12 (4 × 3)"
-    ],
-    [
-     "Material",
-     "Reactive-glaze stoneware"
-    ],
-    [
-     "Dinner plate",
-     "27 cm"
-    ],
-    [
-     "Care",
-     "Dishwasher and microwave safe"
-    ]
-   ],
-   "variants": [
-    [
-     "TER-DIN-SND",
-     "Sand",
-     12
-    ],
-    [
-     "TER-DIN-SLT",
-     "Slate",
-     12
-    ]
-   ]
-  },
-  {
-   "slug": "cotton-throw-blanket",
-   "name": "Handloom Cotton Throw",
-   "brand": "Terra Maison",
-   "cat": "home",
-   "vendor": "C",
-   "mrp": 3299,
-   "price": 2499,
-   "rating": 4.5,
-   "reviews": 167,
-   "image": "/products/p-throw.jpg",
-   "wh": "CHN",
-   "short": "Woven on a pit loom with fringed ends.",
-   "desc": "A generously sized handloom cotton throw with a subtle herringbone weave and hand-knotted fringe, soft enough for a sofa or a bed.",
-   "specs": [
-    [
-     "Material",
-     "100% handloom cotton"
-    ],
-    [
-     "Size",
-     "150 × 200 cm"
-    ],
-    [
-     "Weave",
-     "Herringbone"
-    ],
-    [
-     "Finish",
-     "Hand-knotted fringe"
-    ]
-   ],
-   "variants": [
-    [
-     "TER-THR-ECR",
-     "Ecru",
-     26
-    ],
-    [
-     "TER-THR-CHR",
-     "Charcoal",
-     26
-    ]
-   ]
-  },
-  {
-   "slug": "scented-soy-candle",
-   "name": "Scented Soy Candle 220 g",
-   "brand": "Terra Maison",
-   "cat": "home",
-   "vendor": "C",
-   "mrp": 1599,
-   "price": 1199,
-   "rating": 4.7,
-   "reviews": 389,
-   "image": "/products/p-candle.jpg",
-   "wh": "CHN",
-   "short": "Natural soy wax with a 45-hour burn time.",
-   "desc": "Hand-poured soy wax with a cotton wick in a reusable stoneware vessel, blended for a warm, quiet room scent that never overwhelms.",
-   "specs": [
-    [
-     "Wax",
-     "100% soy"
-    ],
-    [
-     "Burn time",
-     "Up to 45 hours"
-    ],
-    [
-     "Weight",
-     "220 g"
-    ],
-    [
-     "Vessel",
-     "Reusable stoneware"
-    ]
-   ],
-   "variants": [
-    [
-     "TER-CND-FIG",
-     "Fig",
-     40
-    ],
-    [
-     "TER-CND-CDR",
-     "Cedar",
-     40
-    ]
-   ]
-  },
-  {
-   "slug": "rattan-storage-basket",
-   "name": "Rattan Storage Basket",
-   "brand": "Terra Maison",
-   "cat": "home",
-   "vendor": "C",
-   "mrp": 2399,
-   "price": 1799,
-   "rating": 4.3,
-   "reviews": 112,
-   "image": "/products/p-basket.jpg",
-   "wh": "TNJ",
-   "short": "Hand-woven rattan with reinforced handles.",
-   "desc": "A hand-woven rattan basket with a sturdy frame and cut-out handles, sized for blankets, toys or laundry in a corner of the room.",
-   "specs": [
-    [
-     "Material",
-     "Natural rattan"
-    ],
-    [
-     "Size",
-     "45 × 35 cm"
-    ],
-    [
-     "Handles",
-     "Reinforced cut-outs"
-    ],
-    [
-     "Care",
-     "Wipe clean"
-    ]
-   ],
-   "variants": [
-    [
-     "TER-BSK-NAT",
-     "Natural",
-     22
-    ]
-   ]
-  }
- ],
- "pendingListing": {
-  "slug": "handwoven-cotton-stole",
-  "name": "Handwoven Cotton Stole",
-  "brand": "Aureli Studio",
-  "cat": "women",
-  "vendor": "A",
-  "mrp": 1799,
-  "price": 1399,
-  "rating": 0,
-  "reviews": 0,
-  "image": "/products/p-stole.jpg",
-  "wh": "CHN",
-  "short": "Light, breathable handloom stole with tasselled ends.",
-  "desc": "Woven on a pit loom from fine combed cotton, with a soft hand-feel and tasselled ends. Wear it draped over a kurta or as a light summer wrap.",
-  "specs": [
-   [
-    "Fabric",
-    "100% cotton handloom"
-   ],
-   [
-    "Size",
-    "200 × 70 cm"
-   ]
+  "products": [
+    {
+      "slug": "nike-pegasus-run",
+      "name": "Nike Pegasus Trail Running Shoe",
+      "brand": "Nike",
+      "cat": "men",
+      "vendor": "C",
+      "mrp": 10999,
+      "price": 8499,
+      "rating": 4.7,
+      "reviews": 1284,
+      "image": "/products/p-derby.jpg",
+      "wh": "CHN",
+      "new": true,
+      "short": "Responsive daily trainer built for long neutral miles.",
+      "desc": "A daily running shoe with a breathable engineered knit upper and a dual-density foam midsole. Designed for neutral runners logging steady weekly mileage on road and light trail.",
+      "specs": [
+        ["Upper", "Recycled engineered knit"],
+        ["Midsole", "Dual-density responsive foam"],
+        ["Drop", "10 mm"],
+        ["Weight", "268 g (UK 9)"]
+      ],
+      "variants": [
+        ["NKE-PEG-UK8", "UK 8", 42],
+        ["NKE-PEG-UK9", "UK 9", 42],
+        ["NKE-PEG-UK10", "UK 10", 42]
+      ]
+    },
+    {
+      "slug": "adidas-essential-tee",
+      "name": "Adidas Essentials Cotton T-Shirt",
+      "brand": "Adidas",
+      "cat": "men",
+      "vendor": "C",
+      "mrp": 1799,
+      "price": 1299,
+      "rating": 4.5,
+      "reviews": 862,
+      "image": "/products/p-kurta.jpg",
+      "wh": "TNJ",
+      "new": true,
+      "short": "Heavyweight jersey with a clean, squared shoulder.",
+      "desc": "Cut from 220 gsm combed cotton with a ribbed collar that holds its shape through repeated washing. A wardrobe base layer in a relaxed, modern fit.",
+      "specs": [
+        ["Fabric", "220 gsm combed cotton"],
+        ["Fit", "Relaxed"],
+        ["Origin", "Tiruppur, India"]
+      ],
+      "variants": [
+        ["ADI-TEE-S", "S", 42],
+        ["ADI-TEE-M", "M", 42],
+        ["ADI-TEE-L", "L", 42]
+      ]
+    },
+    {
+      "slug": "linen-mao-shirt",
+      "name": "100% Linen Mao Collar Shirt",
+      "brand": "Aureli Studio",
+      "cat": "men",
+      "vendor": "A",
+      "mrp": 4599,
+      "price": 3499,
+      "rating": 4.6,
+      "reviews": 214,
+      "image": "/products/p-kurta.jpg",
+      "wh": "CHN",
+      "new": true,
+      "short": "Breathable pure linen with a band collar and relaxed drape.",
+      "desc": "Garment-washed European linen shirt with a mandarin collar, horn-effect buttons and a relaxed body that softens with every wear.",
+      "specs": [
+        ["Fabric", "100% European linen"],
+        ["Collar", "Mao / band"],
+        ["Fit", "Relaxed"],
+        ["Finish", "Garment washed"]
+      ],
+      "variants": [
+        ["AUR-LIN-M", "M", 42],
+        ["AUR-LIN-L", "L", 42]
+      ]
+    },
+    {
+      "slug": "tapered-cotton-chinos",
+      "name": "Tapered Cotton Chinos",
+      "brand": "Norra",
+      "cat": "men",
+      "vendor": "A",
+      "mrp": 3699,
+      "price": 2799,
+      "rating": 4.4,
+      "reviews": 376,
+      "image": "/products/p-chinos.jpg",
+      "wh": "TNJ",
+      "short": "Mid-rise stretch cotton with a clean tapered leg.",
+      "desc": "Twill chinos in a comfort-stretch cotton blend, cut mid-rise with a tapered leg that breaks cleanly over a shoe. Finished with a curtained waistband and angled pockets.",
+      "specs": [
+        ["Fabric", "98% cotton, 2% elastane twill"],
+        ["Rise", "Mid"],
+        ["Leg", "Tapered"],
+        ["Care", "Machine wash cold"]
+      ],
+      "variants": [
+        ["NOR-CHN-30", "30", 36],
+        ["NOR-CHN-32", "32", 36],
+        ["NOR-CHN-34", "34", 36]
+      ]
+    },
+    {
+      "slug": "leather-derby-shoes",
+      "name": "Hand-Stitched Leather Derbys",
+      "brand": "Halden",
+      "cat": "men",
+      "vendor": "A",
+      "mrp": 7999,
+      "price": 5999,
+      "rating": 4.6,
+      "reviews": 158,
+      "image": "/products/p-derby.jpg",
+      "wh": "CHN",
+      "featured": true,
+      "short": "Full-grain leather uppers on a stitched leather sole.",
+      "desc": "A classic three-eyelet derby in full-grain calf leather, hand-stitched to a leather sole that moulds to the foot. Resoleable, so it lasts for years.",
+      "specs": [
+        ["Upper", "Full-grain calf leather"],
+        ["Sole", "Stitched leather"],
+        ["Lining", "Vegetable-tanned leather"],
+        ["Made in", "Chennai, India"]
+      ],
+      "variants": [
+        ["HAL-DRB-UK8", "UK 8", 18],
+        ["HAL-DRB-UK9", "UK 9", 18]
+      ]
+    },
+    {
+      "slug": "relaxed-knit-sweater",
+      "name": "Relaxed Fit Knit Sweater",
+      "brand": "Norra",
+      "cat": "women",
+      "vendor": "A",
+      "mrp": 5499,
+      "price": 4299,
+      "rating": 4.8,
+      "reviews": 341,
+      "image": "/products/p-jacket.jpg",
+      "wh": "TNJ",
+      "new": true,
+      "featured": true,
+      "short": "Chunky rib knit with dropped shoulders for easy layering.",
+      "desc": "A relaxed sweater in a soft wool-cotton blend with dropped shoulders and deep ribbed cuffs. Layers over shirts or dresses alike.",
+      "specs": [
+        ["Fabric", "60% cotton, 40% merino wool"],
+        ["Knit", "Chunky rib"],
+        ["Fit", "Relaxed, dropped shoulder"],
+        ["Care", "Hand wash"]
+      ],
+      "variants": [
+        ["NOR-KNT-S", "S", 42],
+        ["NOR-KNT-M", "M", 42]
+      ]
+    },
+    {
+      "slug": "linen-wrap-dress",
+      "name": "Belted Linen Wrap Dress",
+      "brand": "Aureli Studio",
+      "cat": "women",
+      "vendor": "A",
+      "mrp": 6499,
+      "price": 4899,
+      "rating": 4.7,
+      "reviews": 268,
+      "image": "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+      "wh": "CHN",
+      "new": true,
+      "short": "Midi wrap dress in washed linen with a self belt.",
+      "desc": "A midi-length wrap dress in washed European linen, with a deep V neckline, three-quarter sleeves and a self-tie belt that shapes the waist.",
+      "specs": [
+        ["Fabric", "100% washed linen"],
+        ["Length", "Midi, 118 cm"],
+        ["Closure", "Wrap with self belt"],
+        ["Care", "Machine wash gentle"]
+      ],
+      "variants": [
+        ["AUR-DRS-S", "S", 30],
+        ["AUR-DRS-M", "M", 30],
+        ["AUR-DRS-L", "L", 30]
+      ]
+    },
+    {
+      "slug": "high-rise-straight-jeans",
+      "name": "High-Rise Straight Jeans",
+      "brand": "Norra",
+      "cat": "women",
+      "vendor": "A",
+      "mrp": 4299,
+      "price": 3299,
+      "rating": 4.5,
+      "reviews": 512,
+      "image": "/products/p-jeans.jpg",
+      "wh": "TNJ",
+      "short": "Rigid-feel denim with a clean straight leg.",
+      "desc": "High-rise jeans in a rigid-feel cotton denim with a touch of stretch, cut straight through the leg and finished with a raw-edge hem option.",
+      "specs": [
+        ["Fabric", "99% cotton, 1% elastane denim"],
+        ["Rise", "High, 28 cm"],
+        ["Leg", "Straight"],
+        ["Inseam", "76 cm"]
+      ],
+      "variants": [
+        ["NOR-JNS-26", "26", 40],
+        ["NOR-JNS-28", "28", 40],
+        ["NOR-JNS-30", "30", 40]
+      ]
+    },
+    {
+      "slug": "everyday-cotton-kurta",
+      "name": "Everyday Cotton Kurta",
+      "brand": "Meera",
+      "cat": "women",
+      "vendor": "A",
+      "mrp": 2499,
+      "price": 1899,
+      "rating": 4.6,
+      "reviews": 430,
+      "image": "/products/p-kurta.jpg",
+      "wh": "TNJ",
+      "short": "Soft handloom cotton with side slits and a mandarin collar.",
+      "desc": "A straight-cut kurta in breathable handloom cotton with a mandarin collar, wooden buttons and deep side slits for easy movement.",
+      "specs": [
+        ["Fabric", "100% handloom cotton"],
+        ["Length", "Knee, 96 cm"],
+        ["Collar", "Mandarin"],
+        ["Care", "Machine wash cold"]
+      ],
+      "variants": [
+        ["MEE-KUR-S", "S", 45],
+        ["MEE-KUR-M", "M", 45],
+        ["MEE-KUR-L", "L", 45]
+      ]
+    },
+    {
+      "slug": "quilted-city-jacket",
+      "name": "Quilted City Jacket",
+      "brand": "Norra",
+      "cat": "women",
+      "vendor": "A",
+      "mrp": 6999,
+      "price": 5499,
+      "rating": 4.4,
+      "reviews": 126,
+      "image": "/products/p-jacket.jpg",
+      "wh": "CHN",
+      "short": "Lightweight diamond-quilted jacket for cool mornings.",
+      "desc": "A diamond-quilted jacket with a recycled shell, snap front and jersey-lined pockets. Light enough to layer under a coat.",
+      "specs": [
+        ["Shell", "Recycled polyester"],
+        ["Fill", "Lightweight wadding"],
+        ["Closure", "Snap front"],
+        ["Pockets", "Jersey-lined, two"]
+      ],
+      "variants": [
+        ["NOR-JKT-S", "S", 22],
+        ["NOR-JKT-M", "M", 22]
+      ]
+    },
+    {
+      "slug": "kids-terry-hoodie",
+      "name": "Kids Terry Hoodie",
+      "brand": "Norra Mini",
+      "cat": "children",
+      "vendor": "A",
+      "mrp": 2099,
+      "price": 1599,
+      "rating": 4.5,
+      "reviews": 93,
+      "image": "/products/p-jacket.jpg",
+      "wh": "TNJ",
+      "short": "Soft looped terry with a roomy hood and kangaroo pocket.",
+      "desc": "A brushed cotton terry hoodie made for everyday play, with a relaxed fit that leaves room to grow and ribbed cuffs that stay put.",
+      "specs": [
+        ["Fabric", "100% cotton terry"],
+        ["Fit", "Relaxed, room to grow"],
+        ["Pocket", "Kangaroo"],
+        ["Care", "Machine wash warm"]
+      ],
+      "variants": [
+        ["NRM-HOD-23", "2–3Y", 42],
+        ["NRM-HOD-45", "4–5Y", 42]
+      ]
+    },
+    {
+      "slug": "kids-cotton-joggers",
+      "name": "Kids Cotton Joggers",
+      "brand": "Norra Mini",
+      "cat": "children",
+      "vendor": "A",
+      "mrp": 1499,
+      "price": 1099,
+      "rating": 4.4,
+      "reviews": 78,
+      "image": "/products/p-joggers.jpg",
+      "wh": "TNJ",
+      "short": "Stretch waistband joggers that survive the playground.",
+      "desc": "Soft fleece-back joggers with an elasticated drawcord waist, tapered legs and reinforced knees for daily wear.",
+      "specs": [
+        ["Fabric", "Cotton fleece-back jersey"],
+        ["Waist", "Elastic with drawcord"],
+        ["Knees", "Reinforced"],
+        ["Care", "Machine wash warm"]
+      ],
+      "variants": [
+        ["NRM-JOG-23", "2–3Y", 40],
+        ["NRM-JOG-45", "4–5Y", 40],
+        ["NRM-JOG-67", "6–7Y", 40]
+      ]
+    },
+    {
+      "slug": "kids-canvas-sneakers",
+      "name": "Kids Canvas Sneakers",
+      "brand": "Trot",
+      "cat": "children",
+      "vendor": "C",
+      "mrp": 2399,
+      "price": 1799,
+      "rating": 4.5,
+      "reviews": 141,
+      "image": "/products/p-kidshoes.jpg",
+      "wh": "CHN",
+      "new": true,
+      "short": "Washable canvas with a hook-and-loop strap.",
+      "desc": "Lightweight canvas sneakers with a single hook-and-loop strap little ones can manage alone, a flexible rubber sole and a washable upper.",
+      "specs": [
+        ["Upper", "Cotton canvas"],
+        ["Closure", "Hook and loop"],
+        ["Sole", "Flexible rubber"],
+        ["Care", "Machine washable"]
+      ],
+      "variants": [
+        ["TRT-SNK-10", "UK 10", 26],
+        ["TRT-SNK-11", "UK 11", 26],
+        ["TRT-SNK-12", "UK 12", 26]
+      ]
+    },
+    {
+      "slug": "school-backpack-18l",
+      "name": "School Backpack 18L",
+      "brand": "Halden",
+      "cat": "children",
+      "vendor": "A",
+      "mrp": 1999,
+      "price": 1499,
+      "rating": 4.6,
+      "reviews": 205,
+      "image": "/products/p-backpack.jpg",
+      "wh": "CHN",
+      "short": "Padded straps, laptop sleeve and a water-repellent base.",
+      "desc": "An 18-litre school backpack with padded shoulder straps, a padded sleeve for a tablet or small laptop, two bottle pockets and a water-repellent base panel.",
+      "specs": [
+        ["Capacity", "18 litres"],
+        ["Sleeve", "Fits 13-inch laptop"],
+        ["Material", "Recycled polyester canvas"],
+        ["Base", "Water-repellent"]
+      ],
+      "variants": [
+        ["HAL-BAG-NVY", "Navy", 30],
+        ["HAL-BAG-RED", "Red", 30]
+      ]
+    },
+    {
+      "slug": "organic-baby-romper",
+      "name": "Organic Cotton Baby Romper",
+      "brand": "Norra Mini",
+      "cat": "children",
+      "vendor": "A",
+      "mrp": 1399,
+      "price": 999,
+      "rating": 4.7,
+      "reviews": 64,
+      "image": "/products/p-romper.jpg",
+      "wh": "TNJ",
+      "short": "GOTS-certified cotton with easy popper fastening.",
+      "desc": "A short-sleeve romper in GOTS-certified organic cotton, with poppers along the inside leg for quick changes and flat seams that sit softly on new skin.",
+      "specs": [
+        ["Fabric", "GOTS organic cotton"],
+        ["Fastening", "Poppers, inside leg"],
+        ["Seams", "Flat-locked"],
+        ["Care", "Machine wash warm"]
+      ],
+      "variants": [
+        ["NRM-RMP-06", "0–6M", 35],
+        ["NRM-RMP-612", "6–12M", 35]
+      ]
+    },
+    {
+      "slug": "anc-headphones",
+      "name": "Studio ANC Wireless Headphones",
+      "brand": "Kestrel Audio",
+      "cat": "electronics",
+      "vendor": "C",
+      "mrp": 24999,
+      "price": 18999,
+      "rating": 4.7,
+      "reviews": 2109,
+      "image": "/products/p-earbuds.jpg",
+      "wh": "CHN",
+      "featured": true,
+      "short": "Adaptive noise cancelling with 40-hour battery life.",
+      "desc": "Over-ear wireless headphones with adaptive active noise cancelling, 40 mm drivers and multipoint Bluetooth. Fold flat into the included case.",
+      "specs": [
+        ["Drivers", "40 mm dynamic"],
+        ["Battery", "Up to 40 hours (ANC on)"],
+        ["Charging", "USB-C, 10 min = 5 h"],
+        ["Connectivity", "Bluetooth 5.3, multipoint"]
+      ],
+      "variants": [
+        ["KES-ANC-BLK", "Charcoal", 6],
+        ["KES-ANC-SND", "Sand", 6]
+      ]
+    },
+    {
+      "slug": "wireless-earbuds-pro",
+      "name": "Wireless Earbuds Pro",
+      "brand": "Kestrel Audio",
+      "cat": "electronics",
+      "vendor": "C",
+      "mrp": 8999,
+      "price": 6999,
+      "rating": 4.5,
+      "reviews": 1640,
+      "image": "/products/p-earbuds.jpg",
+      "wh": "CHN",
+      "new": true,
+      "short": "Compact ANC earbuds with a 28-hour charging case.",
+      "desc": "In-ear buds with hybrid noise cancelling, transparency mode and four microphones for calls. The pocketable case adds three extra charges.",
+      "specs": [
+        ["Drivers", "11 mm dynamic"],
+        ["Battery", "7 h buds, 28 h with case"],
+        ["Water resistance", "IPX4"],
+        ["Connectivity", "Bluetooth 5.3"]
+      ],
+      "variants": [
+        ["KES-BUD-WHT", "White", 24],
+        ["KES-BUD-BLK", "Black", 24]
+      ]
+    },
+    {
+      "slug": "portable-bluetooth-speaker",
+      "name": "Portable Bluetooth Speaker",
+      "brand": "Kestrel Audio",
+      "cat": "electronics",
+      "vendor": "C",
+      "mrp": 5999,
+      "price": 4499,
+      "rating": 4.4,
+      "reviews": 870,
+      "image": "/products/p-speaker.jpg",
+      "wh": "TNJ",
+      "short": "Room-filling sound in a bag-sized speaker, IP67 rated.",
+      "desc": "A passive-radiator speaker that plays far louder than its size suggests, with 16 hours of playback and an IP67 dust and water rating for outdoors.",
+      "specs": [
+        ["Output", "20 W RMS"],
+        ["Battery", "Up to 16 hours"],
+        ["Rating", "IP67 dust and water"],
+        ["Extras", "Stereo pairing, USB-C"]
+      ],
+      "variants": [
+        ["KES-SPK-CHR", "Charcoal", 20],
+        ["KES-SPK-OLV", "Olive", 20]
+      ]
+    },
+    {
+      "slug": "smart-fitness-band",
+      "name": "Smart Fitness Band",
+      "brand": "Vertex",
+      "cat": "electronics",
+      "vendor": "C",
+      "mrp": 4499,
+      "price": 3499,
+      "rating": 4.3,
+      "reviews": 1195,
+      "image": "/products/p-band.jpg",
+      "wh": "CHN",
+      "short": "AMOLED display, heart rate and 14-day battery.",
+      "desc": "A slim tracker with a 1.5-inch AMOLED display, continuous heart-rate and SpO2 tracking, 60 workout modes and up to 14 days between charges.",
+      "specs": [
+        ["Display", "1.5-inch AMOLED"],
+        ["Battery", "Up to 14 days"],
+        ["Sensors", "Heart rate, SpO2, accelerometer"],
+        ["Water resistance", "5 ATM"]
+      ],
+      "variants": [
+        ["VTX-BND-BLK", "Black", 28],
+        ["VTX-BND-BLU", "Blue", 28]
+      ]
+    },
+    {
+      "slug": "65w-gan-charger",
+      "name": "65 W GaN Fast Charger",
+      "brand": "Vertex",
+      "cat": "electronics",
+      "vendor": "C",
+      "mrp": 2999,
+      "price": 2299,
+      "rating": 4.6,
+      "reviews": 540,
+      "image": "/products/p-charger.jpg",
+      "wh": "TNJ",
+      "short": "Charges a laptop and a phone at the same time.",
+      "desc": "A compact gallium-nitride charger with two USB-C ports and one USB-A, delivering up to 65 W to a laptop or splitting power across three devices.",
+      "specs": [
+        ["Output", "65 W total"],
+        ["Ports", "2 × USB-C, 1 × USB-A"],
+        ["Technology", "GaN II"],
+        ["Safety", "Over-current and thermal protection"]
+      ],
+      "variants": [["VTX-CHG-WHT", "White", 34]]
+    },
+    {
+      "slug": "leather-card-holder",
+      "name": "Vegetable Tanned Card Holder",
+      "brand": "Halden",
+      "cat": "accessories",
+      "vendor": "A",
+      "mrp": 2499,
+      "price": 1899,
+      "rating": 4.6,
+      "reviews": 428,
+      "image": "/products/p-belt.jpg",
+      "wh": "CHN",
+      "featured": true,
+      "short": "Slim four-slot card holder in full-grain leather.",
+      "desc": "Cut from full-grain vegetable-tanned leather that darkens with use. Four card slots and a central pocket for folded notes.",
+      "specs": [
+        ["Material", "Full-grain vegetable-tanned leather"],
+        ["Capacity", "4 slots + centre pocket"],
+        ["Size", "10 × 7.5 cm"],
+        ["Edges", "Hand burnished"]
+      ],
+      "variants": [["HAL-CRD-TAN", "Tan", 42]]
+    },
+    {
+      "slug": "minimal-steel-watch",
+      "name": "Minimal Steel Watch",
+      "brand": "Vertex",
+      "cat": "accessories",
+      "vendor": "C",
+      "mrp": 9999,
+      "price": 7499,
+      "rating": 4.5,
+      "reviews": 312,
+      "image": "/products/p-watch.jpg",
+      "wh": "CHN",
+      "new": true,
+      "short": "36 mm brushed steel case on a sapphire crystal.",
+      "desc": "A pared-back three-hand watch with a 36 mm brushed steel case, sapphire crystal and a Japanese quartz movement, on a quick-release strap.",
+      "specs": [
+        ["Case", "36 mm brushed steel"],
+        ["Crystal", "Sapphire"],
+        ["Movement", "Japanese quartz"],
+        ["Water resistance", "5 ATM"]
+      ],
+      "variants": [
+        ["VTX-WCH-SLV", "Silver", 14],
+        ["VTX-WCH-BLK", "Black", 14]
+      ]
+    },
+    {
+      "slug": "polarised-sunglasses",
+      "name": "Polarised Acetate Sunglasses",
+      "brand": "Halden",
+      "cat": "accessories",
+      "vendor": "A",
+      "mrp": 3999,
+      "price": 2999,
+      "rating": 4.4,
+      "reviews": 276,
+      "image": "/products/p-sunglasses.jpg",
+      "wh": "TNJ",
+      "short": "Hand-polished acetate with UV400 polarised lenses.",
+      "desc": "Hand-polished Italian acetate frames with polarised UV400 lenses that cut glare on the road, plus adjustable nose pads and a hard case.",
+      "specs": [
+        ["Frame", "Italian acetate"],
+        ["Lenses", "Polarised UV400"],
+        ["Width", "142 mm"],
+        ["Includes", "Hard case and cloth"]
+      ],
+      "variants": [
+        ["HAL-SUN-TRT", "Tortoise", 25],
+        ["HAL-SUN-BLK", "Black", 25]
+      ]
+    },
+    {
+      "slug": "full-grain-leather-belt",
+      "name": "Full-Grain Leather Belt",
+      "brand": "Halden",
+      "cat": "accessories",
+      "vendor": "A",
+      "mrp": 2299,
+      "price": 1699,
+      "rating": 4.6,
+      "reviews": 198,
+      "image": "/products/p-belt.jpg",
+      "wh": "CHN",
+      "short": "35 mm strap with a solid brass buckle.",
+      "desc": "A 35 mm full-grain leather belt with a solid brass roller buckle, hand-finished edges and five holes for adjustment.",
+      "specs": [
+        ["Material", "Full-grain leather"],
+        ["Width", "35 mm"],
+        ["Buckle", "Solid brass roller"],
+        ["Finish", "Hand-burnished edges"]
+      ],
+      "variants": [
+        ["HAL-BLT-32", "32", 30],
+        ["HAL-BLT-34", "34", 30],
+        ["HAL-BLT-36", "36", 30]
+      ]
+    },
+    {
+      "slug": "canvas-weekender-bag",
+      "name": "Canvas Weekender Bag",
+      "brand": "Halden",
+      "cat": "accessories",
+      "vendor": "A",
+      "mrp": 5499,
+      "price": 4299,
+      "rating": 4.7,
+      "reviews": 154,
+      "image": "/products/p-weekender.jpg",
+      "wh": "TNJ",
+      "short": "Waxed canvas with leather handles and a shoe pocket.",
+      "desc": "A 40-litre weekender in waxed cotton canvas with bridle leather handles, a detachable shoulder strap and a separate base pocket for shoes.",
+      "specs": [
+        ["Capacity", "40 litres"],
+        ["Material", "Waxed cotton canvas"],
+        ["Handles", "Bridle leather"],
+        ["Extras", "Shoe pocket, detachable strap"]
+      ],
+      "variants": [
+        ["HAL-WKD-OLV", "Olive", 16],
+        ["HAL-WKD-SND", "Sand", 16]
+      ]
+    },
+    {
+      "slug": "pourover-set",
+      "name": "Stoneware Pour-Over Set",
+      "brand": "Terra Maison",
+      "cat": "home",
+      "vendor": "C",
+      "mrp": 3499,
+      "price": 2899,
+      "rating": 4.4,
+      "reviews": 176,
+      "image": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
+      "wh": "TNJ",
+      "featured": true,
+      "short": "Hand-glazed dripper, carafe and two cups.",
+      "desc": "A stoneware pour-over dripper with matching 600 ml carafe and two cups, finished in a speckled sand glaze. Fits standard #2 filters.",
+      "specs": [
+        ["Material", "Hand-glazed stoneware"],
+        ["Carafe", "600 ml"],
+        ["Includes", "Dripper, carafe, 2 cups"],
+        ["Filter", "Standard #2"]
+      ],
+      "variants": [["TER-POR-SND", "Sand", 9]]
+    },
+    {
+      "slug": "stoneware-dinner-set",
+      "name": "Stoneware Dinner Set for Four",
+      "brand": "Terra Maison",
+      "cat": "home",
+      "vendor": "C",
+      "mrp": 6999,
+      "price": 5499,
+      "rating": 4.6,
+      "reviews": 208,
+      "image": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
+      "wh": "TNJ",
+      "new": true,
+      "short": "Twelve pieces of reactive-glaze stoneware.",
+      "desc": "Four dinner plates, four side plates and four bowls in a reactive glaze, so no two pieces are identical. Dishwasher and microwave safe.",
+      "specs": [
+        ["Pieces", "12 (4 × 3)"],
+        ["Material", "Reactive-glaze stoneware"],
+        ["Dinner plate", "27 cm"],
+        ["Care", "Dishwasher and microwave safe"]
+      ],
+      "variants": [
+        ["TER-DIN-SND", "Sand", 12],
+        ["TER-DIN-SLT", "Slate", 12]
+      ]
+    },
+    {
+      "slug": "cotton-throw-blanket",
+      "name": "Handloom Cotton Throw",
+      "brand": "Terra Maison",
+      "cat": "home",
+      "vendor": "C",
+      "mrp": 3299,
+      "price": 2499,
+      "rating": 4.5,
+      "reviews": 167,
+      "image": "/products/p-throw.jpg",
+      "wh": "CHN",
+      "short": "Woven on a pit loom with fringed ends.",
+      "desc": "A generously sized handloom cotton throw with a subtle herringbone weave and hand-knotted fringe, soft enough for a sofa or a bed.",
+      "specs": [
+        ["Material", "100% handloom cotton"],
+        ["Size", "150 × 200 cm"],
+        ["Weave", "Herringbone"],
+        ["Finish", "Hand-knotted fringe"]
+      ],
+      "variants": [
+        ["TER-THR-ECR", "Ecru", 26],
+        ["TER-THR-CHR", "Charcoal", 26]
+      ]
+    },
+    {
+      "slug": "scented-soy-candle",
+      "name": "Scented Soy Candle 220 g",
+      "brand": "Terra Maison",
+      "cat": "home",
+      "vendor": "C",
+      "mrp": 1599,
+      "price": 1199,
+      "rating": 4.7,
+      "reviews": 389,
+      "image": "/products/p-candle.jpg",
+      "wh": "CHN",
+      "short": "Natural soy wax with a 45-hour burn time.",
+      "desc": "Hand-poured soy wax with a cotton wick in a reusable stoneware vessel, blended for a warm, quiet room scent that never overwhelms.",
+      "specs": [
+        ["Wax", "100% soy"],
+        ["Burn time", "Up to 45 hours"],
+        ["Weight", "220 g"],
+        ["Vessel", "Reusable stoneware"]
+      ],
+      "variants": [
+        ["TER-CND-FIG", "Fig", 40],
+        ["TER-CND-CDR", "Cedar", 40]
+      ]
+    },
+    {
+      "slug": "rattan-storage-basket",
+      "name": "Rattan Storage Basket",
+      "brand": "Terra Maison",
+      "cat": "home",
+      "vendor": "C",
+      "mrp": 2399,
+      "price": 1799,
+      "rating": 4.3,
+      "reviews": 112,
+      "image": "/products/p-basket.jpg",
+      "wh": "TNJ",
+      "short": "Hand-woven rattan with reinforced handles.",
+      "desc": "A hand-woven rattan basket with a sturdy frame and cut-out handles, sized for blankets, toys or laundry in a corner of the room.",
+      "specs": [
+        ["Material", "Natural rattan"],
+        ["Size", "45 × 35 cm"],
+        ["Handles", "Reinforced cut-outs"],
+        ["Care", "Wipe clean"]
+      ],
+      "variants": [["TER-BSK-NAT", "Natural", 22]]
+    }
   ],
-  "variants": [
-   [
-    "AUR-STL-IVR",
-    "Ivory",
-    30
-   ]
-  ]
- }
+  "pendingListing": {
+    "slug": "handwoven-cotton-stole",
+    "name": "Handwoven Cotton Stole",
+    "brand": "Aureli Studio",
+    "cat": "women",
+    "vendor": "A",
+    "mrp": 1799,
+    "price": 1399,
+    "rating": 0,
+    "reviews": 0,
+    "image": "/products/p-stole.jpg",
+    "wh": "CHN",
+    "short": "Light, breathable handloom stole with tasselled ends.",
+    "desc": "Woven on a pit loom from fine combed cotton, with a soft hand-feel and tasselled ends. Wear it draped over a kurta or as a light summer wrap.",
+    "specs": [
+      ["Fabric", "100% cotton handloom"],
+      ["Size", "200 × 70 cm"]
+    ],
+    "variants": [["AUR-STL-IVR", "Ivory", 30]]
+  }
 }
