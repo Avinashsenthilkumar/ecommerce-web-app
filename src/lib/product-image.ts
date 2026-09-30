@@ -33,103 +33,63 @@ const PRODUCT_FILES = new Set([
 ]);
 
 const REAL_PRODUCT_IMAGE_MAP: Record<string, string> = {
-  shoe: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80",
-  sneaker:
-    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80",
-  trainer:
-    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80",
-  boot: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=80",
-  derby:
-    "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=80",
-  shirt:
-    "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
-  tee: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
-  top: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
-  kurta:
-    "https://images.unsplash.com/photo-1617137984096-2f9d4c1d5f39?auto=format&fit=crop&w=900&q=80",
-  jacket:
-    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
-  hoodie:
-    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
-  sweater:
-    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
-  jeans:
-    "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=900&q=80",
-  chino:
-    "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=900&q=80",
-  trouser:
-    "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=900&q=80",
-  pant: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=900&q=80",
-  jogger:
-    "https://images.unsplash.com/photo-1605518216965-733ca1905fb8?auto=format&fit=crop&w=900&q=80",
-  dress:
-    "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
-  romper:
-    "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80",
-  bag: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=80",
-  backpack:
-    "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=80",
-  weekender:
-    "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=80",
-  watch:
-    "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80",
-  band: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80",
-  headphone:
-    "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80",
-  headset:
-    "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80",
-  earbud:
-    "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80",
-  speaker:
-    "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=900&q=80",
-  audio:
-    "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=900&q=80",
-  belt: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
-  wallet:
-    "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80",
-  card: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80",
-  sunglasses:
-    "https://images.unsplash.com/photo-1577803947579-9f4f7f68d0d4?auto=format&fit=crop&w=900&q=80",
-  glasses:
-    "https://images.unsplash.com/photo-1577803947579-9f4f7f68d0d4?auto=format&fit=crop&w=900&q=80",
-  kids: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80",
-  kid: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80",
-  child:
-    "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80",
-  baby: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80",
-  candle:
-    "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
-  lamp: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
-  throw:
-    "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
-  basket:
-    "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
-  organizer:
-    "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
-  charger:
-    "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=900&q=80",
-  adapter:
-    "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=900&q=80",
-  power:
-    "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=900&q=80",
-  stole:
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-  scarf:
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-  shawl:
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-  coffee:
-    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
-  mug: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
-  cup: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
-  dinner:
-    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
-  stoneware:
-    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
-  ceramic:
-    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
-  dripper:
-    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80",
+  shoe: "/assets/p-shoe-BnbFUOKv.jpg",
+  sneaker: "/assets/p-shoe-BnbFUOKv.jpg",
+  trainer: "/assets/p-shoe-BnbFUOKv.jpg",
+  boot: "/assets/p-shoe-BnbFUOKv.jpg",
+  derby: "/assets/p-shoe-BnbFUOKv.jpg",
+  shirt: "/assets/p-shirt-BHfsYPK6.jpg",
+  tee: "/assets/p-tshirt-DpNeyLwr.jpg",
+  top: "/assets/p-tshirt-DpNeyLwr.jpg",
+  tshirt: "/assets/p-tshirt-DpNeyLwr.jpg",
+  kurta: "/assets/p-shirt-BHfsYPK6.jpg",
+  jacket: "/assets/p-sweater-BtEq3FDq.jpg",
+  hoodie: "/assets/p-sweater-BtEq3FDq.jpg",
+  sweater: "/assets/p-sweater-BtEq3FDq.jpg",
+  jeans: "/assets/p-shoe-BnbFUOKv.jpg",
+  chino: "/assets/p-shoe-BnbFUOKv.jpg",
+  trouser: "/assets/p-shoe-BnbFUOKv.jpg",
+  pant: "/assets/p-shoe-BnbFUOKv.jpg",
+  jogger: "/assets/p-shoe-BnbFUOKv.jpg",
+  dress: "/assets/p-shirt-BHfsYPK6.jpg",
+  romper: "/assets/p-shirt-BHfsYPK6.jpg",
+  bag: "/assets/p-wallet-B_UVj6XT.jpg",
+  backpack: "/assets/p-wallet-B_UVj6XT.jpg",
+  weekender: "/assets/p-wallet-B_UVj6XT.jpg",
+  watch: "/assets/p-wallet-B_UVj6XT.jpg",
+  band: "/assets/p-headphones-Dgv1yTiY.jpg",
+  headphone: "/assets/p-headphones-Dgv1yTiY.jpg",
+  headset: "/assets/p-headphones-Dgv1yTiY.jpg",
+  earbud: "/assets/p-headphones-Dgv1yTiY.jpg",
+  speaker: "/assets/p-headphones-Dgv1yTiY.jpg",
+  audio: "/assets/p-headphones-Dgv1yTiY.jpg",
+  belt: "/assets/p-wallet-B_UVj6XT.jpg",
+  wallet: "/assets/p-wallet-B_UVj6XT.jpg",
+  card: "/assets/p-wallet-B_UVj6XT.jpg",
+  sunglasses: "/assets/p-wallet-B_UVj6XT.jpg",
+  glasses: "/assets/p-wallet-B_UVj6XT.jpg",
+  kids: "/assets/p-shirt-BHfsYPK6.jpg",
+  kid: "/assets/p-shirt-BHfsYPK6.jpg",
+  child: "/assets/p-shirt-BHfsYPK6.jpg",
+  baby: "/assets/p-shirt-BHfsYPK6.jpg",
+  candle: "/assets/p-coffee-0aXv5XKc.jpg",
+  lamp: "/assets/p-coffee-0aXv5XKc.jpg",
+  throw: "/assets/p-coffee-0aXv5XKc.jpg",
+  basket: "/assets/p-coffee-0aXv5XKc.jpg",
+  organizer: "/assets/p-coffee-0aXv5XKc.jpg",
+  charger: "/assets/p-headphones-Dgv1yTiY.jpg",
+  adapter: "/assets/p-headphones-Dgv1yTiY.jpg",
+  power: "/assets/p-headphones-Dgv1yTiY.jpg",
+  stole: "/assets/p-shirt-BHfsYPK6.jpg",
+  scarf: "/assets/p-shirt-BHfsYPK6.jpg",
+  shawl: "/assets/p-shirt-BHfsYPK6.jpg",
+  coffee: "/assets/p-coffee-0aXv5XKc.jpg",
+  mug: "/assets/p-coffee-0aXv5XKc.jpg",
+  cup: "/assets/p-coffee-0aXv5XKc.jpg",
+  dinner: "/assets/p-coffee-0aXv5XKc.jpg",
+  stoneware: "/assets/p-coffee-0aXv5XKc.jpg",
+  ceramic: "/assets/p-coffee-0aXv5XKc.jpg",
+  dripper: "/assets/p-coffee-0aXv5XKc.jpg",
 };
 
 const RELATED_IMAGES: Array<{

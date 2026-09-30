@@ -260,43 +260,37 @@ async function main() {
       slug: "men",
       name: "Men",
       tagline: "Tailoring, knitwear & footwear",
-      imageUrl:
-        "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80",
+      imageUrl: "/assets/cat-men-DnwSovaf.jpg",
     },
     {
       slug: "women",
       name: "Women",
       tagline: "Editorial layers for every season",
-      imageUrl:
-        "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80",
+      imageUrl: "/assets/cat-women-cU_9HMCT.jpg",
     },
     {
       slug: "children",
       name: "Children",
       tagline: "Soft, durable, playful",
-      imageUrl:
-        "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=900&q=80",
+      imageUrl: "/assets/cat-children-CR0xgnYV.jpg",
     },
     {
       slug: "electronics",
       name: "Electronics",
       tagline: "Sound, screens & everyday tech",
-      imageUrl:
-        "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80",
+      imageUrl: "/assets/cat-electronics-Dpfn04Dd.jpg",
     },
     {
       slug: "accessories",
       name: "Accessories",
       tagline: "Leather, steel & small goods",
-      imageUrl:
-        "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80",
+      imageUrl: "/assets/cat-accessories-BjiqwQD5.jpg",
     },
     {
       slug: "home",
       name: "Home",
       tagline: "Objects for slower mornings",
-      imageUrl:
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80",
+      imageUrl: "/assets/cat-home-CXOvODvK.jpg",
     },
   ];
   const cats: Record<string, string> = {};

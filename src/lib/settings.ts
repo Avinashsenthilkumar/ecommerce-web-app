@@ -25,8 +25,7 @@ export const DEFAULTS = {
   "home.ctaPrimaryHref": "/shop?category=all",
   "home.ctaSecondary": "Explore Collection",
   "home.ctaSecondaryHref": "/shop?category=women",
-  "home.heroImage":
-    "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1600&q=80",
+  "home.heroImage": "/assets/hero-b_Z3yfX2.jpg",
   "home.categoriesTitle": "Six departments, one checkout.",
   "home.arrivalsTitle": "Fresh arrivals and new selections.",
   "home.featuredTitle": "Selected for the week",
