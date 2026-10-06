@@ -5,6 +5,7 @@ import { getProductBySlug, relatedProducts } from "@/lib/services/catalog";
 import { getWishlistIds } from "@/lib/services/wishlist";
 import { listReviews, reviewEligibility } from "@/lib/services/reviews";
 import { getCurrentUser } from "@/lib/auth";
+import { maxAvailableAtWarehouse } from "@/lib/services/inventory";
 import { fmtDate } from "@/lib/format";
 import { ReviewForm } from "@/components/ReviewForm";
 import { Star, BadgeCheck } from "lucide-react";
@@ -13,9 +14,18 @@ import { Price, Rating } from "@/components/Price";
 import { BuyBox } from "@/components/BuyBox";
 import { ProductCard } from "@/components/ProductCard";
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}) {
   const p = await getProductBySlug(params.slug);
-  return p ? { title: `${p.name} — ${p.brand.name} | subsel`, description: p.shortDescription } : { title: "Product not found | subsel" };
+  return p
+    ? {
+        title: `${p.name} — ${p.brand.name} | subsel`,
+        description: p.shortDescription,
+      }
+    : { title: "Product not found | subsel" };
 }
 
 const PROMISES = [
@@ -24,15 +34,26 @@ const PROMISES = [
   { icon: ShieldCheck, title: "Secure payment", text: "UPI, card & COD" },
 ];
 
-export default async function ProductPage({ params }: { params: { slug: string } }) {
+export default async function ProductPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
   const product = await getProductBySlug(params.slug);
-  if (!product || product.status !== "ACTIVE" || product.vendor.status !== "APPROVED") notFound();
+  if (
+    !product ||
+    product.status !== "ACTIVE" ||
+    product.vendor.status !== "APPROVED"
+  )
+    notFound();
   const user = await getCurrentUser();
   const [related, saved, reviews, eligibility] = await Promise.all([
     relatedProducts(product.id),
     getWishlistIds(),
     listReviews(product.id),
-    user?.role === "CUSTOMER" ? reviewEligibility(user.id, product.id) : Promise.resolve(null),
+    user?.role === "CUSTOMER"
+      ? reviewEligibility(user.id, product.id)
+      : Promise.resolve(null),
   ]);
 
   const variants = product.variants.map((v) => {
@@ -40,46 +61,81 @@ export default async function ProductPage({ params }: { params: { slug: string }
     return {
       id: v.id,
       label: v.label,
-      stock: v.inventory.reduce((s, i) => s + i.available, 0),
+      stock: maxAvailableAtWarehouse(v.inventory),
       warehouse: best?.available ? best.warehouse.name : null,
     };
   });
 
   return (
     <div className="shell pt-10">
-      <nav className="mb-6 flex gap-2 text-sm text-slate" aria-label="Breadcrumb">
-        <Link href="/" className="hover:text-ink">Home</Link>
+      <nav
+        className="mb-6 flex gap-2 text-sm text-slate"
+        aria-label="Breadcrumb"
+      >
+        <Link href="/" className="hover:text-ink">
+          Home
+        </Link>
         <span aria-hidden>/</span>
-        <Link href={`/shop?category=${product.category.slug}`} className="hover:text-ink">{product.category.name}</Link>
+        <Link
+          href={`/shop?category=${product.category.slug}`}
+          className="hover:text-ink"
+        >
+          {product.category.name}
+        </Link>
       </nav>
 
       <div className="grid gap-10 lg:grid-cols-2 lg:gap-10">
         <div className="space-y-4">
-          {(product.images.length ? product.images : [{ id: "none", url: "", alt: product.name }]).map((img) => (
-            <div key={img.id} className="aspect-[4/5] overflow-hidden rounded-card border border-line bg-mist">
-              <ProductImage src={img.url} alt={img.alt ?? product.name} className="h-full w-full" />
+          {(product.images.length
+            ? product.images
+            : [{ id: "none", url: "", alt: product.name }]
+          ).map((img) => (
+            <div
+              key={img.id}
+              className="aspect-[4/5] overflow-hidden rounded-card border border-line bg-mist"
+            >
+              <ProductImage
+                src={img.url}
+                alt={img.alt ?? product.name}
+                className="h-full w-full"
+              />
             </div>
           ))}
         </div>
 
         <div className="lg:pl-2">
           <p className="eyebrow">{product.brand.name}</p>
-          <h1 className="h-display mt-3 text-[1.9rem] leading-[1.05] sm:text-[2.75rem]">{product.name}</h1>
-          <p className="mt-3 text-[15px] text-slate">{product.shortDescription}</p>
+          <h1 className="h-display mt-3 text-[1.9rem] leading-[1.05] sm:text-[2.75rem]">
+            {product.name}
+          </h1>
+          <p className="mt-3 text-[15px] text-slate">
+            {product.shortDescription}
+          </p>
           <div className="mt-5">
-            <Rating avg={product.ratingAvg} count={product.ratingCount} suffix=" reviews" />
+            <Rating
+              avg={product.ratingAvg}
+              count={product.ratingCount}
+              suffix=" reviews"
+            />
           </div>
           <div className="mt-5">
             <Price price={product.sellingPrice} mrp={product.mrp} />
           </div>
 
           <div className="mt-8">
-            <BuyBox variants={variants} productId={product.id} saved={saved.has(product.id)} />
+            <BuyBox
+              variants={variants}
+              productId={product.id}
+              saved={saved.has(product.id)}
+            />
           </div>
 
           <ul className="mt-8 grid gap-3 sm:grid-cols-3">
             {PROMISES.map((p) => (
-              <li key={p.title} className="rounded-[20px] border border-line bg-white px-4 py-5">
+              <li
+                key={p.title}
+                className="rounded-[20px] border border-line bg-white px-4 py-5"
+              >
                 <p.icon size={16} strokeWidth={1.75} />
                 <p className="mt-4 text-sm">{p.title}</p>
                 <p className="mt-0.5 text-xs text-slate">{p.text}</p>
@@ -89,18 +145,25 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
           <div className="mt-12">
             <h2 className="text-base font-medium">Description</h2>
-            <p className="mt-4 max-w-[62ch] text-[15px] leading-relaxed text-slate">{product.description}</p>
+            <p className="mt-4 max-w-[62ch] text-[15px] leading-relaxed text-slate">
+              {product.description}
+            </p>
             {product.specs.length > 0 && (
               <dl className="mt-8 grid gap-x-8 sm:grid-cols-2">
                 {product.specs.map((s) => (
-                  <div key={s.id} className="flex justify-between gap-4 border-b border-line py-3 text-sm">
+                  <div
+                    key={s.id}
+                    className="flex justify-between gap-4 border-b border-line py-3 text-sm"
+                  >
                     <dt className="text-slate">{s.key}</dt>
                     <dd className="text-right">{s.value}</dd>
                   </div>
                 ))}
               </dl>
             )}
-            <p className="mt-6 text-xs text-slate">Sold by {product.vendor.businessName}</p>
+            <p className="mt-6 text-xs text-slate">
+              Sold by {product.vendor.businessName}
+            </p>
           </div>
         </div>
       </div>
@@ -108,30 +171,50 @@ export default async function ProductPage({ params }: { params: { slug: string }
       <section className="pt-16 sm:pt-24" id="reviews">
         <div className="grid gap-10 lg:grid-cols-[20rem_1fr]">
           <div>
-            <h2 className="section-title text-[2.2rem] sm:text-[2.6rem]">Customer reviews</h2>
+            <h2 className="section-title text-[2.2rem] sm:text-[2.6rem]">
+              Customer reviews
+            </h2>
             <div className="mt-5 flex items-baseline gap-3">
-              <span className="font-display text-5xl font-medium tabular">{product.ratingAvg.toFixed(1)}</span>
+              <span className="font-display text-5xl font-medium tabular">
+                {product.ratingAvg.toFixed(1)}
+              </span>
               <span className="text-sm text-slate">out of 5</span>
             </div>
             <div className="mt-2 flex gap-0.5" aria-hidden>
               {[1, 2, 3, 4, 5].map((n) => (
-                <Star key={n} size={16} className={n <= Math.round(product.ratingAvg) ? "fill-ink text-ink" : "text-line"} />
+                <Star
+                  key={n}
+                  size={16}
+                  className={
+                    n <= Math.round(product.ratingAvg)
+                      ? "fill-ink text-ink"
+                      : "text-line"
+                  }
+                />
               ))}
             </div>
-            <p className="mt-2 text-sm text-slate">{product.ratingCount.toLocaleString("en-IN")} ratings</p>
+            <p className="mt-2 text-sm text-slate">
+              {product.ratingCount.toLocaleString("en-IN")} ratings
+            </p>
             <div className="mt-6">
               {eligibility?.canReview ? (
                 <ReviewForm productId={product.id} />
               ) : eligibility?.reviewed ? (
-                <p className="text-sm text-pine">Thanks, you reviewed this product.</p>
+                <p className="text-sm text-pine">
+                  Thanks, you reviewed this product.
+                </p>
               ) : (
-                <p className="text-sm text-slate">Only customers who received this product can review it.</p>
+                <p className="text-sm text-slate">
+                  Only customers who received this product can review it.
+                </p>
               )}
             </div>
           </div>
           <div>
             {reviews.length === 0 ? (
-              <p className="rounded-[24px] border border-line bg-white p-6 text-sm text-slate">No written reviews yet.</p>
+              <p className="rounded-[24px] border border-line bg-white p-6 text-sm text-slate">
+                No written reviews yet.
+              </p>
             ) : (
               <ul className="divide-y divide-line rounded-[24px] border border-line bg-white">
                 {reviews.map((r) => {
@@ -139,16 +222,37 @@ export default async function ProductPage({ params }: { params: { slug: string }
                   return (
                     <li key={r.id} className="p-6">
                       <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex gap-0.5" aria-label={`${r.rating} out of 5`}>
+                        <div
+                          className="flex gap-0.5"
+                          aria-label={`${r.rating} out of 5`}
+                        >
                           {[1, 2, 3, 4, 5].map((n) => (
-                            <Star key={n} size={14} className={n <= r.rating ? "fill-ink text-ink" : "text-line"} />
+                            <Star
+                              key={n}
+                              size={14}
+                              className={
+                                n <= r.rating
+                                  ? "fill-ink text-ink"
+                                  : "text-line"
+                              }
+                            />
                           ))}
                         </div>
-                        <span className="text-sm font-medium">{first} {last ? `${last[0]}.` : ""}</span>
-                        <span className="inline-flex items-center gap-1 text-xs text-pine"><BadgeCheck size={13} /> Verified purchase</span>
-                        <span className="text-xs text-slate">{fmtDate(r.createdAt)}</span>
+                        <span className="text-sm font-medium">
+                          {first} {last ? `${last[0]}.` : ""}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-xs text-pine">
+                          <BadgeCheck size={13} /> Verified purchase
+                        </span>
+                        <span className="text-xs text-slate">
+                          {fmtDate(r.createdAt)}
+                        </span>
                       </div>
-                      {r.comment && <p className="mt-3 text-[15px] leading-relaxed text-ink/80">{r.comment}</p>}
+                      {r.comment && (
+                        <p className="mt-3 text-[15px] leading-relaxed text-ink/80">
+                          {r.comment}
+                        </p>
+                      )}
                     </li>
                   );
                 })}

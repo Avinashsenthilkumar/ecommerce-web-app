@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ProductCardData } from "@/lib/services/catalog";
+import { maxAvailableAtWarehouse } from "@/lib/services/inventory";
 import { productColor } from "@/lib/product-colors";
 import { ProductImage } from "./ProductImage";
 import { CardPrice, Rating } from "./Price";
@@ -17,7 +18,7 @@ export function ProductCard({
     v.inventory.some((i) => i.available > 0),
   );
   const stock = p.variants.reduce(
-    (s, v) => s + v.inventory.reduce((a, i) => a + i.available, 0),
+    (s, v) => s + maxAvailableAtWarehouse(v.inventory),
     0,
   );
   const colors = [

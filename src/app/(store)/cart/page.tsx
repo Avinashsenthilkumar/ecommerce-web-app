@@ -1,6 +1,12 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { cartTotals, getCart, lineUnitPrice, storeRules } from "@/lib/services/cart";
+import { maxAvailableAtWarehouse } from "@/lib/services/inventory";
+import {
+  cartTotals,
+  getCart,
+  lineUnitPrice,
+  storeRules,
+} from "@/lib/services/cart";
 import { listAddresses } from "@/lib/services/account";
 import { CartView, type CartLineView } from "@/components/CartView";
 
@@ -9,7 +15,11 @@ export const metadata = { title: "Cart — subsel" };
 export default async function CartPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") redirect("/login?next=/cart");
-  const [cart, addresses, rules] = await Promise.all([getCart(user.id), listAddresses(user.id), storeRules()]);
+  const [cart, addresses, rules] = await Promise.all([
+    getCart(user.id),
+    listAddresses(user.id),
+    storeRules(),
+  ]);
 
   const lines: CartLineView[] = cart.items.map((l) => ({
     id: l.id,
@@ -22,7 +32,7 @@ export default async function CartPage() {
     unitPrice: lineUnitPrice(l),
     mrp: l.variant.product.mrp,
     quantity: l.quantity,
-    stock: l.variant.inventory.reduce((s, i) => s + i.available, 0),
+    stock: maxAvailableAtWarehouse(l.variant.inventory),
   }));
 
   return (
@@ -30,7 +40,11 @@ export default async function CartPage() {
       <CartView
         lines={lines}
         totals={cartTotals(cart.items, rules)}
-        rules={{ discountPercent: rules.discountPercent, gstPercent: rules.gstPercent, paymentMethods: rules.paymentMethods }}
+        rules={{
+          discountPercent: rules.discountPercent,
+          gstPercent: rules.gstPercent,
+          paymentMethods: rules.paymentMethods,
+        }}
         addresses={addresses.map((a) => ({
           id: a.id,
           isDefault: a.isDefault,

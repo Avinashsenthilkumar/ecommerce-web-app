@@ -1,6 +1,12 @@
 import { prisma, type Tx } from "../prisma";
 import { ApiError } from "../api";
-import { deliveryOtp, qrToken, refundNumber, shipmentNumber, trackingNumber } from "../codes";
+import {
+  deliveryOtp,
+  qrToken,
+  refundNumber,
+  shipmentNumber,
+  trackingNumber,
+} from "../codes";
 import { moveStock } from "./inventory";
 import { recomputeOrderStatus } from "./orders";
 import type { CurrentUser } from "../auth";
@@ -10,20 +16,59 @@ const TX = { timeout: 20000 };
 // ─────────────── Admin: order lifecycle ───────────────
 
 export async function confirmOrder(orderId: string) {
-  const order = await prisma.order.findUnique({ where: { id: orderId } });
-  if (!order) throw new ApiError(404, "Order not found.");
-  if (order.status !== "PLACED") throw new ApiError(409, `Order is already ${order.status.toLowerCase()}.`);
-  return prisma.order.update({ where: { id: orderId }, data: { status: "CONFIRMED" } });
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.findUnique({ where: { id: orderId } });
+    if (!order) throw new ApiError(404, "Order not found.");
+    if (order.status !== "PLACED")
+      throw new ApiError(
+        409,
+        `Order is already ${order.status.toLowerCase()}.`,
+      );
+    const updated = await tx.order.updateMany({
+      where: { id: orderId, status: "PLACED" },
+      data: { status: "CONFIRMED" },
+    });
+    if (updated.count === 0)
+      throw new ApiError(409, "Order status changed. Refresh and try again.");
+    return tx.order.findUniqueOrThrow({ where: { id: orderId } });
+  }, TX);
 }
 
 export async function cancelOrder(orderId: string, actor: CurrentUser) {
   return prisma.$transaction(async (tx) => {
-    const order = await tx.order.findUnique({ where: { id: orderId }, include: { payments: true } });
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      include: { payments: true, items: true },
+    });
     if (!order) throw new ApiError(404, "Order not found.");
     if (!["PLACED", "CONFIRMED"].includes(order.status)) {
-      throw new ApiError(409, "Only orders that are not yet allocated can be cancelled.");
+      throw new ApiError(
+        409,
+        "Only orders that are not yet allocated can be cancelled.",
+      );
     }
-    await tx.order.update({ where: { id: orderId }, data: { status: "CANCELLED" } });
+    const cancelled = await tx.order.updateMany({
+      where: { id: orderId, status: order.status },
+      data: { status: "CANCELLED" },
+    });
+    if (cancelled.count === 0)
+      throw new ApiError(409, "Order status changed. Refresh and try again.");
+
+    for (const item of order.items) {
+      if (!item.allocatedWarehouseId) continue;
+      await moveStock(tx, {
+        variantId: item.variantId,
+        warehouseId: item.allocatedWarehouseId,
+        from: "reserved",
+        to: "available",
+        qty: item.quantity,
+        reason: "RELEASE",
+        referenceType: "ORDER",
+        referenceId: order.orderNumber,
+        actorId: actor.id,
+        note: "Reservation released after cancellation",
+      });
+    }
 
     const paid = order.payments.find((p) => p.status === "SUCCESS");
     if (paid) {
@@ -58,7 +103,10 @@ async function buildRoute(tx: Tx, warehouseId: string) {
     hubId = hub.nextHubId;
   }
   if (route.length === 0 || route[route.length - 1].type !== "DELIVERY") {
-    throw new ApiError(409, `No delivery route is configured from ${wh?.name ?? "this warehouse"}.`);
+    throw new ApiError(
+      409,
+      `No delivery route is configured from ${wh?.name ?? "this warehouse"}.`,
+    );
   }
   return route;
 }
@@ -73,35 +121,76 @@ export async function allocateOrder(orderId: string, actor: CurrentUser) {
     const order = await tx.order.findUnique({
       where: { id: orderId },
       include: {
-        items: { include: { variant: { include: { inventory: { include: { warehouse: true } } } } } },
+        items: {
+          include: {
+            variant: {
+              include: { inventory: { include: { warehouse: true } } },
+            },
+          },
+        },
       },
     });
     if (!order) throw new ApiError(404, "Order not found.");
-    if (order.status !== "CONFIRMED") throw new ApiError(409, "Confirm the order before allocating stock.");
+    if (order.status !== "CONFIRMED")
+      throw new ApiError(409, "Confirm the order before allocating stock.");
+
+    const allocated = await tx.order.updateMany({
+      where: { id: orderId, status: "CONFIRMED" },
+      data: { status: "ALLOCATED" },
+    });
+    if (allocated.count === 0)
+      throw new ApiError(409, "Order status changed. Refresh and try again.");
 
     const plan = new Map<string, typeof order.items>();
+    const reserveAtAllocation = new Set<string>();
     for (const item of order.items) {
-      const candidates = item.variant.inventory.filter(
-        (inv) => inv.warehouse.isActive && inv.available >= item.quantity,
-      );
-      if (candidates.length === 0) {
-        throw new ApiError(409, `Not enough stock for ${item.sku} in any single warehouse.`);
+      let warehouseId = item.allocatedWarehouseId;
+      if (warehouseId) {
+        const reservation = item.variant.inventory.find(
+          (inv) => inv.warehouseId === warehouseId,
+        );
+        if (!reservation || reservation.reserved < item.quantity) {
+          throw new ApiError(
+            409,
+            `The stock reservation for ${item.sku} is missing.`,
+          );
+        }
+      } else {
+        const candidates = item.variant.inventory.filter(
+          (inv) => inv.warehouse.isActive && inv.available >= item.quantity,
+        );
+        candidates.sort(
+          (a, b) =>
+            Number(plan.has(b.warehouseId)) - Number(plan.has(a.warehouseId)) ||
+            b.available - a.available,
+        );
+        if (candidates.length === 0) {
+          throw new ApiError(
+            409,
+            `Not enough stock for ${item.sku} in any single warehouse.`,
+          );
+        }
+        warehouseId = candidates[0].warehouseId;
+        reserveAtAllocation.add(item.id);
       }
-      candidates.sort(
-        (a, b) =>
-          Number(plan.has(b.warehouseId)) - Number(plan.has(a.warehouseId)) || b.available - a.available,
-      );
-      const wh = candidates[0].warehouseId;
-      plan.set(wh, [...(plan.get(wh) ?? []), item]);
+      plan.set(warehouseId, [...(plan.get(warehouseId) ?? []), item]);
     }
 
     // COD cash per parcel: each parcel's share of (grand total − shipping), shipping on the first,
     // rounding remainder on the last, so all parcels add up to exactly the order total.
     const isCod = order.paymentMethod === "COD";
     const groups = [...plan.entries()];
-    const ratio = order.subtotal > 0 ? (order.grandTotal - order.shippingFee) / order.subtotal : 1;
-    const codShares = groups.map(([, items], i) => Math.round(items.reduce((s, it) => s + it.lineTotal, 0) * ratio) + (i === 0 ? order.shippingFee : 0));
-    codShares[codShares.length - 1] += order.grandTotal - codShares.reduce((a, b) => a + b, 0);
+    const ratio =
+      order.subtotal > 0
+        ? (order.grandTotal - order.shippingFee) / order.subtotal
+        : 1;
+    const codShares = groups.map(
+      ([, items], i) =>
+        Math.round(items.reduce((s, it) => s + it.lineTotal, 0) * ratio) +
+        (i === 0 ? order.shippingFee : 0),
+    );
+    codShares[codShares.length - 1] +=
+      order.grandTotal - codShares.reduce((a, b) => a + b, 0);
 
     for (const [index, [warehouseId, items]] of groups.entries()) {
       const route = await buildRoute(tx, warehouseId);
@@ -116,22 +205,26 @@ export async function allocateOrder(orderId: string, actor: CurrentUser) {
           deliveryHubId: route[route.length - 1].id,
           paymentType: isCod ? "COD" : "PREPAID",
           codAmount: isCod ? codShares[index] : 0,
-          legs: { create: route.map((h, i) => ({ sequence: i + 1, hubId: h.id })) },
+          legs: {
+            create: route.map((h, i) => ({ sequence: i + 1, hubId: h.id })),
+          },
         },
       });
 
       for (const item of items) {
-        await moveStock(tx, {
-          variantId: item.variantId,
-          warehouseId,
-          from: "available",
-          to: "reserved",
-          qty: item.quantity,
-          reason: "ALLOCATION",
-          referenceType: "SHIPMENT",
-          referenceId: shipment.shipmentNumber,
-          actorId: actor.id,
-        });
+        if (reserveAtAllocation.has(item.id)) {
+          await moveStock(tx, {
+            variantId: item.variantId,
+            warehouseId,
+            from: "available",
+            to: "reserved",
+            qty: item.quantity,
+            reason: "ALLOCATION",
+            referenceType: "SHIPMENT",
+            referenceId: shipment.shipmentNumber,
+            actorId: actor.id,
+          });
+        }
         await tx.orderItem.update({
           where: { id: item.id },
           data: { allocatedWarehouseId: warehouseId, shipmentId: shipment.id },
@@ -139,7 +232,6 @@ export async function allocateOrder(orderId: string, actor: CurrentUser) {
       }
     }
 
-    await tx.order.update({ where: { id: orderId }, data: { status: "ALLOCATED" } });
     return { shipments: plan.size };
   }, TX);
 }
@@ -155,14 +247,21 @@ export async function getWarehouseFloor() {
         items: { orderBy: { sku: "asc" } },
         warehouse: { select: { name: true } },
         order: { select: { orderNumber: true, shippingAddress: true } },
-        legs: { orderBy: { sequence: "asc" }, include: { hub: { select: { name: true } } } },
+        legs: {
+          orderBy: { sequence: "asc" },
+          include: { hub: { select: { name: true } } },
+        },
       },
     }),
     prisma.inventory.aggregate({ _sum: { reserved: true, packed: true } }),
   ]);
 
-  const pickPack = shipments.filter((s) => s.status === "ALLOCATED" || s.status === "PICKED");
-  const dispatch = shipments.filter((s) => s.status === "PACKED" || s.status === "LABELLED");
+  const pickPack = shipments.filter(
+    (s) => s.status === "ALLOCATED" || s.status === "PICKED",
+  );
+  const dispatch = shipments.filter(
+    (s) => s.status === "PACKED" || s.status === "LABELLED",
+  );
   return {
     pickPack,
     dispatch,
@@ -175,35 +274,61 @@ export async function getWarehouseFloor() {
   };
 }
 
-export type FloorShipment = Awaited<ReturnType<typeof getWarehouseFloor>>["pickPack"][number];
+export type FloorShipment = Awaited<
+  ReturnType<typeof getWarehouseFloor>
+>["pickPack"][number];
 
 async function loadShipment(tx: Tx, id: string) {
   const s = await tx.shipment.findUnique({
     where: { id },
-    include: { items: true, warehouse: true, legs: { orderBy: { sequence: "asc" } } },
+    include: {
+      items: true,
+      warehouse: true,
+      legs: { orderBy: { sequence: "asc" } },
+    },
   });
   if (!s) throw new ApiError(404, "Shipment not found.");
   return s;
 }
 
-export function matchesCode(s: { qrCode: string | null; trackingNumber: string; shipmentNumber: string }, code: string) {
+export function matchesCode(
+  s: { qrCode: string | null; trackingNumber: string; shipmentNumber: string },
+  code: string,
+) {
   const c = code.trim().toUpperCase();
-  return [s.qrCode, s.trackingNumber, s.shipmentNumber].some((v) => v && v.toUpperCase() === c);
+  return [s.qrCode, s.trackingNumber, s.shipmentNumber].some(
+    (v) => v && v.toUpperCase() === c,
+  );
 }
 
 /** One scan = one unit picked. Moves 1 unit reserved → picked. */
-export async function scanPick(shipmentId: string, skuInput: string, actor: CurrentUser) {
+export async function scanPick(
+  shipmentId: string,
+  skuInput: string,
+  actor: CurrentUser,
+) {
   return prisma.$transaction(async (tx) => {
     const s = await loadShipment(tx, shipmentId);
-    if (s.status !== "ALLOCATED") throw new ApiError(409, "This shipment is already picked.");
+    if (s.status !== "ALLOCATED")
+      throw new ApiError(409, "This shipment is already picked.");
     const sku = skuInput.trim().toUpperCase();
-    const item = s.items.find((i) => i.sku.toUpperCase() === sku && i.pickedQty < i.quantity);
+    const item = s.items.find(
+      (i) => i.sku.toUpperCase() === sku && i.pickedQty < i.quantity,
+    );
     if (!item) {
       const known = s.items.some((i) => i.sku.toUpperCase() === sku);
-      throw new ApiError(422, known ? `${sku} is already fully picked.` : `${sku} is not part of this shipment.`);
+      throw new ApiError(
+        422,
+        known
+          ? `${sku} is already fully picked.`
+          : `${sku} is not part of this shipment.`,
+      );
     }
 
-    await tx.orderItem.update({ where: { id: item.id }, data: { pickedQty: { increment: 1 } } });
+    await tx.orderItem.update({
+      where: { id: item.id },
+      data: { pickedQty: { increment: 1 } },
+    });
     await moveStock(tx, {
       variantId: item.variantId,
       warehouseId: s.warehouseId,
@@ -226,18 +351,29 @@ export async function scanPick(shipmentId: string, skuInput: string, actor: Curr
       },
     });
 
-    const refreshed = await tx.orderItem.findMany({ where: { shipmentId: s.id } });
+    const refreshed = await tx.orderItem.findMany({
+      where: { shipmentId: s.id },
+    });
     const done = refreshed.every((i) => i.pickedQty >= i.quantity);
-    if (done) await tx.shipment.update({ where: { id: s.id }, data: { status: "PICKED" } });
+    if (done)
+      await tx.shipment.update({
+        where: { id: s.id },
+        data: { status: "PICKED" },
+      });
     await recomputeOrderStatus(tx, s.orderId);
-    return { picked: item.pickedQty + 1, of: item.quantity, shipmentPicked: done };
+    return {
+      picked: item.pickedQty + 1,
+      of: item.quantity,
+      shipmentPicked: done,
+    };
   }, TX);
 }
 
 export async function confirmPack(shipmentId: string, actor: CurrentUser) {
   return prisma.$transaction(async (tx) => {
     const s = await loadShipment(tx, shipmentId);
-    if (s.status !== "PICKED") throw new ApiError(409, "Scan every item before packing.");
+    if (s.status !== "PICKED")
+      throw new ApiError(409, "Scan every item before packing.");
     for (const i of s.items) {
       await moveStock(tx, {
         variantId: i.variantId,
@@ -251,9 +387,19 @@ export async function confirmPack(shipmentId: string, actor: CurrentUser) {
         actorId: actor.id,
       });
     }
-    await tx.shipment.update({ where: { id: s.id }, data: { status: "PACKED" } });
+    await tx.shipment.update({
+      where: { id: s.id },
+      data: { status: "PACKED" },
+    });
     await tx.scanEvent.create({
-      data: { shipmentId: s.id, type: "PACK", locationLabel: s.warehouse.name, scannedById: actor.id, qrVerified: true, remarks: "Packing confirmed" },
+      data: {
+        shipmentId: s.id,
+        type: "PACK",
+        locationLabel: s.warehouse.name,
+        scannedById: actor.id,
+        qrVerified: true,
+        remarks: "Packing confirmed",
+      },
     });
     await recomputeOrderStatus(tx, s.orderId);
     return { status: "PACKED" };
@@ -263,24 +409,44 @@ export async function confirmPack(shipmentId: string, actor: CurrentUser) {
 export async function generateLabel(shipmentId: string, actor: CurrentUser) {
   return prisma.$transaction(async (tx) => {
     const s = await loadShipment(tx, shipmentId);
-    if (s.status !== "PACKED") throw new ApiError(409, "Pack the shipment before generating its label.");
+    if (s.status !== "PACKED")
+      throw new ApiError(409, "Pack the shipment before generating its label.");
     const updated = await tx.shipment.update({
       where: { id: s.id },
-      data: { status: "LABELLED", qrCode: qrToken(s.shipmentNumber), labelGeneratedAt: new Date() },
+      data: {
+        status: "LABELLED",
+        qrCode: qrToken(s.shipmentNumber),
+        labelGeneratedAt: new Date(),
+      },
     });
     await tx.scanEvent.create({
-      data: { shipmentId: s.id, type: "LABEL", locationLabel: s.warehouse.name, scannedById: actor.id, remarks: "QR shipping label generated" },
+      data: {
+        shipmentId: s.id,
+        type: "LABEL",
+        locationLabel: s.warehouse.name,
+        scannedById: actor.id,
+        remarks: "QR shipping label generated",
+      },
     });
     return { qrCode: updated.qrCode };
   }, TX);
 }
 
 /** Courier handover: QR must be scanned. Moves packed → shipped and opens the first hub leg. */
-export async function handoverShipment(shipmentId: string, code: string, actor: CurrentUser) {
+export async function handoverShipment(
+  shipmentId: string,
+  code: string,
+  actor: CurrentUser,
+) {
   return prisma.$transaction(async (tx) => {
     const s = await loadShipment(tx, shipmentId);
-    if (s.status !== "LABELLED") throw new ApiError(409, "Generate the QR label before handover.");
-    if (!matchesCode(s, code)) throw new ApiError(422, "Scanned code does not match this parcel's label.");
+    if (s.status !== "LABELLED")
+      throw new ApiError(409, "Generate the QR label before handover.");
+    if (!matchesCode(s, code))
+      throw new ApiError(
+        422,
+        "Scanned code does not match this parcel's label.",
+      );
 
     for (const i of s.items) {
       await moveStock(tx, {
@@ -296,10 +462,24 @@ export async function handoverShipment(shipmentId: string, code: string, actor: 
       });
     }
     const firstLeg = s.legs[0];
-    if (firstLeg) await tx.shipmentLeg.update({ where: { id: firstLeg.id }, data: { status: "INBOUND" } });
-    await tx.shipment.update({ where: { id: s.id }, data: { status: "IN_TRANSIT", dispatchedAt: new Date() } });
+    if (firstLeg)
+      await tx.shipmentLeg.update({
+        where: { id: firstLeg.id },
+        data: { status: "INBOUND" },
+      });
+    await tx.shipment.update({
+      where: { id: s.id },
+      data: { status: "IN_TRANSIT", dispatchedAt: new Date() },
+    });
     await tx.scanEvent.create({
-      data: { shipmentId: s.id, type: "HANDOVER", locationLabel: s.warehouse.name, scannedById: actor.id, qrVerified: true, remarks: "Handed to line-haul courier" },
+      data: {
+        shipmentId: s.id,
+        type: "HANDOVER",
+        locationLabel: s.warehouse.name,
+        scannedById: actor.id,
+        qrVerified: true,
+        remarks: "Handed to line-haul courier",
+      },
     });
     await recomputeOrderStatus(tx, s.orderId);
     return { status: "IN_TRANSIT" };

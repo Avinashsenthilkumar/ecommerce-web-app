@@ -166,11 +166,12 @@ function findBestRealImage(name: string) {
 }
 
 export function resolveProductImageUrl(name: string, source?: string | null) {
+  const trimmed = (source ?? "").trim();
+  if (trimmed.startsWith("data:image/")) return trimmed;
+
   const mapped = findBestRealImage(name);
   if (mapped) return mapped;
 
-  const trimmed = (source ?? "").trim();
-  if (trimmed && trimmed.startsWith("data:image/")) return trimmed;
   if (
     trimmed &&
     (trimmed.startsWith("http://") ||
