@@ -33,12 +33,21 @@ export async function moveStock(tx: Tx, m: MoveInput) {
   if (m.qty <= 0) throw new ApiError(400, "Quantity must be at least 1.");
 
   let inv = await tx.inventory.findUnique({
-    where: { variantId_warehouseId: { variantId: m.variantId, warehouseId: m.warehouseId } },
+    where: {
+      variantId_warehouseId: {
+        variantId: m.variantId,
+        warehouseId: m.warehouseId,
+      },
+    },
     include: { variant: { select: { sku: true } } },
   });
 
   if (!inv) {
-    if (m.from !== null) throw new ApiError(409, "This SKU has no stock record in that warehouse.");
+    if (m.from !== null)
+      throw new ApiError(
+        409,
+        "This SKU has no stock record in that warehouse.",
+      );
     inv = await tx.inventory.create({
       data: { variantId: m.variantId, warehouseId: m.warehouseId },
       include: { variant: { select: { sku: true } } },
@@ -57,7 +66,10 @@ export async function moveStock(tx: Tx, m: MoveInput) {
     data: data as Prisma.InventoryUpdateManyMutationInput,
   });
   if (res.count === 0) {
-    throw new ApiError(409, `Not enough ${m.from} stock for ${inv.variant.sku}.`);
+    throw new ApiError(
+      409,
+      `Not enough ${m.from} stock for ${inv.variant.sku}.`,
+    );
   }
 
   await tx.stockMovement.create({
@@ -76,6 +88,6 @@ export async function moveStock(tx: Tx, m: MoveInput) {
   });
 }
 
-export function sumAvailable(inv: { available: number }[]) {
-  return inv.reduce((s, i) => s + i.available, 0);
+export function maxAvailableAtWarehouse(inv: { available: number }[]) {
+  return inv.reduce((max, i) => Math.max(max, i.available), 0);
 }

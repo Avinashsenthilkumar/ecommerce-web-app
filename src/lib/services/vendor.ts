@@ -30,7 +30,11 @@ export async function getVendorDashboard(vendorId: string) {
         variants: {
           orderBy: { id: "asc" },
           include: {
-            inventory: { include: { warehouse: { select: { name: true } } } },
+            inventory: {
+              include: {
+                warehouse: { select: { name: true, isActive: true } },
+              },
+            },
           },
         },
       },
@@ -54,7 +58,12 @@ export async function getVendorDashboard(vendorId: string) {
     (s, p) =>
       s +
       p.variants.reduce(
-        (a, v) => a + v.inventory.reduce((b, i) => b + i.available, 0),
+        (a, v) =>
+          a +
+          v.inventory.reduce(
+            (b, i) => b + (i.warehouse.isActive ? i.available : 0),
+            0,
+          ),
         0,
       ),
     0,
@@ -84,6 +93,18 @@ export const createProductSchema = z
     description: z.string().trim().min(10),
     mrp: z.number().int().positive(),
     sellingPrice: z.number().int().positive(),
+    images: z
+      .array(
+        z
+          .string()
+          .max(2_800_000)
+          .regex(
+            /^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/,
+          ),
+      )
+      .max(5)
+      .optional()
+      .default([]),
     imageUrl: z.string().trim().optional().default(""),
     skuPrefix: z
       .string()
@@ -103,7 +124,15 @@ export const createProductSchema = z
   .refine((v) => v.sellingPrice <= v.mrp, {
     message: "Selling price cannot be above MRP",
     path: ["sellingPrice"],
-  });
+  })
+  .refine(
+    (v) =>
+      v.images.reduce((total, image) => total + image.length, 0) <= 4_300_000,
+    {
+      message: "Uploaded images exceed the maximum total size",
+      path: ["images"],
+    },
+  );
 
 const slugify = (s: string) =>
   s
@@ -136,10 +165,9 @@ export async function createVendorProduct(
         create: { name: input.brandName },
         update: {},
       });
-      const productImageUrl = resolveProductImageUrl(
-        input.name,
-        input.imageUrl,
-      );
+      const imageUrls = input.images.length
+        ? input.images
+        : [resolveProductImageUrl(input.name, input.imageUrl)];
       const product = await tx.product.create({
         data: {
           slug,
@@ -153,7 +181,13 @@ export async function createVendorProduct(
           sellingPrice: input.sellingPrice,
           isNewArrival: true,
           status: "PENDING_REVIEW", // goes live after admin review
-          images: { create: [{ url: productImageUrl, alt: input.name }] },
+          images: {
+            create: imageUrls.map((url, sortOrder) => ({
+              url,
+              alt: input.name,
+              sortOrder,
+            })),
+          },
         },
       });
 

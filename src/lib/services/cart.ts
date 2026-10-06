@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "../prisma";
 import { ApiError } from "../api";
-import { sumAvailable } from "./inventory";
+import { maxAvailableAtWarehouse } from "./inventory";
 import { getSettings, rulesFrom, type StoreRules } from "../settings";
 
 export const cartInclude = {
@@ -10,9 +10,12 @@ export const cartInclude = {
     include: {
       variant: {
         include: {
-          inventory: true,
+          inventory: { where: { warehouse: { isActive: true } } },
           product: {
-            include: { brand: true, images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+            include: {
+              brand: true,
+              images: { orderBy: { sortOrder: "asc" }, take: 1 },
+            },
           },
         },
       },
@@ -28,7 +31,12 @@ export async function storeRules() {
 }
 
 export function getCart(userId: string) {
-  return prisma.cart.upsert({ where: { userId }, create: { userId }, update: {}, include: cartInclude });
+  return prisma.cart.upsert({
+    where: { userId },
+    create: { userId },
+    update: {},
+    include: cartInclude,
+  });
 }
 
 export function lineUnitPrice(line: CartLine) {
@@ -44,13 +52,23 @@ export function priceBreakdown(subtotal: number, r: StoreRules) {
   const discountTotal = Math.round(subtotal * r.discountRate);
   const taxable = subtotal - discountTotal;
   const taxTotal = Math.round(taxable * r.gstRate);
-  const shippingFee = subtotal === 0 || subtotal >= r.freeShippingFrom ? 0 : r.shippingFee;
-  return { subtotal, discountTotal, taxTotal, shippingFee, grandTotal: taxable + taxTotal + shippingFee };
+  const shippingFee =
+    subtotal === 0 || subtotal >= r.freeShippingFrom ? 0 : r.shippingFee;
+  return {
+    subtotal,
+    discountTotal,
+    taxTotal,
+    shippingFee,
+    grandTotal: taxable + taxTotal + shippingFee,
+  };
 }
 
 export function cartTotals(items: CartLine[], r: StoreRules) {
   const subtotal = items.reduce((s, l) => s + lineUnitPrice(l) * l.quantity, 0);
-  const mrpTotal = items.reduce((s, l) => s + l.variant.product.mrp * l.quantity, 0);
+  const mrpTotal = items.reduce(
+    (s, l) => s + l.variant.product.mrp * l.quantity,
+    0,
+  );
   return {
     ...priceBreakdown(subtotal, r),
     mrpTotal,
@@ -60,25 +78,55 @@ export function cartTotals(items: CartLine[], r: StoreRules) {
 }
 
 export async function cartCount(userId: string) {
-  const agg = await prisma.cartItem.aggregate({ where: { cart: { userId } }, _sum: { quantity: true } });
+  const agg = await prisma.cartItem.aggregate({
+    where: { cart: { userId } },
+    _sum: { quantity: true },
+  });
   return agg._sum.quantity ?? 0;
 }
 
-export async function addToCart(userId: string, variantId: string, qty: number) {
+export async function addToCart(
+  userId: string,
+  variantId: string,
+  qty: number,
+) {
   const variant = await prisma.productVariant.findUnique({
     where: { id: variantId },
-    include: { inventory: true, product: { select: { status: true, name: true, vendor: { select: { status: true } } } } },
+    include: {
+      inventory: { where: { warehouse: { isActive: true } } },
+      product: {
+        select: {
+          status: true,
+          name: true,
+          vendor: { select: { status: true } },
+        },
+      },
+    },
   });
-  if (!variant || variant.product.status !== "ACTIVE" || variant.product.vendor.status !== "APPROVED") throw new ApiError(404, "This product is no longer available.");
+  if (
+    !variant ||
+    variant.product.status !== "ACTIVE" ||
+    variant.product.vendor.status !== "APPROVED"
+  )
+    throw new ApiError(404, "This product is no longer available.");
 
-  const stock = sumAvailable(variant.inventory);
-  const cart = await prisma.cart.upsert({ where: { userId }, create: { userId }, update: {} });
+  const stock = maxAvailableAtWarehouse(variant.inventory);
+  const cart = await prisma.cart.upsert({
+    where: { userId },
+    create: { userId },
+    update: {},
+  });
   const existing = await prisma.cartItem.findUnique({
     where: { cartId_variantId: { cartId: cart.id, variantId } },
   });
   const nextQty = (existing?.quantity ?? 0) + qty;
   if (nextQty > stock) {
-    throw new ApiError(409, stock === 0 ? `${variant.product.name} is out of stock.` : `Only ${stock} left in stock.`);
+    throw new ApiError(
+      409,
+      stock === 0
+        ? `${variant.product.name} is out of stock.`
+        : `Only ${stock} left in stock.`,
+    );
   }
 
   await prisma.cartItem.upsert({
@@ -89,30 +137,51 @@ export async function addToCart(userId: string, variantId: string, qty: number) 
   return { count: await cartCount(userId) };
 }
 
-export async function setCartItemQty(userId: string, itemId: string, qty: number) {
+export async function setCartItemQty(
+  userId: string,
+  itemId: string,
+  qty: number,
+) {
   const item = await prisma.cartItem.findUnique({
     where: { id: itemId },
-    include: { cart: true, variant: { include: { inventory: true } } },
+    include: {
+      cart: true,
+      variant: {
+        include: {
+          inventory: { where: { warehouse: { isActive: true } } },
+        },
+      },
+    },
   });
-  if (!item || item.cart.userId !== userId) throw new ApiError(404, "Cart item not found.");
+  if (!item || item.cart.userId !== userId)
+    throw new ApiError(404, "Cart item not found.");
 
   if (qty <= 0) {
     await prisma.cartItem.delete({ where: { id: itemId } });
   } else {
-    const stock = sumAvailable(item.variant.inventory);
+    const stock = maxAvailableAtWarehouse(item.variant.inventory);
     if (qty > stock) throw new ApiError(409, `Only ${stock} left in stock.`);
-    await prisma.cartItem.update({ where: { id: itemId }, data: { quantity: qty } });
+    await prisma.cartItem.update({
+      where: { id: itemId },
+      data: { quantity: qty },
+    });
   }
   return { count: await cartCount(userId) };
 }
 
 /** Moves a bag line to the wishlist (Amazon-style "Save for later"). */
 export async function saveForLater(userId: string, itemId: string) {
-  const item = await prisma.cartItem.findUnique({ where: { id: itemId }, include: { cart: true, variant: true } });
-  if (!item || item.cart.userId !== userId) throw new ApiError(404, "Bag item not found.");
+  const item = await prisma.cartItem.findUnique({
+    where: { id: itemId },
+    include: { cart: true, variant: true },
+  });
+  if (!item || item.cart.userId !== userId)
+    throw new ApiError(404, "Bag item not found.");
   await prisma.$transaction([
     prisma.wishlistItem.upsert({
-      where: { userId_productId: { userId, productId: item.variant.productId } },
+      where: {
+        userId_productId: { userId, productId: item.variant.productId },
+      },
       create: { userId, productId: item.variant.productId },
       update: {},
     }),
