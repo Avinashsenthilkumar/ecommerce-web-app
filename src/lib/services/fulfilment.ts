@@ -274,6 +274,62 @@ export async function getWarehouseFloor() {
   };
 }
 
+/** Product SKUs with stock at the signed-in warehouse, ready for barcode printing. */
+export async function getWarehouseProductLabels(warehouseId?: string | null) {
+  if (warehouseId === null) return [];
+
+  const inventory = await prisma.inventory.findMany({
+    where: {
+      ...(warehouseId ? { warehouseId } : {}),
+      OR: [
+        { available: { gt: 0 } },
+        { reserved: { gt: 0 } },
+        { picked: { gt: 0 } },
+        { packed: { gt: 0 } },
+        { shipped: { gt: 0 } },
+      ],
+      variant: { product: { status: "ACTIVE" } },
+    },
+    include: {
+      warehouse: { select: { name: true } },
+      variant: {
+        select: {
+          id: true,
+          sku: true,
+          label: true,
+          product: {
+            select: {
+              name: true,
+              brand: { select: { name: true } },
+              category: { select: { name: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return inventory
+    .map((stock) => ({
+      id: stock.variant.id,
+      sku: stock.variant.sku,
+      variantLabel: stock.variant.label,
+      productName: stock.variant.product.name,
+      brandName: stock.variant.product.brand.name,
+      categoryName: stock.variant.product.category.name,
+      warehouseName: stock.warehouse.name,
+      quantity:
+        stock.available +
+        stock.reserved +
+        stock.picked +
+        stock.packed +
+        stock.shipped,
+    }))
+    .sort((a, b) =>
+      a.productName.localeCompare(b.productName) || a.sku.localeCompare(b.sku),
+    );
+}
+
 export type FloorShipment = Awaited<
   ReturnType<typeof getWarehouseFloor>
 >["pickPack"][number];

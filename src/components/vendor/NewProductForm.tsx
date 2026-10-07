@@ -26,6 +26,16 @@ function fileToDataUrl(file: File) {
   });
 }
 
+async function uploadToCloudinary(file: File) {
+  const image = await fileToDataUrl(file);
+  const result = await callApi<{ url: string }>(
+    "/api/cloudinary/upload",
+    "POST",
+    { image },
+  );
+  return result.url;
+}
+
 export function NewProductForm({
   categories,
   warehouses,
@@ -101,7 +111,7 @@ export function NewProductForm({
       return;
     }
     try {
-      setImages(await Promise.all(files.map(fileToDataUrl)));
+      setImages(await Promise.all(files.map(uploadToCloudinary)));
     } catch (err) {
       setError((err as Error).message);
     }

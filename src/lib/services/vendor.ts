@@ -97,9 +97,14 @@ export const createProductSchema = z
       .array(
         z
           .string()
-          .max(2_800_000)
-          .regex(
-            /^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/,
+          .trim()
+          .min(1)
+          .refine(
+            (value) =>
+              value.startsWith("https://") ||
+              value.startsWith("http://") ||
+              value.startsWith("/"),
+            "Product images must be Cloudinary URLs or application-relative URLs.",
           ),
       )
       .max(5)
