@@ -1,11 +1,15 @@
 import { staffGate } from "@/lib/auth";
-import { getWarehouseFloor } from "@/lib/services/fulfilment";
+import {
+  getWarehouseFloor,
+  getWarehouseProductLabels,
+} from "@/lib/services/fulfilment";
 import { AccessGate } from "@/components/AccessGate";
 import { Board, Empty, OpsShell, Section, StatCard, StatRow } from "@/components/OpsShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActionButton } from "@/components/ActionButton";
 import { ScanForm } from "@/components/ScanForm";
 import { QrLabel } from "@/components/QrLabel";
+import { ProductBarcodeLabels } from "@/components/ProductBarcodeLabels";
 
 export const metadata = { title: "Warehouse management — pick, pack, QR label | subsel" };
 
@@ -22,7 +26,12 @@ type Addr = { name: string; city: string; pincode: string };
 export default async function WarehousePage() {
   const { user, allowed } = await staffGate("WAREHOUSE");
   if (!allowed) return <AccessGate need="WAREHOUSE" user={user} />;
-  const { pickPack, dispatch, stats } = await getWarehouseFloor();
+  const [{ pickPack, dispatch, stats }, products] = await Promise.all([
+    getWarehouseFloor(),
+    getWarehouseProductLabels(
+      user.role === "ADMIN" ? undefined : user.warehouseId,
+    ),
+  ]);
 
   return (
     <OpsShell title="Warehouse management" subtitle="Chennai & Thanjavur fulfilment centres" tabs={TABS} active="/warehouse">
@@ -135,6 +144,14 @@ export default async function WarehousePage() {
         )}
       </Section>
       </Board>
+
+      <Section
+        title="Product barcode labels"
+        hint="Print Code 128 labels for stocked product SKUs"
+        className="max-h-[38vh] shrink-0"
+      >
+        <ProductBarcodeLabels products={products} />
+      </Section>
     </OpsShell>
   );
 }

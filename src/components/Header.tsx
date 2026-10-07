@@ -1,23 +1,15 @@
 import Link from "next/link";
 import { Heart, ShoppingBag } from "lucide-react";
 import { getCurrentUser, ROLE_HOME } from "@/lib/auth";
-import { getSettings } from "@/lib/settings";
+import { getNavigationItems, getSettings } from "@/lib/settings";
 import { cartCount } from "@/lib/services/cart";
 import { Logo } from "./Logo";
 import { AccountMenu } from "./AccountMenu";
 import { HeaderSearch } from "./HeaderSearch";
 
-const NAV = [
-  { slug: "men", label: "Men" },
-  { slug: "women", label: "Women" },
-  { slug: "children", label: "Children" },
-  { slug: "electronics", label: "Electronics" },
-  { slug: "accessories", label: "Accessories" },
-  { slug: "home", label: "Home" },
-];
-
 export async function Header() {
   const [user, s] = await Promise.all([getCurrentUser(), getSettings()]);
+  const navItems = getNavigationItems(s).filter((item) => item.visible);
   const isCustomer = user?.role === "CUSTOMER";
   const count = user && isCustomer ? await cartCount(user.id) : 0;
 
@@ -29,15 +21,18 @@ export async function Header() {
       <div className="shell relative flex h-16 items-center gap-6">
         <Logo />
 
-        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 lg:flex" aria-label="Departments">
-          {NAV.map((n) => (
-            <Link key={n.slug} href={`/shop?category=${n.slug}`} className="text-sm text-slate transition-colors hover:text-ink">
-              {n.label}
+        <nav className="absolute left-1/2 hidden max-w-[55vw] -translate-x-1/2 items-center gap-4 overflow-x-auto xl:gap-8 lg:flex" aria-label="Departments">
+          {navItems.map((item, index) => (
+            <Link
+              key={`${item.href}-${index}`}
+              href={item.href}
+              className={item.style === "pill"
+                ? "rounded-full border border-line bg-white px-4 py-2 text-sm text-ink hover:border-ink/40"
+                : "text-sm text-slate transition-colors hover:text-ink"}
+            >
+              {item.label}
             </Link>
           ))}
-          <Link href="/shop?category=all" className="rounded-full border border-line bg-white px-4 py-2 text-sm text-ink hover:border-ink/40">
-            All products
-          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
@@ -62,9 +57,9 @@ export async function Header() {
       </div>
 
       <nav className="shell flex gap-5 overflow-x-auto pb-3 lg:hidden" aria-label="Departments">
-        {[...NAV, { slug: "all", label: "All products" }].map((n) => (
-          <Link key={n.slug} href={`/shop?category=${n.slug}`} className="whitespace-nowrap text-sm text-slate hover:text-ink">
-            {n.label}
+        {navItems.map((item, index) => (
+          <Link key={`${item.href}-${index}`} href={item.href} className="whitespace-nowrap text-sm text-slate hover:text-ink">
+            {item.label}
           </Link>
         ))}
       </nav>

@@ -17,6 +17,15 @@ export const DEFAULTS = {
   "theme.line": "#E7E2DA", // borders
   "announcement.enabled": "0",
   "announcement.text": "Free delivery on orders above ₹999",
+  "navigation.items": JSON.stringify([
+    { label: "Men", href: "/shop?category=men", visible: true, style: "link" },
+    { label: "Women", href: "/shop?category=women", visible: true, style: "link" },
+    { label: "Children", href: "/shop?category=children", visible: true, style: "link" },
+    { label: "Electronics", href: "/shop?category=electronics", visible: true, style: "link" },
+    { label: "Accessories", href: "/shop?category=accessories", visible: true, style: "link" },
+    { label: "Home", href: "/shop?category=home", visible: true, style: "link" },
+    { label: "All products", href: "/shop?category=all", visible: true, style: "pill" },
+  ]),
   "home.eyebrow": "Autumn edit — 2026",
   "home.headline": "Considered goods, delivered precisely.",
   "home.subtext":
@@ -26,12 +35,27 @@ export const DEFAULTS = {
   "home.ctaSecondary": "Explore Collection",
   "home.ctaSecondaryHref": "/shop?category=women",
   "home.heroImage": "/assets/hero-b_Z3yfX2.jpg",
+  "home.showCategories": "1",
+  "home.categoriesEyebrow": "Categories",
   "home.categoriesTitle": "Six departments, one checkout.",
+  "home.categoriesCta": "View all",
+  "home.categoriesHref": "/shop?category=all",
+  "home.showArrivals": "1",
+  "home.arrivalsEyebrow": "Catalogs",
   "home.arrivalsTitle": "Fresh arrivals and new selections.",
+  "home.showFulfilment": "1",
+  "home.fulfilEyebrow": "Fulfilment",
   "home.featuredTitle": "Selected for the week",
+  "home.featuredCta": "View all",
+  "home.featuredHref": "/shop?category=all",
   "home.fulfilTitle": "Every parcel is scanned, not guessed.",
   "home.fulfilText":
     "Orders split automatically across our Chennai and Thanjavur fulfilment centres. Each package carries a unique QR that is verified at pick, pack, hub intake and handover.",
+  "home.fulfilPrimaryCta": "Track an order",
+  "home.fulfilPrimaryHref": "/orders",
+  "home.fulfilSecondaryCta": "See operations",
+  "home.fulfilSecondaryHref": "/admin",
+  "home.showFeatured": "1",
   "home.stat1Value": "99.4%",
   "home.stat1Label": "Pick accuracy",
   "home.stat2Value": "3.2 h",
@@ -62,6 +86,21 @@ const num = (min: number, max: number) =>
     .string()
     .regex(/^\d+$/, "Numbers only")
     .refine((v) => +v >= min && +v <= max, `Between ${min} and ${max}`);
+const navigationItems = z.array(
+  z.object({
+    label: z.string().trim().min(1).max(40),
+    href: z
+      .string()
+      .trim()
+      .min(1)
+      .max(160)
+      .refine((href) => href.startsWith("/") && !href.startsWith("//") && !href.includes("\\"), "Use an internal path starting with /"),
+    visible: z.boolean(),
+    style: z.enum(["link", "pill"]),
+  }),
+).max(12);
+
+export type NavigationItem = z.infer<typeof navigationItems>[number];
 
 /** Validation per key — every admin edit is checked on the server. */
 export const RULES: Record<SettingKey, z.ZodTypeAny> = {
@@ -72,11 +111,7 @@ export const RULES: Record<SettingKey, z.ZodTypeAny> = {
     .trim()
     .max(400_000)
     .refine(
-      (v) =>
-        v === "" ||
-        v.startsWith("/") ||
-        v.startsWith("http") ||
-        v.startsWith("data:image/"),
+      (v) => v === "" || v.startsWith("/") || v.startsWith("http"),
       "Use an image URL, a path like /brand/logo.png, or upload a file",
     ),
   "theme.ink": hex,
@@ -86,6 +121,16 @@ export const RULES: Record<SettingKey, z.ZodTypeAny> = {
   "theme.line": hex,
   "announcement.enabled": z.enum(["0", "1"]),
   "announcement.text": text(140),
+  "navigation.items": z
+    .string()
+    .max(5000)
+    .refine((value) => {
+      try {
+        return navigationItems.safeParse(JSON.parse(value)).success;
+      } catch {
+        return false;
+      }
+    }, "Navigation must contain up to 12 valid links with internal paths"),
   "home.eyebrow": text(60),
   "home.headline": text(120).min(1),
   "home.subtext": text(300),
@@ -94,11 +139,26 @@ export const RULES: Record<SettingKey, z.ZodTypeAny> = {
   "home.ctaSecondary": text(30),
   "home.ctaSecondaryHref": text(120),
   "home.heroImage": z.string().trim().max(400_000),
+  "home.showCategories": z.enum(["0", "1"]),
+  "home.categoriesEyebrow": text(40),
   "home.categoriesTitle": text(80),
+  "home.categoriesCta": text(30),
+  "home.categoriesHref": text(120),
+  "home.showArrivals": z.enum(["0", "1"]),
+  "home.arrivalsEyebrow": text(40),
   "home.arrivalsTitle": text(80),
+  "home.showFulfilment": z.enum(["0", "1"]),
+  "home.fulfilEyebrow": text(40),
   "home.featuredTitle": text(80),
+  "home.featuredCta": text(30),
+  "home.featuredHref": text(120),
   "home.fulfilTitle": text(90),
   "home.fulfilText": text(400),
+  "home.fulfilPrimaryCta": text(30),
+  "home.fulfilPrimaryHref": text(120),
+  "home.fulfilSecondaryCta": text(30),
+  "home.fulfilSecondaryHref": text(120),
+  "home.showFeatured": z.enum(["0", "1"]),
   "home.stat1Value": text(12),
   "home.stat1Label": text(30),
   "home.stat2Value": text(12),
@@ -129,6 +189,10 @@ export const RULES: Record<SettingKey, z.ZodTypeAny> = {
 };
 
 export type Settings = Record<SettingKey, string>;
+
+export function getNavigationItems(settings: Settings): NavigationItem[] {
+  return navigationItems.parse(JSON.parse(settings["navigation.items"]));
+}
 
 // Settings are read on every page. Cache them briefly and clear the cache on save,
 // so a render costs one query at most and admin edits appear straight away.

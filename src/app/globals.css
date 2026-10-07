@@ -42,6 +42,75 @@ body {
   }
 }
 
+@media print {
+  @page {
+    margin: 8mm;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .barcode-print-area,
+  .barcode-print-area * {
+    visibility: visible !important;
+  }
+
+  .barcode-print-area {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    display: grid !important;
+    width: 100% !important;
+    grid-template-columns: repeat(3, 50mm);
+    gap: 3mm;
+  }
+
+  .barcode-label {
+    display: none !important;
+  }
+
+  .barcode-label.is-printing {
+    display: flex !important;
+    width: 50mm;
+    height: 30mm;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 0.2mm solid #d1d5db;
+    padding: 2mm;
+    color: #111827;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    break-inside: avoid;
+  }
+
+  .barcode-label-brand,
+  .barcode-label-category {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 7pt;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .barcode-label-name {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 8pt;
+    font-weight: 600;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .barcode-label svg {
+    max-width: 100%;
+    height: 15mm;
+  }
+}
+
 @layer components {
   .shell {
     @apply mx-auto w-full max-w-shell px-5 sm:px-8 lg:px-[4.5rem];

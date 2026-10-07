@@ -39,14 +39,14 @@ export default async function HomePage() {
       </section>
 
       {/* Categories */}
-      <section className="shell pt-16 sm:pt-24">
+      {s["home.showCategories"] === "1" && <section className="shell pt-16 sm:pt-24">
         <div className="mb-10 flex items-end justify-between gap-6">
           <div>
-            <p className="eyebrow">Categories</p>
+            <p className="eyebrow">{s["home.categoriesEyebrow"]}</p>
             <h2 className="section-title mt-4 max-w-md">{s["home.categoriesTitle"]}</h2>
           </div>
-          <Link href="/shop?category=all" className="btn-outline shrink-0">
-            View all <ArrowRight size={15} />
+          <Link href={s["home.categoriesHref"]} className="btn-outline shrink-0">
+            {s["home.categoriesCta"]} <ArrowRight size={15} />
           </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
@@ -67,29 +67,29 @@ export default async function HomePage() {
             </Link>
           ))}
         </div>
-      </section>
+      </section>}
 
       {/* Catalogs */}
-      <section className="shell pt-16 sm:pt-24">
-        <p className="eyebrow">Catalogs</p>
+      {s["home.showArrivals"] === "1" && <section className="shell pt-16 sm:pt-24">
+        <p className="eyebrow">{s["home.arrivalsEyebrow"]}</p>
         <h2 className="section-title mb-10 mt-4 max-w-xl">{s["home.arrivalsTitle"]}</h2>
         <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4">
           {arrivals.map((p) => (
             <ProductCard key={p.id} p={p} saved={saved.has(p.id)} />
           ))}
         </div>
-      </section>
+      </section>}
 
       {/* Fulfilment */}
-      <section className="shell pt-16 sm:pt-24">
+      {s["home.showFulfilment"] === "1" && <section className="shell pt-16 sm:pt-24">
         <div className="grid items-center gap-10 rounded-[24px] border border-line bg-mist px-6 py-10 sm:rounded-[32px] sm:px-16 sm:py-16 lg:grid-cols-2">
           <div>
-            <p className="eyebrow">Fulfilment</p>
+            <p className="eyebrow">{s["home.fulfilEyebrow"]}</p>
             <h2 className="section-title mt-4 max-w-lg">{s["home.fulfilTitle"]}</h2>
             <p className="mt-6 max-w-md text-[15px] leading-relaxed text-ink/70">{s["home.fulfilText"]}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/orders" className="btn-primary">Track an order</Link>
-              <Link href="/admin" className="btn-outline">See operations</Link>
+              <Link href={s["home.fulfilPrimaryHref"]} className="btn-primary">{s["home.fulfilPrimaryCta"]}</Link>
+              <Link href={s["home.fulfilSecondaryHref"]} className="btn-outline">{s["home.fulfilSecondaryCta"]}</Link>
             </div>
           </div>
           <dl className="grid grid-cols-2 gap-3">
@@ -101,20 +101,20 @@ export default async function HomePage() {
             ))}
           </dl>
         </div>
-      </section>
+      </section>}
 
       {/* Selected */}
-      <section className="shell pt-16 sm:pt-24">
+      {s["home.showFeatured"] === "1" && <section className="shell pt-16 sm:pt-24">
         <div className="mb-10 flex items-end justify-between gap-6">
           <h2 className="section-title">{s["home.featuredTitle"]}</h2>
-          <Link href="/shop?category=all" className="btn-outline shrink-0">View all</Link>
+          <Link href={s["home.featuredHref"]} className="btn-outline shrink-0">{s["home.featuredCta"]}</Link>
         </div>
         <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4">
           {selected.map((p) => (
             <ProductCard key={p.id} p={p} saved={saved.has(p.id)} />
           ))}
         </div>
-      </section>
+      </section>}
     </>
   );
 }
