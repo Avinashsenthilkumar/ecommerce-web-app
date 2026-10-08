@@ -43,6 +43,18 @@ export async function placeOrder(
       if (!cart || cart.items.length === 0)
         throw new ApiError(400, "Your cart is empty.");
 
+      const unavailable = cart.items.find(
+        (line) =>
+          line.variant.product.status !== "ACTIVE" ||
+          line.variant.product.vendor.status !== "APPROVED",
+      );
+      if (unavailable) {
+        throw new ApiError(
+          409,
+          `${unavailable.variant.product.name} is no longer available. Remove it from your bag to continue.`,
+        );
+      }
+
       const plannedWarehouses = new Set<string>();
       const allocations = cart.items.map((line) => {
         const candidates = line.variant.inventory
@@ -65,7 +77,11 @@ export async function placeOrder(
         return { line, warehouseId: inventory.warehouseId };
       });
 
-      const totals = cartTotals(cart.items, await storeRules());
+      const rules = await storeRules();
+      if (!rules.paymentMethods.includes(input.paymentMethod)) {
+        throw new ApiError(400, "That payment method is no longer available. Choose another method.");
+      }
+      const totals = cartTotals(cart.items, rules);
       const prepaid = input.paymentMethod !== "COD";
       const number = await orderNumber(tx);
 

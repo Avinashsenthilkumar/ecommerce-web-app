@@ -10,11 +10,13 @@ import { Board, Empty, OpsShell, Section, StatCard, StatRow } from "@/components
 import { ProductImage } from "@/components/ProductImage";
 import { RestockForm } from "@/components/vendor/RestockForm";
 import { NewProductForm } from "@/components/vendor/NewProductForm";
+import { BarChart3, Package } from "lucide-react";
 
 export const metadata = { title: "Vendor console — subsel" };
 
 const TABS = [
-  { href: "/vendor", label: "Catalogue" },
+  { href: "/vendor", label: "Catalogue", icon: Package },
+  { href: "/vendor/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 export default async function VendorPage() {

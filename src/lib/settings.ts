@@ -202,7 +202,7 @@ const TTL_MS = 2000;
 /** All settings, defaults merged with whatever the admin has saved. */
 export async function getSettings(): Promise<Settings> {
   if (cached && Date.now() - cached.at < TTL_MS) return cached.data;
-  const rows = await prisma.setting.findMany().catch(() => []);
+  const rows = await prisma.setting.findMany();
   const out = { ...DEFAULTS } as Record<string, string>;
   for (const r of rows) if (r.key in DEFAULTS) out[r.key] = r.value;
   cached = { at: Date.now(), data: out as Settings };
