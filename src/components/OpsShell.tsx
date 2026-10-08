@@ -1,6 +1,17 @@
 import Link from "next/link";
 import clsx from "clsx";
-import { LayoutDashboard, Store, Warehouse, Network, Truck, Package, Settings, ExternalLink } from "lucide-react";
+import {
+  LayoutDashboard,
+  Store,
+  Warehouse,
+  Network,
+  Truck,
+  Package,
+  Settings,
+  ExternalLink,
+  BarChart3,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Role } from "@prisma/client";
 import { getCurrentUser, ROLE_HOME, ROLE_LABEL } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -8,15 +19,16 @@ import { Logo } from "./Logo";
 import { SignOutButton } from "./SignOutButton";
 import { RefreshButton } from "./RefreshButton";
 
-type Tab = { href: string; label: string };
+type Tab = { href: string; label: string; icon?: LucideIcon; group?: string };
 
 const STAFF_NAV = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/sellers", label: "Sellers", icon: Store },
-  { href: "/warehouse", label: "Warehouse", icon: Warehouse },
-  { href: "/hub", label: "Hub", icon: Network },
-  { href: "/courier", label: "Courier", icon: Truck },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin", label: "Overview", icon: LayoutDashboard, group: "Business" },
+  { href: "/admin/analytics", label: "Sales & products", icon: BarChart3, group: "Business" },
+  { href: "/admin/sellers", label: "Sellers & listings", icon: Store, group: "Business" },
+  { href: "/warehouse", label: "Warehouse", icon: Warehouse, group: "Fulfilment" },
+  { href: "/hub", label: "Hub", icon: Network, group: "Fulfilment" },
+  { href: "/courier", label: "Courier", icon: Truck, group: "Fulfilment" },
+  { href: "/admin/settings", label: "Store settings", icon: Settings, group: "Store" },
 ];
 
 /** Work waiting in each console, shown as badges in the sidebar. */
@@ -62,7 +74,7 @@ export async function OpsShell({
   const role = user?.role ?? "CUSTOMER";
   const nav =
     role === "VENDOR"
-      ? tabs.map((t) => ({ ...t, icon: Package }))
+      ? tabs.map((t) => ({ ...t, icon: t.icon ?? Package, group: undefined }))
       : STAFF_NAV.filter((n) => role === "ADMIN" || n.href === ROLE_HOME[role]);
   const counts = await navCounts(role);
   const loginPath = role === "VENDOR" ? "/vendor/login" : "/staff/login";
@@ -78,28 +90,35 @@ export async function OpsShell({
         <p className="hidden px-5 pb-2 pt-4 text-[11px] font-medium uppercase tracking-[0.2em] text-slate lg:block">
           {role === "VENDOR" ? "Seller" : "Operations"}
         </p>
-        <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:pb-0" aria-label="Consoles">
-          {nav.map((n) => {
+        <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:pb-3" aria-label="Consoles">
+          {nav.map((n, index) => {
             const on = active === n.href;
             const count = counts[n.href] ?? 0;
+            const previousGroup = index > 0 ? nav[index - 1].group : undefined;
             return (
-              <Link
-                key={n.href}
-                href={n.href}
-                aria-current={on ? "page" : undefined}
-                className={clsx(
-                  "flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
-                  on ? "bg-ink text-white" : "text-slate hover:bg-mist hover:text-ink",
+              <div key={n.href}>
+                {n.group && n.group !== previousGroup && (
+                  <p className={clsx("hidden px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate lg:block", index > 0 && "pt-4")}>
+                    {n.group}
+                  </p>
                 )}
-              >
-                <n.icon size={17} strokeWidth={1.8} />
-                <span className="flex-1">{n.label}</span>
-                {count > 0 && (
-                  <span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-semibold tabular", on ? "bg-white text-ink" : "bg-amberSoft text-amber")}>
-                    {count}
-                  </span>
-                )}
-              </Link>
+                <Link
+                  href={n.href}
+                  aria-current={on ? "page" : undefined}
+                  className={clsx(
+                    "flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
+                    on ? "bg-ink text-white" : "text-slate hover:bg-mist hover:text-ink",
+                  )}
+                >
+                  <n.icon size={17} strokeWidth={1.8} />
+                  <span className="flex-1">{n.label}</span>
+                  {count > 0 && (
+                    <span className={clsx("rounded-full px-2 py-0.5 text-[11px] font-semibold tabular", on ? "bg-white text-ink" : "bg-amberSoft text-amber")}>
+                      {count}
+                    </span>
+                  )}
+                </Link>
+              </div>
             );
           })}
         </nav>

@@ -15,6 +15,7 @@ export const cartInclude = {
             include: {
               brand: true,
               images: { orderBy: { sortOrder: "asc" }, take: 1 },
+              vendor: { select: { status: true } },
             },
           },
         },

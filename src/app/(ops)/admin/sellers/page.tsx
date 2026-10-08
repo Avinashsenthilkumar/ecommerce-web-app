@@ -2,7 +2,7 @@ import { staffGate } from "@/lib/auth";
 import { getSellerAdmin } from "@/lib/services/sellers";
 import { fmtDate, inr } from "@/lib/format";
 import { AccessGate } from "@/components/AccessGate";
-import { Board, Empty, OpsShell, Section, StatCard, StatRow } from "@/components/OpsShell";
+import { Empty, OpsShell, Section, StatCard, StatRow } from "@/components/OpsShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActionButton } from "@/components/ActionButton";
 import { ReasonAction } from "@/components/ReasonAction";
@@ -34,7 +34,7 @@ export default async function AdminSellersPage() {
         <StatCard label="Suspended" value={suspended} hint="Listings hidden" />
       </StatRow>
 
-      <Board className="xl:grid-cols-2 xl:grid-rows-2">
+      <div className="flex flex-col gap-4 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
       <Section title="Seller applications" hint="Check the business details, then approve or reject with a reason">
         {applications.length === 0 ? (
           <Empty>No pending applications.</Empty>
@@ -138,7 +138,7 @@ export default async function AdminSellersPage() {
           </div>
         )}
       </Section>
-      </Board>
+      </div>
     </OpsShell>
   );
 }
