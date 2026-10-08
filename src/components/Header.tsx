@@ -6,6 +6,7 @@ import { cartCount } from "@/lib/services/cart";
 import { Logo } from "./Logo";
 import { AccountMenu } from "./AccountMenu";
 import { HeaderSearch } from "./HeaderSearch";
+import { MobileDepartmentMenu } from "./MobileDepartmentMenu";
 
 export async function Header() {
   const [user, s] = await Promise.all([getCurrentUser(), getSettings()]);
@@ -18,8 +19,9 @@ export async function Header() {
       {s["announcement.enabled"] === "1" && s["announcement.text"] && (
         <p className="bg-ink px-4 py-2 text-center text-xs text-white">{s["announcement.text"]}</p>
       )}
-      <div className="shell relative flex h-16 items-center gap-6">
+      <div className="shell relative flex h-16 items-center gap-3 sm:gap-6">
         <Logo />
+        <MobileDepartmentMenu items={navItems} />
 
         <nav className="absolute left-1/2 hidden max-w-[55vw] -translate-x-1/2 items-center gap-4 overflow-x-auto xl:gap-8 lg:flex" aria-label="Departments">
           {navItems.map((item, index) => (
@@ -56,13 +58,6 @@ export async function Header() {
         </div>
       </div>
 
-      <nav className="shell flex gap-5 overflow-x-auto pb-3 lg:hidden" aria-label="Departments">
-        {navItems.map((item, index) => (
-          <Link key={`${item.href}-${index}`} href={item.href} className="whitespace-nowrap text-sm text-slate hover:text-ink">
-            {item.label}
-          </Link>
-        ))}
-      </nav>
     </header>
   );
 }
