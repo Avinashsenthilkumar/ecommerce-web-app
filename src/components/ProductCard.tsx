@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ProductCardData } from "@/lib/services/catalog";
-import { maxAvailableAtWarehouse } from "@/lib/services/inventory";
+import { productPurchasableStock, variantPurchasableStock } from "@/lib/services/inventory";
 import { productColor } from "@/lib/product-colors";
 import { ProductImage } from "./ProductImage";
 import { CardPrice, Rating } from "./Price";
@@ -14,13 +14,12 @@ export function ProductCard({
   p: ProductCardData;
   saved?: boolean;
 }) {
-  const firstInStock = p.variants.find((v) =>
-    v.inventory.some((i) => i.available > 0),
+  // Quick add must pick a variant that can really be bought, using the same
+  // rule the cart API applies, so the button never promises more than it can do.
+  const firstInStock = p.variants.find(
+    (v) => variantPurchasableStock(v.inventory) > 0,
   );
-  const stock = p.variants.reduce(
-    (s, v) => s + maxAvailableAtWarehouse(v.inventory),
-    0,
-  );
+  const stock = productPurchasableStock(p.variants);
   const colors = [
     ...new Set(
       p.variants

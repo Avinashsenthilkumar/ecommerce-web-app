@@ -4,6 +4,26 @@
 
 Storefront, vendor console, admin control tower, warehouse floor, hub network and courier app in one Next.js 14 project, backed by PostgreSQL through Prisma. Every screen in the Lovable prototype is here and every button calls a real API route that changes the database.
 
+
+## Fixes in this build
+
+Reported issue → what changed.
+
+| # | Reported | Fix |
+|---|---|---|
+| 1 | Home "View All" button clipped on mobile | Section headers stack on phones; hero, categories, featured and delivery buttons go full width below `sm` so none are cut off |
+| 2 | Top menu needs to be scrollable / off-canvas on mobile | New hamburger drawer (`MobileNav`) with every department, a search box, account links and "Sell on …". The chip row stays as the quick path and now has a fade edge showing it scrolls |
+| 3 | Filter and search not working as expected | Shop page rebuilt: brand, price range, rating and in-stock filters (sidebar on desktop, drawer on phones), a search box with a visible Search button, removable active-filter chips, and "Clear all". Search also matches description, category and SKU. Every choice lives in the URL, so results are shareable and the back button works |
+| 4 | No seller-wise sales | **Sales by seller** table in Admin → Sales & products: orders, units, revenue, commission, payout and last order date per seller, with totals. Also included in the CSV and the on-screen report |
+| 5 | No pagination | Added to the catalogue, admin orders, inventory, product performance, sales by seller, seller applications, listings awaiting review and all sellers |
+| 6 | Sales reports can't be filtered/viewed by day, month or year; no generate option | New **Sales report** panel: group by day / month / year, pick the year, **Generate report**, read the totals and per-period rows on screen (paginated), hide empty periods, and download the same selection as CSV |
+| 7 | Product page has no review and rating function | Any signed-in customer can now rate and review once. "Verified purchase" shows only for customers who actually received it. Added a 5→1 star breakdown and a sign-in prompt for guests |
+| 8 | Shows 27 in stock but cannot add to cart | Storefront, cart and checkout now read one shared stock figure (`variantPurchasableStock` — the most units held by a single fulfilment centre, which is what allocation can actually ship). Picking a size no longer lands on a sold-out option, the quick-add button is visible-but-disabled instead of hidden, and a refused add now says why (sign in / wrong account type / sold out) |
+| 9 | "See operations" button leads to Page Not Found | That storefront button pointed at `/admin`, a staff console a shopper cannot open. It now points at the catalogue, link settings are validated against real shopper pages, old values stored in the database are repaired on read, and a bad saved menu can no longer crash the header |
+| 10 | Header search not working | Search panel now anchors to the whole header instead of overlapping the department row, closes on outside click or Escape, and there is a second always-available search box inside the mobile drawer |
+| 11 | Order management doesn't show the payment amount | Each order row shows "Amount due" / "Paid" with the value in large type plus the payment method; the confirm button and both confirmation dialogs name the amount |
+
+
 ## Stack
 
 Next.js 14 (App Router, server components) · TypeScript · Tailwind CSS · Prisma 5 · PostgreSQL · Zod validation · qrcode.react

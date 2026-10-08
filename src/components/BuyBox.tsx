@@ -46,6 +46,7 @@ export function BuyBox({
     [variants, selected],
   );
   const max = Math.min(v?.stock ?? 0, 10);
+  const anyInStock = variants.some((variant) => variant.stock > 0);
   const colorSizeVariants = variants.map((variant) => ({
     variant,
     options: splitColorSize(variant.label),
@@ -81,12 +82,16 @@ export function BuyBox({
   }
 
   function selectSize(size: string) {
-    const next = colorSizeVariants.find(
-      ({ options, variant }) =>
-        options?.color === selectedOptions?.color &&
-        options?.size === size &&
-        variant.stock > 0,
-    )?.variant;
+    const forSize = colorSizeVariants.filter(({ options }) => options?.size === size);
+    // Prefer this size in the colour already chosen; otherwise take any colour
+    // that actually has it, so the choice always lands on something buyable.
+    const next =
+      forSize.find(
+        ({ options, variant }) =>
+          options?.color === selectedOptions?.color && variant.stock > 0,
+      )?.variant ??
+      forSize.find(({ variant }) => variant.stock > 0)?.variant ??
+      forSize.find(({ options }) => options?.color === selectedOptions?.color)?.variant;
     if (next) selectVariant(next);
   }
 
@@ -107,7 +112,13 @@ export function BuyBox({
         router.push(loginHref());
         return;
       }
-      setMsg({ ok: false, text: (e as Error).message });
+      setMsg({
+        ok: false,
+        text:
+          e instanceof ApiClientError && e.status === 403
+            ? "You are signed in with a staff or seller account. Sign in as a customer to shop."
+            : (e as Error).message,
+      });
     } finally {
       setBusy(null);
     }
@@ -283,10 +294,21 @@ export function BuyBox({
               {v.warehouse && <> · {v.warehouse}</>}
             </>
           ) : (
-            <span className="text-sale">Out of stock</span>
+            <span className="text-sale">Out of stock in this option</span>
           )}
         </p>
       </div>
+
+      {v && v.stock === 0 && anyInStock && (
+        <p className="rounded-xl bg-amberSoft px-4 py-3 text-sm text-amber">
+          {v.label} is sold out. Pick another option above — others are still available.
+        </p>
+      )}
+      {!anyInStock && (
+        <p className="rounded-xl bg-mist px-4 py-3 text-sm text-slate">
+          Every option is sold out right now. Add it to your wishlist and we will keep it handy.
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <button

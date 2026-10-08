@@ -7,16 +7,17 @@ export function SortSelect({ value, options }: { value: string; options: { key: 
   const router = useRouter();
   const params = useSearchParams();
   return (
-    <div className="relative w-44">
+    <div className="relative w-44 shrink-0">
       <select
         value={value}
         aria-label="Sort products"
         onChange={(e) => {
           const sp = new URLSearchParams(params.toString());
           sp.set("sort", e.target.value);
+          sp.delete("page"); // a new order means a new page 1
           router.push(`/shop?${sp.toString()}`);
         }}
-        className="input appearance-none pr-10"
+        className="input h-11 appearance-none pr-10"
       >
         {options.map((o) => (
           <option key={o.key} value={o.key}>{o.label}</option>

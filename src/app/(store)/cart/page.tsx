@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
-import { maxAvailableAtWarehouse } from "@/lib/services/inventory";
+import { variantPurchasableStock } from "@/lib/services/inventory";
 import {
   cartTotals,
   getCart,
@@ -32,7 +32,7 @@ export default async function CartPage() {
     unitPrice: lineUnitPrice(l),
     mrp: l.variant.product.mrp,
     quantity: l.quantity,
-    stock: maxAvailableAtWarehouse(l.variant.inventory),
+    stock: variantPurchasableStock(l.variant.inventory),
   }));
 
   return (
