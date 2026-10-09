@@ -72,12 +72,12 @@ export function CartView({ lines, totals, addresses, userName, userPhone, rules 
 
   if (lines.length === 0) {
     return (
-      <div className="py-24 text-center">
-        <h1 className="h-display text-[3rem]">Your bag is empty</h1>
-        <p className="mt-3 text-slate">Add something from any department and it will wait here.</p>
-        <div className="mt-8 flex justify-center gap-3">
-          <Link href="/shop?category=all" className="btn-primary">Shop Now</Link>
-          <Link href="/wishlist" className="btn-outline">View wishlist</Link>
+      <div className="py-16 text-center sm:py-24">
+        <h1 className="h-display text-[2rem] sm:text-[3rem]">Your bag is empty</h1>
+        <p className="mt-3 text-[15px] text-slate">Add something from any department and it will wait here.</p>
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link href="/shop?category=all" className="btn-primary justify-center">Shop Now</Link>
+          <Link href="/wishlist" className="btn-outline justify-center">View wishlist</Link>
         </div>
       </div>
     );
@@ -216,7 +216,9 @@ export function CartView({ lines, totals, addresses, userName, userPhone, rules 
                 <div className="flex justify-between"><dt className="text-slate">GST ({rules.gstPercent}%)</dt><dd>{inr(totals.taxTotal)}</dd></div>
                 <div className="flex justify-between border-t border-line pt-5"><dt className="text-slate">Total payable</dt><dd className="font-medium">{inr(totals.grandTotal)}</dd></div>
               </dl>
-              <button type="submit" disabled={placing} className="btn-primary mt-6 h-12 w-full">
+              {/* Phones get the pinned bar below instead, so the action is always
+                  in reach while the address form is being filled in. */}
+              <button type="submit" disabled={placing} className="btn-primary mt-6 hidden h-12 w-full lg:inline-flex">
                 {placing ? "Placing order…" : payment === "COD" ? `Place order ${inr(totals.grandTotal)}` : `Pay ${inr(totals.grandTotal)}`}
               </button>
               {error && <p className="mt-3 text-sm text-sale" role="alert">{error}</p>}
@@ -227,6 +229,21 @@ export function CartView({ lines, totals, addresses, userName, userPhone, rules 
           </section>
         </aside>
       </div>
+
+      {/* Pinned checkout bar on phones */}
+      <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 border-t border-line bg-paper/95 px-5 py-3 backdrop-blur lg:hidden">
+        <div className="flex items-center gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-wide text-slate">Total payable</p>
+            <p className="text-lg font-semibold leading-tight tabular">{inr(totals.grandTotal)}</p>
+          </div>
+          <button type="submit" disabled={placing} className="btn-primary h-12 min-w-0 flex-1 px-4">
+            {placing ? "Placing…" : payment === "COD" ? "Place order" : "Pay now"}
+          </button>
+        </div>
+      </div>
+      {/* Room so the bar never covers the last field */}
+      <div aria-hidden className="h-24 lg:hidden" />
     </form>
   );
 }

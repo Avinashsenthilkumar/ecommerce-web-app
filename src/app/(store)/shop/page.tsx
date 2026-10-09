@@ -167,7 +167,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Params 
             <input
               name="q"
               defaultValue={q ?? ""}
-              placeholder="Search products, brands or SKU"
+              placeholder="Search products"
               className="input h-11 pl-10"
               aria-label="Search products, brands or SKU"
             />

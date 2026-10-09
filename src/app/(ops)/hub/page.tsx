@@ -29,18 +29,42 @@ export default async function HubPage() {
       <StatRow>
         <StatCard label="In network" value={stats.inNetwork} hint="Parcels between hubs" />
         <StatCard label="Awaiting intake" value={stats.awaitingIntake} hint="Scan on arrival" tone={stats.awaitingIntake ? "warn" : undefined} />
-        <StatCard label="Out for delivery" value={stats.outForDelivery} hint="Last mile" />
-        <StatCard label="Hubs online" value={stats.hubsOnline} hint="Origin, sorting, delivery" tone="pine" />
+        <StatCard label="Orders today" value={stats.ordersToday} hint="Distinct orders received" tone="pine" />
+        <StatCard
+          label="Scanned today"
+          value={`${stats.receivedToday}/${stats.dispatchedToday}`}
+          hint="Received / dispatched"
+        />
       </StatRow>
 
       <Board className="xl:grid-cols-[16rem_1fr]">
+      {/* Per-hub counts: what a hub manager is accountable for today, and the
+          running total the hub has handled. */}
       <div className="grid content-start gap-3 md:grid-cols-3 xl:grid-cols-1 xl:overflow-y-auto">
         {hubs.map((h) => (
           <div key={h.id} className="rounded-2xl border border-line bg-white p-4">
             <p className="text-xs font-semibold text-slate">{TYPE_LABEL[h.type]}</p>
             <p className="mt-1 text-lg font-bold">{h.name}</p>
             <p className="mt-2 text-sm text-slate">
-              <b className="text-ink tabular">{h._count.currentShipments}</b> parcel(s) at this hub
+              <b className="text-ink tabular">{h.counts.atHub}</b> parcel(s) at this hub
+            </p>
+
+            <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-line pt-3 text-center">
+              {[
+                ["Received", h.counts.receivedToday],
+                ["Sorted", h.counts.sortedToday],
+                ["Sent", h.counts.dispatchedToday],
+              ].map(([label, value]) => (
+                <div key={label as string}>
+                  <dt className="text-[11px] text-slate">{label}</dt>
+                  <dd className="text-base font-semibold tabular">{value}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <p className="mt-3 text-[11px] text-slate">
+              <b className="text-ink tabular">{h.counts.ordersToday}</b> order(s) today ·{" "}
+              <b className="text-ink tabular">{h.counts.totalHandled}</b> handled all time
             </p>
           </div>
         ))}

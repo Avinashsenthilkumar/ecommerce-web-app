@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   ArrowRight,
   ClipboardCheck,
+  FileBarChart,
   PackageSearch,
   RotateCcw,
   Store,
@@ -16,6 +17,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { ActionButton } from "@/components/ActionButton";
 import { Pagination } from "@/components/Pagination";
 import { paginate, pageFromParam } from "@/lib/paginate";
+import { TableScroll } from "@/components/TableScroll";
 
 export const metadata = { title: "Admin overview — subsel" };
 
@@ -171,9 +173,17 @@ export default async function AdminPage({
               <h2 className="text-sm font-semibold">Needs attention</h2>
               <p className="text-xs text-slate">Start here to keep orders moving.</p>
             </div>
-            <Link href="/admin/analytics" className="btn-outline btn-sm inline-flex items-center gap-1.5">
-              View sales & products <ArrowRight size={14} />
-            </Link>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href="/admin/analytics#report"
+                className="btn-primary btn-sm inline-flex items-center gap-1.5"
+              >
+                <FileBarChart size={14} /> Generate sales report
+              </Link>
+              <Link href="/admin/analytics" className="btn-outline btn-sm inline-flex items-center gap-1.5">
+                View sales & products <ArrowRight size={14} />
+              </Link>
+            </div>
           </div>
           {tasks.length === 0 ? (
             <p className="px-4 py-5 text-sm text-pine">You’re all caught up. No urgent tasks right now.</p>
@@ -298,7 +308,8 @@ export default async function AdminPage({
             {d.inventory.length === 0 ? (
               <Empty>No inventory records.</Empty>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              <TableScroll>
                 <table className="w-full min-w-[520px] text-xs tabular">
                   <thead className="sticky top-0 bg-white">
                     <tr className="border-b border-line text-left text-slate">
@@ -327,16 +338,19 @@ export default async function AdminPage({
                     ))}
                   </tbody>
                 </table>
-                <Pagination
-                  className="px-4 pb-4"
-                  page={inventoryPage.page}
-                  pageCount={inventoryPage.pageCount}
-                  total={inventoryPage.total}
-                  pageSize={inventoryPage.pageSize}
-                  label="stock rows"
-                  hrefFor={(p) => pageHref("invPage", p)}
-                />
-              </div>
+              </TableScroll>
+              {/* Outside the scroller, so the pager stays put while the table
+                  slides sideways on a phone. */}
+              <Pagination
+                className="px-4 pb-4"
+                page={inventoryPage.page}
+                pageCount={inventoryPage.pageCount}
+                total={inventoryPage.total}
+                pageSize={inventoryPage.pageSize}
+                label="stock rows"
+                hrefFor={(p) => pageHref("invPage", p)}
+              />
+              </>
             )}
           </DetailGroup>
 

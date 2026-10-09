@@ -310,12 +310,24 @@ export function BuyBox({
         </p>
       )}
 
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Space the bar would have taken, so the buy box keeps its shape. */}
+      <div aria-hidden className="h-[4.5rem] lg:hidden" />
+
+      {/* On phones the buy actions are pinned above the tab bar for the whole
+          product screen, the way a native product page keeps them in reach.
+          On desktop they sit inline, where the buy box is visible at once. */}
+      <div
+        className={clsx(
+          "fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-2.5",
+          "border-t border-line bg-paper/95 px-5 py-3 backdrop-blur sm:px-8",
+          "lg:static lg:flex-wrap lg:gap-3 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none",
+        )}
+      >
         <button
           type="button"
           onClick={() => add("cart")}
           disabled={!v || v.stock === 0 || busy !== null}
-          className="btn-primary h-12 px-7"
+          className="btn-primary h-12 min-w-0 flex-1 px-3 lg:flex-none lg:px-7"
         >
           {busy === "cart" ? "Adding…" : "Add to cart"}
         </button>
@@ -323,7 +335,7 @@ export function BuyBox({
           type="button"
           onClick={() => add("buy")}
           disabled={!v || v.stock === 0 || busy !== null}
-          className="btn-outline h-12 px-7"
+          className="btn-outline h-12 min-w-0 flex-1 px-3 lg:flex-none lg:px-7"
         >
           {busy === "buy" ? "Opening bag…" : "Buy now"}
         </button>

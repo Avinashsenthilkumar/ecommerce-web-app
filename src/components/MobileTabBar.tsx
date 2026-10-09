@@ -26,7 +26,10 @@ export function MobileTabBar({ bagCount }: { bagCount: number }) {
             <Link
               href={t.href}
               aria-current={t.active ? "page" : undefined}
-              className={clsx("relative flex h-16 flex-col items-center justify-center gap-1 text-[11px]", t.active ? "text-ink" : "text-slate")}
+              className={clsx(
+                "relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] transition-colors active:bg-mist",
+                t.active ? "text-ink" : "text-slate",
+              )}
             >
               <span className="relative">
                 <t.icon size={21} strokeWidth={t.active ? 2.2 : 1.7} />

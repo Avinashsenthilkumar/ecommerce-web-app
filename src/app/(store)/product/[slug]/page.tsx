@@ -9,7 +9,7 @@ import { variantPurchasableStock } from "@/lib/services/inventory";
 import { fmtDate } from "@/lib/format";
 import { ReviewForm } from "@/components/ReviewForm";
 import { Star, BadgeCheck } from "lucide-react";
-import { ProductImage } from "@/components/ProductImage";
+import { ProductGallery } from "@/components/ProductGallery";
 import { Price, Rating } from "@/components/Price";
 import { BuyBox } from "@/components/BuyBox";
 import { ProductCard } from "@/components/ProductCard";
@@ -68,7 +68,8 @@ export default async function ProductPage({
   });
 
   return (
-    <div className="shell pt-10">
+    // Extra room at the bottom on phones: the pinned buy bar sits over the page.
+    <div className="shell pb-24 pt-10 lg:pb-0">
       <nav
         className="mb-6 flex gap-2 text-sm text-slate"
         aria-label="Breadcrumb"
@@ -86,23 +87,7 @@ export default async function ProductPage({
       </nav>
 
       <div className="grid gap-10 lg:grid-cols-2 lg:gap-10">
-        <div className="space-y-4">
-          {(product.images.length
-            ? product.images
-            : [{ id: "none", url: "", alt: product.name }]
-          ).map((img) => (
-            <div
-              key={img.id}
-              className="aspect-[4/5] overflow-hidden rounded-card border border-line bg-mist"
-            >
-              <ProductImage
-                src={img.url}
-                alt={img.alt ?? product.name}
-                className="h-full w-full"
-              />
-            </div>
-          ))}
-        </div>
+        <ProductGallery images={product.images} name={product.name} />
 
         <div className="lg:pl-2">
           <p className="eyebrow">{product.brand.name}</p>
@@ -131,7 +116,7 @@ export default async function ProductPage({
             />
           </div>
 
-          <ul className="mt-8 grid gap-3 sm:grid-cols-3">
+          <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {PROMISES.map((p) => (
               <li
                 key={p.title}
@@ -172,11 +157,11 @@ export default async function ProductPage({
       <section className="pt-16 sm:pt-24" id="reviews">
         <div className="grid gap-10 lg:grid-cols-[20rem_1fr]">
           <div>
-            <h2 className="section-title text-[2.2rem] sm:text-[2.6rem]">
+            <h2 className="section-title">
               Customer reviews
             </h2>
             <div className="mt-5 flex items-baseline gap-3">
-              <span className="font-display text-5xl font-medium tabular">
+              <span className="font-display text-4xl font-medium tabular sm:text-5xl">
                 {product.ratingAvg.toFixed(1)}
               </span>
               <span className="text-sm text-slate">out of 5</span>
@@ -245,7 +230,7 @@ export default async function ProductPage({
           </div>
           <div>
             {reviews.length === 0 ? (
-              <p className="rounded-[24px] border border-line bg-white p-6 text-sm text-slate">
+              <p className="rounded-[24px] border border-line bg-white p-5 text-sm text-slate sm:p-6">
                 No written reviews yet.
               </p>
             ) : (
@@ -253,7 +238,7 @@ export default async function ProductPage({
                 {reviews.map((r) => {
                   const [first, last] = r.user.fullName.split(" ");
                   return (
-                    <li key={r.id} className="p-6">
+                    <li key={r.id} className="p-5 sm:p-6">
                       <div className="flex flex-wrap items-center gap-3">
                         <div
                           className="flex gap-0.5"

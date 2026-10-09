@@ -57,7 +57,7 @@ export function HeaderSearch() {
                 ref={input}
                 name="q"
                 className="input h-11 pl-10"
-                placeholder="Search products, brands or SKU"
+                placeholder="Search products"
                 aria-label="Search products, brands or SKU"
               />
             </div>

@@ -22,8 +22,25 @@ async function findByCode(tx: Tx, code: string) {
 
 // ─────────────── Hub network ───────────────
 
+export type HubCounts = {
+  atHub: number;
+  receivedToday: number;
+  sortedToday: number;
+  dispatchedToday: number;
+  ordersToday: number;
+  totalHandled: number;
+};
+
+/** Midnight in the server's timezone — the boundary for "today" everywhere below. */
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 export async function getHubOverview() {
-  const [hubs, network, outForDelivery, awaitingIntake] = await Promise.all([
+  const since = startOfToday();
+  const [hubs, network, outForDelivery, awaitingIntake, todayLegs, handled] = await Promise.all([
     prisma.hub.findMany({
       orderBy: { type: "asc" },
       include: { _count: { select: { currentShipments: { where: { status: "AT_HUB" } } } } },
@@ -39,15 +56,101 @@ export async function getHubOverview() {
     }),
     prisma.shipment.count({ where: { status: "OUT_FOR_DELIVERY" } }),
     prisma.shipmentLeg.count({ where: { status: "INBOUND" } }),
+    // Every leg touched today, in one query; the per-hub tallies are counted
+    // from it in memory rather than with a query per hub per metric.
+    prisma.shipmentLeg.findMany({
+      where: {
+        OR: [
+          { receivedAt: { gte: since } },
+          { sortedAt: { gte: since } },
+          { departedAt: { gte: since } },
+        ],
+      },
+      select: {
+        hubId: true,
+        receivedAt: true,
+        sortedAt: true,
+        departedAt: true,
+        shipment: { select: { orderId: true } },
+      },
+    }),
+    prisma.shipmentLeg.groupBy({
+      by: ["hubId"],
+      where: { receivedAt: { not: null } },
+      _count: { _all: true },
+    }),
   ]);
+
+  const totalByHub = new Map(handled.map((h) => [h.hubId, h._count._all]));
+  const ordersByHub = new Map<string, Set<string>>();
+  const counts = new Map<string, HubCounts>();
+
+  for (const hub of hubs) {
+    counts.set(hub.id, {
+      atHub: hub._count.currentShipments,
+      receivedToday: 0,
+      sortedToday: 0,
+      dispatchedToday: 0,
+      ordersToday: 0,
+      totalHandled: totalByHub.get(hub.id) ?? 0,
+    });
+  }
+
+  for (const leg of todayLegs) {
+    const row = counts.get(leg.hubId);
+    if (!row) continue;
+    if (leg.receivedAt && leg.receivedAt >= since) {
+      row.receivedToday += 1;
+      const orders = ordersByHub.get(leg.hubId) ?? new Set<string>();
+      orders.add(leg.shipment.orderId);
+      ordersByHub.set(leg.hubId, orders);
+    }
+    if (leg.sortedAt && leg.sortedAt >= since) row.sortedToday += 1;
+    if (leg.departedAt && leg.departedAt >= since) row.dispatchedToday += 1;
+  }
+  for (const [hubId, orders] of ordersByHub) {
+    const row = counts.get(hubId);
+    if (row) row.ordersToday = orders.size;
+  }
+
+  const withCounts = hubs.map((h) => ({
+    ...h,
+    counts:
+      counts.get(h.id) ??
+      ({
+        atHub: 0,
+        receivedToday: 0,
+        sortedToday: 0,
+        dispatchedToday: 0,
+        ordersToday: 0,
+        totalHandled: 0,
+      } satisfies HubCounts),
+  }));
+
+  const totals = withCounts.reduce(
+    (acc, h) => ({
+      receivedToday: acc.receivedToday + h.counts.receivedToday,
+      sortedToday: acc.sortedToday + h.counts.sortedToday,
+      dispatchedToday: acc.dispatchedToday + h.counts.dispatchedToday,
+    }),
+    { receivedToday: 0, sortedToday: 0, dispatchedToday: 0 },
+  );
+
   return {
-    hubs,
+    hubs: withCounts,
     network,
     stats: {
       inNetwork: network.length,
       awaitingIntake,
       outForDelivery,
       hubsOnline: hubs.filter((h) => h.isOnline).length,
+      ...totals,
+      // Distinct orders handled across the network today, not parcels.
+      ordersToday: new Set(
+        todayLegs
+          .filter((l) => l.receivedAt && l.receivedAt >= since)
+          .map((l) => l.shipment.orderId),
+      ).size,
     },
   };
 }
@@ -135,6 +238,71 @@ export async function hubScan(hubId: string, code: string, actor: CurrentUser) {
     });
     return { action: "dispatched", message: `${s.shipmentNumber} dispatched to ${nextLeg.hub.name}.` };
   }, TX);
+}
+
+/** Most codes one bulk scan may carry. */
+export const BULK_SCAN_LIMIT = 100;
+
+export type BulkScanResult = {
+  code: string;
+  ok: boolean;
+  action?: string;
+  message: string;
+};
+
+/**
+ * Scans a whole trolley at once.
+ *
+ * A hub receives parcels by the cage, not one at a time, so this takes a list
+ * of codes — pasted from a manifest or fired in by a scanner gun — and applies
+ * the same per-code logic as a single scan. Each code is its own transaction,
+ * so one unknown barcode does not undo the ninety-nine that were fine, and
+ * every code comes back with its own outcome.
+ */
+export async function hubBulkScan(hubId: string, rawCodes: string[], actor: CurrentUser) {
+  const hub = await prisma.hub.findUnique({ where: { id: hubId } });
+  if (!hub) throw new ApiError(404, "Hub not found.");
+
+  const codes: string[] = [];
+  const seen = new Set<string>();
+  const results: BulkScanResult[] = [];
+  for (const raw of rawCodes) {
+    const code = raw.trim();
+    if (!code) continue;
+    const key = code.toUpperCase();
+    if (seen.has(key)) {
+      results.push({ code, ok: false, message: "Duplicate in this batch, skipped." });
+      continue;
+    }
+    seen.add(key);
+    codes.push(code);
+    if (codes.length >= BULK_SCAN_LIMIT) break;
+  }
+  if (codes.length === 0) throw new ApiError(400, "Enter at least one code to scan.");
+
+  for (const code of codes) {
+    try {
+      const res = await hubScan(hubId, code, actor);
+      results.push({ code, ok: true, action: res.action, message: res.message });
+    } catch (err) {
+      results.push({
+        code,
+        ok: false,
+        message: err instanceof Error ? err.message : "Scan failed.",
+      });
+    }
+  }
+
+  const done = results.filter((r) => r.ok).length;
+  const failed = results.length - done;
+  return {
+    results,
+    done,
+    failed,
+    message: failed
+      ? `${done} scanned at ${hub.name}, ${failed} need attention.`
+      : `All ${done} parcel(s) scanned at ${hub.name}.`,
+  };
 }
 
 // ─────────────── Courier / last mile ───────────────

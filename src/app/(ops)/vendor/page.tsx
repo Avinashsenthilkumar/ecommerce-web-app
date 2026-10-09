@@ -11,6 +11,7 @@ import { ProductImage } from "@/components/ProductImage";
 import { RestockForm } from "@/components/vendor/RestockForm";
 import { NewProductForm } from "@/components/vendor/NewProductForm";
 import { BarChart3, Package } from "lucide-react";
+import { TableScroll } from "@/components/TableScroll";
 
 export const metadata = { title: "Vendor console — subsel" };
 
@@ -75,7 +76,7 @@ export default async function VendorPage() {
                     </p>
                   </div>
                 </div>
-                <div className="overflow-x-auto">
+                <TableScroll>
                   <table className="w-full min-w-[560px] text-sm tabular">
                     <thead>
                       <tr className="text-left text-xs font-semibold text-slate">
@@ -108,7 +109,7 @@ export default async function VendorPage() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableScroll>
               </li>
             ))}
           </ul>

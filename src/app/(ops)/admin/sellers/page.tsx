@@ -9,6 +9,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { ActionButton } from "@/components/ActionButton";
 import { ReasonAction } from "@/components/ReasonAction";
 import { ProductImage } from "@/components/ProductImage";
+import { TableScroll } from "@/components/TableScroll";
 
 export const metadata = { title: "Sellers & listings — subsel admin" };
 
@@ -150,7 +151,7 @@ export default async function AdminSellersPage({
           <Empty>No sellers yet.</Empty>
         ) : (
           <>
-          <div className="overflow-x-auto">
+          <TableScroll>
             <table className="w-full min-w-[760px] text-sm">
               <thead>
                 <tr className="border-b border-line text-left text-xs text-slate">
@@ -187,7 +188,7 @@ export default async function AdminSellersPage({
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScroll>
           <Pagination
             className="px-5 pb-5"
             page={sellerPage.page}

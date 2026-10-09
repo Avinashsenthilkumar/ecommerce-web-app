@@ -7,6 +7,7 @@ import { VendorSalesReportDownload } from "@/components/vendor/VendorSalesReport
 import { getVendorAnalytics } from "@/lib/services/vendor";
 import { inr } from "@/lib/format";
 import { BarChart3, Package } from "lucide-react";
+import { TableScroll } from "@/components/TableScroll";
 
 export const metadata = { title: "Business overview — subsel" };
 
@@ -77,7 +78,7 @@ export default async function VendorAnalyticsPage() {
             {analytics.recentSales.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-slate">Recent orders will appear here.</p>
             ) : (
-              <div className="overflow-x-auto">
+              <TableScroll>
                 <table className="w-full min-w-[480px] text-left text-sm">
                   <thead className="text-xs text-slate">
                     <tr>
@@ -102,7 +103,7 @@ export default async function VendorAnalyticsPage() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </TableScroll>
             )}
           </Section>
         </div>
@@ -111,7 +112,7 @@ export default async function VendorAnalyticsPage() {
           {analytics.productPerformance.length === 0 ? (
             <p className="px-4 py-8 text-center text-sm text-slate">Your product performance will appear here.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <TableScroll>
               <table className="w-full min-w-[660px] text-left text-sm">
                 <thead className="text-xs text-slate">
                   <tr>
@@ -134,7 +135,7 @@ export default async function VendorAnalyticsPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableScroll>
           )}
         </Section>
       </div>
