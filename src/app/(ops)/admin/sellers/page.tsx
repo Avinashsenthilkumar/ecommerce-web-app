@@ -3,6 +3,8 @@ import { getSellerAdmin } from "@/lib/services/sellers";
 import { fmtDate, inr } from "@/lib/format";
 import { AccessGate } from "@/components/AccessGate";
 import { Empty, OpsShell, Section, StatCard, StatRow } from "@/components/OpsShell";
+import { Pagination } from "@/components/Pagination";
+import { paginate, pageFromParam } from "@/lib/paginate";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActionButton } from "@/components/ActionButton";
 import { ReasonAction } from "@/components/ReasonAction";
@@ -18,10 +20,32 @@ const TABS = [
   { href: "/courier", label: "Courier" },
 ];
 
-export default async function AdminSellersPage() {
+const ROWS = 10;
+
+export default async function AdminSellersPage({
+  searchParams,
+}: {
+  searchParams: { appPage?: string; listPage?: string; sellerPage?: string };
+}) {
   const { user, allowed } = await staffGate("ADMIN");
   if (!allowed) return <AccessGate need="ADMIN" user={user} />;
   const { applications, sellers, listings } = await getSellerAdmin();
+
+  const appPage = paginate(applications, pageFromParam(searchParams.appPage), ROWS);
+  const listPage = paginate(listings, pageFromParam(searchParams.listPage), ROWS);
+  const sellerPage = paginate(sellers, pageFromParam(searchParams.sellerPage), ROWS);
+  const pageHref = (key: "appPage" | "listPage" | "sellerPage", value: number) => {
+    const sp = new URLSearchParams();
+    for (const k of ["appPage", "listPage", "sellerPage"] as const) {
+      if (k === key) {
+        if (value > 1) sp.set(k, String(value));
+      } else if (searchParams[k]) sp.set(k, searchParams[k]!);
+    }
+    const q = sp.toString();
+    const anchor =
+      key === "appPage" ? "#applications" : key === "listPage" ? "#listings" : "#all-sellers";
+    return `/admin/sellers${q ? `?${q}` : ""}${anchor}`;
+  };
   const approved = sellers.filter((s) => s.status === "APPROVED").length;
   const suspended = sellers.filter((s) => s.status === "SUSPENDED").length;
 
@@ -35,12 +59,14 @@ export default async function AdminSellersPage() {
       </StatRow>
 
       <div className="flex flex-col gap-4 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
+      <div id="applications" className="contents">
       <Section title="Seller applications" hint="Check the business details, then approve or reject with a reason">
         {applications.length === 0 ? (
           <Empty>No pending applications.</Empty>
         ) : (
+          <>
           <ul className="divide-y divide-line">
-            {applications.map((v) => (
+            {appPage.items.map((v) => (
               <li key={v.id} className="grid gap-4 px-5 py-5 2xl:grid-cols-[1.4fr_1fr]">
                 <div className="space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2">
@@ -60,15 +86,28 @@ export default async function AdminSellersPage() {
               </li>
             ))}
           </ul>
+          <Pagination
+            className="px-5 pb-5"
+            page={appPage.page}
+            pageCount={appPage.pageCount}
+            total={appPage.total}
+            pageSize={appPage.pageSize}
+            label="applications"
+            hrefFor={(p) => pageHref("appPage", p)}
+          />
+          </>
         )}
       </Section>
+      </div>
 
+      <div id="listings" className="contents">
       <Section title="Listings awaiting review" hint="New products stay hidden from customers until you approve them">
         {listings.length === 0 ? (
           <Empty>No listings waiting.</Empty>
         ) : (
+          <>
           <ul className="divide-y divide-line">
-            {listings.map((p) => (
+            {listPage.items.map((p) => (
               <li key={p.id} className="grid gap-4 px-5 py-5 2xl:grid-cols-[1.4fr_1fr]">
                 <div className="flex gap-4">
                   <div className="h-24 w-20 shrink-0 overflow-hidden rounded-2xl border border-line bg-mist">
@@ -91,13 +130,26 @@ export default async function AdminSellersPage() {
               </li>
             ))}
           </ul>
+          <Pagination
+            className="px-5 pb-5"
+            page={listPage.page}
+            pageCount={listPage.pageCount}
+            total={listPage.total}
+            pageSize={listPage.pageSize}
+            label="listings"
+            hrefFor={(page) => pageHref("listPage", page)}
+          />
+          </>
         )}
       </Section>
+      </div>
 
+      <div id="all-sellers" className="contents">
       <Section title="All sellers" className="xl:col-span-2">
         {sellers.length === 0 ? (
           <Empty>No sellers yet.</Empty>
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead>
@@ -111,7 +163,7 @@ export default async function AdminSellersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {sellers.map((v) => (
+                {sellerPage.items.map((v) => (
                   <tr key={v.id} className="align-top">
                     <td className="px-5 py-3">
                       <p className="font-medium">{v.businessName}</p>
@@ -136,8 +188,19 @@ export default async function AdminSellersPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            className="px-5 pb-5"
+            page={sellerPage.page}
+            pageCount={sellerPage.pageCount}
+            total={sellerPage.total}
+            pageSize={sellerPage.pageSize}
+            label="sellers"
+            hrefFor={(page) => pageHref("sellerPage", page)}
+          />
+          </>
         )}
       </Section>
+      </div>
       </div>
     </OpsShell>
   );

@@ -14,6 +14,8 @@ import { AccessGate } from "@/components/AccessGate";
 import { Empty, OpsShell, Section, StatCard, StatRow } from "@/components/OpsShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ActionButton } from "@/components/ActionButton";
+import { Pagination } from "@/components/Pagination";
+import { paginate, pageFromParam } from "@/lib/paginate";
 
 export const metadata = { title: "Admin overview — subsel" };
 
@@ -51,10 +53,32 @@ function DetailGroup({
   );
 }
 
-export default async function AdminPage() {
+const INVENTORY_ROWS = 15;
+const ORDER_ROWS = 10;
+
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: { invPage?: string; orderPage?: string };
+}) {
   const { user, allowed } = await staffGate("ADMIN");
   if (!allowed) return <AccessGate need="ADMIN" user={user} />;
   const d = await getAdminDashboard();
+
+  const inventoryPage = paginate(d.inventory, pageFromParam(searchParams.invPage), INVENTORY_ROWS);
+  const orderPage = paginate(d.orders, pageFromParam(searchParams.orderPage), ORDER_ROWS);
+  const pageHref = (key: "invPage" | "orderPage", value: number) => {
+    const sp = new URLSearchParams();
+    const keep = (k: "invPage" | "orderPage", v?: string) => {
+      if (k === key) {
+        if (value > 1) sp.set(k, String(value));
+      } else if (v) sp.set(k, v);
+    };
+    keep("invPage", searchParams.invPage);
+    keep("orderPage", searchParams.orderPage);
+    const q = sp.toString();
+    return `/admin${q ? `?${q}` : ""}${key === "invPage" ? "#inventory" : "#orders"}`;
+  };
 
   const tasks = [
     {
@@ -176,6 +200,7 @@ export default async function AdminPage() {
           )}
         </section>
 
+        <div id="orders" className="flex-none scroll-mt-4">
         <Section
           title="Orders to process"
           hint="Oldest first. Confirm new orders or allocate stock for confirmed orders."
@@ -184,9 +209,10 @@ export default async function AdminPage() {
           {d.orders.length === 0 ? (
             <Empty>No orders need admin action right now.</Empty>
           ) : (
+            <>
             <ul className="divide-y divide-line">
-              {d.orders.map((order) => (
-                <li key={order.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              {orderPage.items.map((order) => (
+                <li key={order.id} className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold tabular">{order.orderNumber}</p>
@@ -194,43 +220,74 @@ export default async function AdminPage() {
                       <StatusBadge status={order.paymentStatus} />
                     </div>
                     <p className="mt-1 text-xs text-slate">
-                      {order.user.fullName} · {order.items.reduce((sum, item) => sum + item.quantity, 0)} units · {inr(order.grandTotal)} · {order.paymentMethod}
+                      {order.user.fullName} · {order.items.reduce((sum, item) => sum + item.quantity, 0)} units
                     </p>
                     <p className="mt-1 text-[11px] text-slate">
                       Placed {fmtDateTime(order.placedAt)}
                       {order.shipments.length > 0 && ` · ${order.shipments.map((shipment) => shipment.shipmentNumber).join(", ")}`}
                     </p>
                   </div>
-                  <div className="flex shrink-0 flex-wrap gap-2">
-                    {order.status === "PLACED" && (
+
+                  {/* Amount to collect, stated plainly so the value of the
+                      transaction is clear before confirming or cancelling. */}
+                  <div className="flex shrink-0 items-center gap-4">
+                    <div className="text-right">
+                      <p className="text-[11px] uppercase tracking-wide text-slate">
+                        {order.paymentStatus === "PAID" ? "Paid" : "Amount due"}
+                      </p>
+                      <p className="text-lg font-semibold leading-tight tabular">{inr(order.grandTotal)}</p>
+                      <p className="text-[11px] text-slate">
+                        {order.paymentMethod === "COD" ? "Cash on delivery" : order.paymentMethod}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap justify-end gap-2">
+                      {order.status === "PLACED" && (
+                        <ActionButton
+                          url={`/api/admin/orders/${order.id}`}
+                          body={{ action: "confirm" }}
+                          label={
+                            order.paymentMethod === "COD"
+                              ? `Confirm COD ${inr(order.grandTotal)}`
+                              : `Confirm ${inr(order.grandTotal)}`
+                          }
+                          variant="pine"
+                          confirmText={`Confirm ${order.paymentMethod === "COD" ? "cash on delivery" : "payment"} of ${inr(order.grandTotal)} for ${order.orderNumber}?`}
+                        />
+                      )}
+                      {order.status === "CONFIRMED" && (
+                        <ActionButton
+                          url={`/api/admin/orders/${order.id}`}
+                          body={{ action: "allocate" }}
+                          label="Allocate stock"
+                          pendingLabel="Allocating…"
+                        />
+                      )}
                       <ActionButton
                         url={`/api/admin/orders/${order.id}`}
-                        body={{ action: "confirm" }}
-                        label={order.paymentMethod === "COD" ? "Confirm COD" : "Confirm payment"}
-                        variant="pine"
+                        body={{ action: "cancel" }}
+                        label="Cancel"
+                        variant="danger"
+                        confirmText={`Cancel ${order.orderNumber} worth ${inr(order.grandTotal)}? Paid orders get a refund raised automatically.`}
                       />
-                    )}
-                    {order.status === "CONFIRMED" && (
-                      <ActionButton
-                        url={`/api/admin/orders/${order.id}`}
-                        body={{ action: "allocate" }}
-                        label="Allocate stock"
-                        pendingLabel="Allocating…"
-                      />
-                    )}
-                    <ActionButton
-                      url={`/api/admin/orders/${order.id}`}
-                      body={{ action: "cancel" }}
-                      label="Cancel"
-                      variant="danger"
-                      confirmText={`Cancel ${order.orderNumber}? Paid orders get a refund raised automatically.`}
-                    />
+                    </div>
                   </div>
                 </li>
               ))}
             </ul>
+            <Pagination
+              className="px-4 pb-4"
+              page={orderPage.page}
+              pageCount={orderPage.pageCount}
+              total={orderPage.total}
+              pageSize={orderPage.pageSize}
+              label="orders"
+              hrefFor={(p) => pageHref("orderPage", p)}
+            />
+            </>
           )}
         </Section>
+        </div>
 
         <section aria-label="More operations" className="space-y-2">
           <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-slate">
@@ -255,7 +312,7 @@ export default async function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">
-                    {d.inventory.map((item) => (
+                    {inventoryPage.items.map((item) => (
                       <tr key={item.id} title={`${item.variant.product.name} (${item.variant.label})`}>
                         <td className="px-4 py-2 font-semibold">{item.variant.sku}</td>
                         <td className="px-2 py-2 text-slate">{item.warehouse.name}</td>
@@ -270,6 +327,15 @@ export default async function AdminPage() {
                     ))}
                   </tbody>
                 </table>
+                <Pagination
+                  className="px-4 pb-4"
+                  page={inventoryPage.page}
+                  pageCount={inventoryPage.pageCount}
+                  total={inventoryPage.total}
+                  pageSize={inventoryPage.pageSize}
+                  label="stock rows"
+                  hrefFor={(p) => pageHref("invPage", p)}
+                />
               </div>
             )}
           </DetailGroup>

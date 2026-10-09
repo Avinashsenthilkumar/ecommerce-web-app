@@ -53,8 +53,8 @@ export const DEFAULTS = {
     "Orders split automatically across our Chennai and Thanjavur fulfilment centres. Each package carries a unique QR that is verified at pick, pack, hub intake and handover.",
   "home.fulfilPrimaryCta": "Track an order",
   "home.fulfilPrimaryHref": "/orders",
-  "home.fulfilSecondaryCta": "See operations",
-  "home.fulfilSecondaryHref": "/admin",
+  "home.fulfilSecondaryCta": "Shop all products",
+  "home.fulfilSecondaryHref": "/shop?category=all",
   "home.showFeatured": "1",
   "home.stat1Value": "99.4%",
   "home.stat1Label": "Pick accuracy",
@@ -86,6 +86,42 @@ const num = (min: number, max: number) =>
     .string()
     .regex(/^\d+$/, "Numbers only")
     .refine((v) => +v >= min && +v <= max, `Between ${min} and ${max}`);
+/**
+ * Pages a shopper-facing link may point at. Console paths are deliberately
+ * absent: a storefront button that drops a customer on /admin either bounces
+ * them to a staff login or shows an access screen, which reads as a dead link.
+ */
+const STOREFRONT_ROUTES = [
+  "/",
+  "/shop",
+  "/product",
+  "/cart",
+  "/orders",
+  "/account",
+  "/wishlist",
+  "/login",
+  "/register",
+  "/vendor/login",
+  "/vendor/register",
+] as const;
+
+export function isStorefrontHref(href: string) {
+  const value = href.trim();
+  if (!value.startsWith("/") || value.startsWith("//") || value.includes("\\")) return false;
+  const path = value.split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
+  return STOREFRONT_ROUTES.some((route) => path === route || path.startsWith(`${route}/`));
+}
+
+const storefrontHref = (max = 160) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .refine(
+      (href) => href === "" || isStorefrontHref(href),
+      "Use a shopper page such as /shop?category=all, /orders or /account",
+    );
+
 const navigationItems = z.array(
   z.object({
     label: z.string().trim().min(1).max(40),
@@ -94,7 +130,7 @@ const navigationItems = z.array(
       .trim()
       .min(1)
       .max(160)
-      .refine((href) => href.startsWith("/") && !href.startsWith("//") && !href.includes("\\"), "Use an internal path starting with /"),
+      .refine(isStorefrontHref, "Use a shopper page such as /shop?category=all or /orders"),
     visible: z.boolean(),
     style: z.enum(["link", "pill"]),
   }),
@@ -135,15 +171,15 @@ export const RULES: Record<SettingKey, z.ZodTypeAny> = {
   "home.headline": text(120).min(1),
   "home.subtext": text(300),
   "home.ctaPrimary": text(30),
-  "home.ctaPrimaryHref": text(120),
+  "home.ctaPrimaryHref": storefrontHref(120),
   "home.ctaSecondary": text(30),
-  "home.ctaSecondaryHref": text(120),
+  "home.ctaSecondaryHref": storefrontHref(120),
   "home.heroImage": z.string().trim().max(400_000),
   "home.showCategories": z.enum(["0", "1"]),
   "home.categoriesEyebrow": text(40),
   "home.categoriesTitle": text(80),
   "home.categoriesCta": text(30),
-  "home.categoriesHref": text(120),
+  "home.categoriesHref": storefrontHref(120),
   "home.showArrivals": z.enum(["0", "1"]),
   "home.arrivalsEyebrow": text(40),
   "home.arrivalsTitle": text(80),
@@ -151,13 +187,13 @@ export const RULES: Record<SettingKey, z.ZodTypeAny> = {
   "home.fulfilEyebrow": text(40),
   "home.featuredTitle": text(80),
   "home.featuredCta": text(30),
-  "home.featuredHref": text(120),
+  "home.featuredHref": storefrontHref(120),
   "home.fulfilTitle": text(90),
   "home.fulfilText": text(400),
   "home.fulfilPrimaryCta": text(30),
-  "home.fulfilPrimaryHref": text(120),
+  "home.fulfilPrimaryHref": storefrontHref(120),
   "home.fulfilSecondaryCta": text(30),
-  "home.fulfilSecondaryHref": text(120),
+  "home.fulfilSecondaryHref": storefrontHref(120),
   "home.showFeatured": z.enum(["0", "1"]),
   "home.stat1Value": text(12),
   "home.stat1Label": text(30),
@@ -190,8 +226,31 @@ export const RULES: Record<SettingKey, z.ZodTypeAny> = {
 
 export type Settings = Record<SettingKey, string>;
 
+/**
+ * Never throws: the header renders on every page, so a malformed or outdated
+ * stored value falls back to the shipped menu instead of taking the site down.
+ * Individual items that no longer validate are dropped.
+ */
 export function getNavigationItems(settings: Settings): NavigationItem[] {
-  return navigationItems.parse(JSON.parse(settings["navigation.items"]));
+  const fallback = () =>
+    navigationItems.parse(JSON.parse(DEFAULTS["navigation.items"]));
+
+  let raw: unknown;
+  try {
+    raw = JSON.parse(settings["navigation.items"]);
+  } catch {
+    return fallback();
+  }
+
+  const parsed = navigationItems.safeParse(raw);
+  if (parsed.success) return parsed.data;
+
+  if (!Array.isArray(raw)) return fallback();
+  const kept = raw
+    .map((item) => navigationItems.element.safeParse(item))
+    .filter((r): r is { success: true; data: NavigationItem } => r.success)
+    .map((r) => r.data);
+  return kept.length ? kept : fallback();
 }
 
 // Settings are read on every page. Cache them briefly and clear the cache on save,
@@ -199,12 +258,30 @@ export function getNavigationItems(settings: Settings): NavigationItem[] {
 let cached: { at: number; data: Settings } | null = null;
 const TTL_MS = 2000;
 
+/** Shopper-facing link settings, checked on read as well as on save. */
+const STOREFRONT_HREF_KEYS = [
+  "home.ctaPrimaryHref",
+  "home.ctaSecondaryHref",
+  "home.categoriesHref",
+  "home.featuredHref",
+  "home.fulfilPrimaryHref",
+  "home.fulfilSecondaryHref",
+] as const;
+
 /** All settings, defaults merged with whatever the admin has saved. */
 export async function getSettings(): Promise<Settings> {
   if (cached && Date.now() - cached.at < TTL_MS) return cached.data;
   const rows = await prisma.setting.findMany();
   const out = { ...DEFAULTS } as Record<string, string>;
   for (const r of rows) if (r.key in DEFAULTS) out[r.key] = r.value;
+
+  // A value saved before these links were validated (an older build allowed
+  // /admin here) would send shoppers to a console they cannot open, so fall
+  // back to the default rather than render a dead link.
+  for (const key of STOREFRONT_HREF_KEYS) {
+    if (out[key] && !isStorefrontHref(out[key])) out[key] = DEFAULTS[key];
+  }
+
   cached = { at: Date.now(), data: out as Settings };
   return cached.data;
 }

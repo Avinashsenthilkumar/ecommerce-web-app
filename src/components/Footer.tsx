@@ -2,12 +2,12 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 import { getSettings } from "@/lib/settings";
 
-const LINKS: [string, string][] = [
+const linksFor = (storeName: string): [string, string][] => [
   ["Shop", "/shop?category=all"],
   ["My orders", "/orders"],
   ["Wishlist", "/wishlist"],
   ["Your account", "/account"],
-  ["Sell on subsel", "/vendor/login"],
+  [`Sell on ${storeName}`, "/vendor/login"],
   ["Staff login", "/staff/login"],
 ];
 
@@ -26,7 +26,7 @@ export async function Footer() {
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-8 gap-y-3" aria-label="Footer">
-          {LINKS.map(([label, href]) => (
+          {linksFor(s["brand.name"]).map(([label, href]) => (
             <Link key={label} href={href} className="text-sm text-slate hover:text-ink">{label}</Link>
           ))}
         </nav>

@@ -418,3 +418,133 @@ export async function getAdminDashboard() {
     shipments,
   };
 }
+
+/** One row per seller for the admin's "Sales by seller" table. */
+export type SellerSalesRow = {
+  id: string;
+  seller: string;
+  status: string;
+  commissionPercent: number;
+  products: number;
+  activeProducts: number;
+  unitsSold: number;
+  orders: number;
+  revenue: number;
+  /** What the seller keeps after the platform commission. */
+  payout: number;
+  commission: number;
+  lastOrderAt: Date | null;
+};
+
+/**
+ * Sales grouped by seller, optionally limited to one period.
+ * `from`/`to` are inclusive-exclusive so callers can pass a day, month or year.
+ */
+export async function getSellerSales(range?: { from?: Date; to?: Date }) {
+  const placedAt =
+    range?.from || range?.to
+      ? { ...(range.from ? { gte: range.from } : {}), ...(range.to ? { lt: range.to } : {}) }
+      : undefined;
+
+  const [vendors, items] = await Promise.all([
+    prisma.vendor.findMany({
+      orderBy: { businessName: "asc" },
+      select: {
+        id: true,
+        businessName: true,
+        status: true,
+        commissionPercent: true,
+        products: { select: { id: true, status: true } },
+      },
+    }),
+    prisma.orderItem.findMany({
+      where: {
+        order: { status: { not: "CANCELLED" }, ...(placedAt ? { placedAt } : {}) },
+      },
+      select: {
+        quantity: true,
+        lineTotal: true,
+        variant: { select: { product: { select: { vendorId: true } } } },
+        order: { select: { id: true, placedAt: true } },
+      },
+    }),
+  ]);
+
+  const sales = new Map<
+    string,
+    { units: number; revenue: number; orders: Set<string>; last: Date | null }
+  >();
+  for (const item of items) {
+    const vendorId = item.variant.product.vendorId;
+    const row = sales.get(vendorId) ?? {
+      units: 0,
+      revenue: 0,
+      orders: new Set<string>(),
+      last: null,
+    };
+    row.units += item.quantity;
+    row.revenue += item.lineTotal;
+    row.orders.add(item.order.id);
+    if (!row.last || item.order.placedAt > row.last) row.last = item.order.placedAt;
+    sales.set(vendorId, row);
+  }
+
+  const rows: SellerSalesRow[] = vendors.map((vendor) => {
+    const s = sales.get(vendor.id);
+    const revenue = s?.revenue ?? 0;
+    const commission = Math.round((revenue * vendor.commissionPercent) / 100);
+    return {
+      id: vendor.id,
+      seller: vendor.businessName,
+      status: vendor.status,
+      commissionPercent: vendor.commissionPercent,
+      products: vendor.products.length,
+      activeProducts: vendor.products.filter((p) => p.status === "ACTIVE").length,
+      unitsSold: s?.units ?? 0,
+      orders: s?.orders.size ?? 0,
+      revenue,
+      commission,
+      payout: revenue - commission,
+      lastOrderAt: s?.last ?? null,
+    };
+  });
+
+  rows.sort((a, b) => b.revenue - a.revenue || a.seller.localeCompare(b.seller));
+
+  return {
+    rows,
+    totals: {
+      sellers: rows.length,
+      activeSellers: rows.filter((r) => r.status === "APPROVED").length,
+      sellingSellers: rows.filter((r) => r.revenue > 0).length,
+      revenue: rows.reduce((sum, r) => sum + r.revenue, 0),
+      commission: rows.reduce((sum, r) => sum + r.commission, 0),
+      payout: rows.reduce((sum, r) => sum + r.payout, 0),
+      unitsSold: rows.reduce((sum, r) => sum + r.unitsSold, 0),
+    },
+  };
+}
+
+/** UTC bounds for a day (YYYY-MM-DD), month (YYYY-MM) or year (YYYY). */
+export function periodRange(value: string): { from: Date; to: Date } | null {
+  let m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (m) {
+    const from = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+    return { from, to: new Date(from.getTime() + 86_400_000) };
+  }
+  m = /^(\d{4})-(\d{2})$/.exec(value);
+  if (m) {
+    return {
+      from: new Date(Date.UTC(+m[1], +m[2] - 1, 1)),
+      to: new Date(Date.UTC(+m[1], +m[2], 1)),
+    };
+  }
+  m = /^(\d{4})$/.exec(value);
+  if (m) {
+    return {
+      from: new Date(Date.UTC(+m[1], 0, 1)),
+      to: new Date(Date.UTC(+m[1] + 1, 0, 1)),
+    };
+  }
+  return null;
+}

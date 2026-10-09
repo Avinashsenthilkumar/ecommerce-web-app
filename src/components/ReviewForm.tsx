@@ -6,7 +6,14 @@ import { Star } from "lucide-react";
 import clsx from "clsx";
 import { callApi } from "@/lib/client/api";
 
-export function ReviewForm({ productId }: { productId: string }) {
+export function ReviewForm({
+  productId,
+  verified = false,
+}: {
+  productId: string;
+  /** True when this customer has actually received the product. */
+  verified?: boolean;
+}) {
   const router = useRouter();
   const [, start] = useTransition();
   const [rating, setRating] = useState(0);
@@ -30,7 +37,14 @@ export function ReviewForm({ productId }: { productId: string }) {
 
   return (
     <form onSubmit={submit} className="rounded-[24px] border border-line bg-white p-5">
-      <p className="text-sm font-medium">You bought this. How was it?</p>
+      <p className="text-sm font-medium">
+        {verified ? "You bought this. How was it?" : "Rate this product"}
+      </p>
+      {verified && (
+        <p className="mt-1 text-xs text-pine">
+          Your review will show a verified purchase badge.
+        </p>
+      )}
       <div className="mt-3 flex gap-1" role="radiogroup" aria-label="Rating" onMouseLeave={() => setHover(0)}>
         {[1, 2, 3, 4, 5].map((n) => (
           <button
@@ -49,7 +63,12 @@ export function ReviewForm({ productId }: { productId: string }) {
       </div>
       <textarea className="input mt-3 min-h-[90px]" placeholder="What did you like or dislike? (optional)" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={1000} />
       {error && <p className="mt-2 text-sm text-sale">{error}</p>}
-      <button disabled={busy || rating === 0} className="btn-primary mt-3">{busy ? "Posting…" : "Post review"}</button>
+      <button disabled={busy || rating === 0} className="btn-primary mt-3">
+        {busy ? "Posting…" : "Post review"}
+      </button>
+      {rating === 0 && !error && (
+        <p className="mt-2 text-xs text-slate">Choose a star rating to post.</p>
+      )}
     </form>
   );
 }

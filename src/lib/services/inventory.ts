@@ -91,3 +91,22 @@ export async function moveStock(tx: Tx, m: MoveInput) {
 export function maxAvailableAtWarehouse(inv: { available: number }[]) {
   return inv.reduce((max, i) => Math.max(max, i.available), 0);
 }
+
+/**
+ * Units of one variant a customer may buy right now.
+ *
+ * Allocation gives a line to a single fulfilment centre, so the usable figure is
+ * the largest amount held by one warehouse — not the sum across all of them.
+ * Storefront, cart and checkout all read this, so what is shown is what can be
+ * bought and the "in stock but can't add to cart" mismatch cannot come back.
+ */
+export function variantPurchasableStock(inv: { available: number }[]) {
+  return maxAvailableAtWarehouse(inv);
+}
+
+/** Units of a whole product a customer may buy, summed over its variants. */
+export function productPurchasableStock(
+  variants: { inventory: { available: number }[] }[],
+) {
+  return variants.reduce((sum, v) => sum + variantPurchasableStock(v.inventory), 0);
+}

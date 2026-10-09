@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { Truck, RotateCcw, ShieldCheck } from "lucide-react";
 import { getProductBySlug, relatedProducts } from "@/lib/services/catalog";
 import { getWishlistIds } from "@/lib/services/wishlist";
-import { listReviews, reviewEligibility } from "@/lib/services/reviews";
+import { listReviews, reviewBreakdown, reviewEligibility } from "@/lib/services/reviews";
 import { getCurrentUser } from "@/lib/auth";
-import { maxAvailableAtWarehouse } from "@/lib/services/inventory";
+import { variantPurchasableStock } from "@/lib/services/inventory";
 import { fmtDate } from "@/lib/format";
 import { ReviewForm } from "@/components/ReviewForm";
 import { Star, BadgeCheck } from "lucide-react";
@@ -47,10 +47,11 @@ export default async function ProductPage({
   )
     notFound();
   const user = await getCurrentUser();
-  const [related, saved, reviews, eligibility] = await Promise.all([
+  const [related, saved, reviews, breakdown, eligibility] = await Promise.all([
     relatedProducts(product.id),
     getWishlistIds(),
     listReviews(product.id),
+    reviewBreakdown(product.id),
     user?.role === "CUSTOMER"
       ? reviewEligibility(user.id, product.id)
       : Promise.resolve(null),
@@ -61,7 +62,7 @@ export default async function ProductPage({
     return {
       id: v.id,
       label: v.label,
-      stock: maxAvailableAtWarehouse(v.inventory),
+      stock: variantPurchasableStock(v.inventory),
       warehouse: best?.available ? best.warehouse.name : null,
     };
   });
@@ -195,18 +196,50 @@ export default async function ProductPage({
             </div>
             <p className="mt-2 text-sm text-slate">
               {product.ratingCount.toLocaleString("en-IN")} ratings
+              {breakdown.total > 0 && ` · ${breakdown.total} written`}
             </p>
+
+            {breakdown.total > 0 && (
+              <ul className="mt-5 space-y-1.5">
+                {breakdown.rows.map((row) => (
+                  <li key={row.star} className="flex items-center gap-3 text-xs">
+                    <span className="w-8 shrink-0 tabular text-slate">{row.star}★</span>
+                    <span className="h-2 flex-1 overflow-hidden rounded-full bg-mist">
+                      <span
+                        className="block h-full rounded-full bg-ink/70"
+                        style={{ width: `${row.percent}%` }}
+                      />
+                    </span>
+                    <span className="w-8 shrink-0 text-right tabular text-slate">{row.count}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
             <div className="mt-6">
               {eligibility?.canReview ? (
-                <ReviewForm productId={product.id} />
+                <ReviewForm productId={product.id} verified={eligibility.hasPurchased} />
               ) : eligibility?.reviewed ? (
-                <p className="text-sm text-pine">
-                  Thanks, you reviewed this product.
+                <p className="rounded-[20px] border border-line bg-white p-4 text-sm text-pine">
+                  Thanks — your review is published below.
+                </p>
+              ) : user ? (
+                <p className="rounded-[20px] border border-line bg-white p-4 text-sm text-slate">
+                  You are signed in with a work account. Sign in as a customer to rate this product.
                 </p>
               ) : (
-                <p className="text-sm text-slate">
-                  Only customers who received this product can review it.
-                </p>
+                <div className="rounded-[20px] border border-line bg-white p-4">
+                  <p className="text-sm">Have an opinion on this product?</p>
+                  <p className="mt-1 text-xs text-slate">
+                    Sign in to leave a rating and review.
+                  </p>
+                  <Link
+                    href={`/login?next=/product/${product.slug}%23reviews`}
+                    className="btn-primary btn-sm mt-3"
+                  >
+                    Sign in to review
+                  </Link>
+                </div>
               )}
             </div>
           </div>
@@ -241,9 +274,11 @@ export default async function ProductPage({
                         <span className="text-sm font-medium">
                           {first} {last ? `${last[0]}.` : ""}
                         </span>
-                        <span className="inline-flex items-center gap-1 text-xs text-pine">
-                          <BadgeCheck size={13} /> Verified purchase
-                        </span>
+                        {r.verified && (
+                          <span className="inline-flex items-center gap-1 text-xs text-pine">
+                            <BadgeCheck size={13} /> Verified purchase
+                          </span>
+                        )}
                         <span className="text-xs text-slate">
                           {fmtDate(r.createdAt)}
                         </span>
