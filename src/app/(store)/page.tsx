@@ -42,12 +42,12 @@ export default async function HomePage() {
 
       {/* Categories */}
       {s["home.showCategories"] === "1" && <section className="shell pt-16 sm:pt-24">
-        <div className="mb-10 flex flex-col items-start gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+        <div className="mb-10 flex items-end justify-between gap-6">
           <div>
             <p className="eyebrow">{s["home.categoriesEyebrow"]}</p>
             <h2 className="section-title mt-4 max-w-md">{s["home.categoriesTitle"]}</h2>
           </div>
-          <Link href={s["home.categoriesHref"]} className="btn-outline w-full justify-center sm:w-auto sm:shrink-0">
+          <Link href={s["home.categoriesHref"]} className="btn-outline shrink-0">
             {s["home.categoriesCta"]} <ArrowRight size={15} />
           </Link>
         </div>
@@ -111,11 +111,9 @@ export default async function HomePage() {
 
       {/* Selected */}
       {s["home.showFeatured"] === "1" && <section className="shell pt-16 sm:pt-24">
-        <div className="mb-10 flex flex-col items-start gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+        <div className="mb-10 flex items-end justify-between gap-6">
           <h2 className="section-title">{s["home.featuredTitle"]}</h2>
-          <Link href={s["home.featuredHref"]} className="btn-outline w-full justify-center sm:w-auto sm:shrink-0">
-            {s["home.featuredCta"]}
-          </Link>
+          <Link href={s["home.featuredHref"]} className="btn-outline shrink-0">{s["home.featuredCta"]}</Link>
         </div>
         <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4">
           {selected.map((p) => (
