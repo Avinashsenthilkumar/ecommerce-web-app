@@ -70,7 +70,7 @@ export default async function HubPage() {
         ))}
       </div>
 
-      <Section title="Parcel scan desk" hint="Receive, sort and dispatch each leg">
+      <Section title="Parcel scan desk" hint="One scan dispatches every product packed in that shipment">
         <div className="border-b border-line bg-mist/40 px-5 py-4">
           <HubScanDesk hubs={hubs.map((h) => ({ id: h.id, name: h.name }))} />
         </div>
@@ -89,6 +89,9 @@ export default async function HubPage() {
                       <StatusBadge status={s.status} />
                     </div>
                     <p className="text-xs text-slate">{s.order.orderNumber}</p>
+                    <p className="mt-1 text-xs text-slate">
+                      {s.items.map((item) => `${item.quantity} × ${item.productName} (${item.variantLabel})`).join("; ")}
+                    </p>
                     <ol className="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
                       <li className="rounded-full bg-mist px-2.5 py-1 font-semibold text-slate">{s.warehouse.name}</li>
                       {s.legs.map((l) => (

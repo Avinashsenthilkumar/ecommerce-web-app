@@ -4,7 +4,7 @@ import { prisma, type Tx } from "../prisma";
 import { ApiError } from "../api";
 import { gatewayTxn, orderNumber, returnNumber } from "../codes";
 import { cartInclude, cartTotals, lineUnitPrice, storeRules } from "./cart";
-import { maxAvailableAtWarehouse, moveStock } from "./inventory";
+import { moveStock } from "./inventory";
 import type { CurrentUser } from "../auth";
 
 export const addressSchema = z.object({
@@ -55,27 +55,44 @@ export async function placeOrder(
         );
       }
 
-      const plannedWarehouses = new Set<string>();
-      const allocations = cart.items.map((line) => {
-        const candidates = line.variant.inventory
-          .filter((inv) => inv.available >= line.quantity)
-          .sort(
-            (a, b) =>
-              Number(plannedWarehouses.has(b.warehouseId)) -
-                Number(plannedWarehouses.has(a.warehouseId)) ||
-              b.available - a.available,
-          );
-        const inventory = candidates[0];
-        if (!inventory) {
-          const stock = maxAvailableAtWarehouse(line.variant.inventory);
-          throw new ApiError(
-            409,
-            `${line.variant.product.name} (${line.variant.label}) has only ${stock} left at one fulfilment centre.`,
-          );
-        }
-        plannedWarehouses.add(inventory.warehouseId);
-        return { line, warehouseId: inventory.warehouseId };
-      });
+      const firstLine = cart.items[0];
+      const commonWarehouses = firstLine.variant.inventory
+        .filter((inventory) =>
+          cart.items.every((line) =>
+            line.variant.inventory.some(
+              (lineInventory) =>
+                lineInventory.warehouseId === inventory.warehouseId &&
+                lineInventory.available >= line.quantity,
+            ),
+          ),
+        )
+        .sort(
+          (a, b) =>
+            cart.items.reduce(
+              (sum, line) =>
+                sum +
+                (line.variant.inventory.find(
+                  (inventory) => inventory.warehouseId === b.warehouseId,
+                )?.available ?? 0),
+              0,
+            ) -
+            cart.items.reduce(
+              (sum, line) =>
+                sum +
+                (line.variant.inventory.find(
+                  (inventory) => inventory.warehouseId === a.warehouseId,
+                )?.available ?? 0),
+              0,
+            ),
+        );
+      const warehouseId = commonWarehouses[0]?.warehouseId;
+      if (!warehouseId) {
+        throw new ApiError(
+          409,
+          "Your items cannot be shipped together because no single fulfilment centre has them all in stock. Update your bag and try again.",
+        );
+      }
+      const allocations = cart.items.map((line) => ({ line, warehouseId }));
 
       const rules = await storeRules();
       if (!rules.paymentMethods.includes(input.paymentMethod)) {

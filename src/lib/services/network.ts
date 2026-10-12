@@ -51,6 +51,7 @@ export async function getHubOverview() {
       include: {
         warehouse: { select: { name: true } },
         order: { select: { orderNumber: true } },
+        items: { select: { productName: true, variantLabel: true, quantity: true } },
         legs: { orderBy: { sequence: "asc" }, include: { hub: { select: { id: true, name: true } } } },
       },
     }),

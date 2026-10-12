@@ -112,9 +112,8 @@ async function buildRoute(tx: Tx, warehouseId: string) {
 }
 
 /**
- * Allocates stock for a confirmed order.
- * Each item goes to a warehouse that can cover its full quantity, preferring warehouses already
- * used by the order so the parcel count stays low. One shipment is created per warehouse (split).
+ * Allocates stock for a confirmed order and creates one shipment containing every order item.
+ * Existing checkout reservations are consolidated at one active warehouse when possible.
  */
 export async function allocateOrder(orderId: string, actor: CurrentUser) {
   return prisma.$transaction(async (tx) => {
@@ -141,98 +140,114 @@ export async function allocateOrder(orderId: string, actor: CurrentUser) {
     if (allocated.count === 0)
       throw new ApiError(409, "Order status changed. Refresh and try again.");
 
-    const plan = new Map<string, typeof order.items>();
-    const reserveAtAllocation = new Set<string>();
     for (const item of order.items) {
-      let warehouseId = item.allocatedWarehouseId;
-      if (warehouseId) {
-        const reservation = item.variant.inventory.find(
-          (inv) => inv.warehouseId === warehouseId,
+      if (!item.allocatedWarehouseId) continue;
+      const reservation = item.variant.inventory.find(
+        (inv) => inv.warehouseId === item.allocatedWarehouseId,
+      );
+      if (!reservation || reservation.reserved < item.quantity) {
+        throw new ApiError(
+          409,
+          `The stock reservation for ${item.sku} is missing.`,
         );
-        if (!reservation || reservation.reserved < item.quantity) {
-          throw new ApiError(
-            409,
-            `The stock reservation for ${item.sku} is missing.`,
-          );
-        }
-      } else {
-        const candidates = item.variant.inventory.filter(
-          (inv) => inv.warehouse.isActive && inv.available >= item.quantity,
-        );
-        candidates.sort(
-          (a, b) =>
-            Number(plan.has(b.warehouseId)) - Number(plan.has(a.warehouseId)) ||
-            b.available - a.available,
-        );
-        if (candidates.length === 0) {
-          throw new ApiError(
-            409,
-            `Not enough stock for ${item.sku} in any single warehouse.`,
-          );
-        }
-        warehouseId = candidates[0].warehouseId;
-        reserveAtAllocation.add(item.id);
       }
-      plan.set(warehouseId, [...(plan.get(warehouseId) ?? []), item]);
     }
 
-    // COD cash per parcel: each parcel's share of (grand total − shipping), shipping on the first,
-    // rounding remainder on the last, so all parcels add up to exactly the order total.
-    const isCod = order.paymentMethod === "COD";
-    const groups = [...plan.entries()];
-    const ratio =
-      order.subtotal > 0
-        ? (order.grandTotal - order.shippingFee) / order.subtotal
-        : 1;
-    const codShares = groups.map(
-      ([, items], i) =>
-        Math.round(items.reduce((s, it) => s + it.lineTotal, 0) * ratio) +
-        (i === 0 ? order.shippingFee : 0),
-    );
-    codShares[codShares.length - 1] +=
-      order.grandTotal - codShares.reduce((a, b) => a + b, 0);
-
-    for (const [index, [warehouseId, items]] of groups.entries()) {
-      const route = await buildRoute(tx, warehouseId);
-
-      const shipment = await tx.shipment.create({
-        data: {
-          shipmentNumber: await shipmentNumber(tx),
-          trackingNumber: trackingNumber(),
-          deliveryOtp: deliveryOtp(),
-          orderId,
-          warehouseId,
-          deliveryHubId: route[route.length - 1].id,
-          paymentType: isCod ? "COD" : "PREPAID",
-          codAmount: isCod ? codShares[index] : 0,
-          legs: {
-            create: route.map((h, i) => ({ sequence: i + 1, hubId: h.id })),
-          },
-        },
+    const warehouseCandidates = order.items[0]?.variant.inventory
+      .filter((inventory) => inventory.warehouse.isActive)
+      .filter((candidate) =>
+        order.items.every((item) => {
+          const inventory = item.variant.inventory.find(
+            (stock) => stock.warehouseId === candidate.warehouseId,
+          );
+          const ownReservation =
+            item.allocatedWarehouseId === candidate.warehouseId
+              ? item.quantity
+              : 0;
+          return inventory && inventory.available + ownReservation >= item.quantity;
+        }),
+      )
+      .sort((a, b) => {
+        const existingReservationCount = (warehouseId: string) =>
+          order.items.filter((item) => item.allocatedWarehouseId === warehouseId).length;
+        const existingDifference =
+          existingReservationCount(b.warehouseId) -
+          existingReservationCount(a.warehouseId);
+        if (existingDifference !== 0) return existingDifference;
+        const availableAt = (warehouseId: string) =>
+          order.items.reduce(
+            (sum, item) =>
+              sum +
+              (item.variant.inventory.find(
+                (stock) => stock.warehouseId === warehouseId,
+              )?.available ?? 0),
+            0,
+          );
+        return availableAt(b.warehouseId) - availableAt(a.warehouseId);
       });
+    const warehouseId = warehouseCandidates?.[0]?.warehouseId;
+    if (!warehouseId) {
+      throw new ApiError(
+        409,
+        "This order cannot be shipped in one parcel because no single active fulfilment centre has every item in stock.",
+      );
+    }
 
-      for (const item of items) {
-        if (reserveAtAllocation.has(item.id)) {
+    const route = await buildRoute(tx, warehouseId);
+    const shipment = await tx.shipment.create({
+      data: {
+        shipmentNumber: await shipmentNumber(tx),
+        trackingNumber: trackingNumber(),
+        deliveryOtp: deliveryOtp(),
+        orderId,
+        warehouseId,
+        deliveryHubId: route[route.length - 1].id,
+        paymentType: order.paymentMethod === "COD" ? "COD" : "PREPAID",
+        codAmount: order.paymentMethod === "COD" ? order.grandTotal : 0,
+        legs: {
+          create: route.map((hub, index) => ({
+            sequence: index + 1,
+            hubId: hub.id,
+          })),
+        },
+      },
+    });
+
+    for (const item of order.items) {
+      if (item.allocatedWarehouseId !== warehouseId) {
+        if (item.allocatedWarehouseId) {
           await moveStock(tx, {
             variantId: item.variantId,
-            warehouseId,
-            from: "available",
-            to: "reserved",
+            warehouseId: item.allocatedWarehouseId,
+            from: "reserved",
+            to: "available",
             qty: item.quantity,
-            reason: "ALLOCATION",
-            referenceType: "SHIPMENT",
-            referenceId: shipment.shipmentNumber,
+            reason: "RELEASE",
+            referenceType: "ORDER",
+            referenceId: order.orderNumber,
             actorId: actor.id,
+            note: "Reservation moved to consolidate order shipment",
           });
         }
-        await tx.orderItem.update({
-          where: { id: item.id },
-          data: { allocatedWarehouseId: warehouseId, shipmentId: shipment.id },
+        await moveStock(tx, {
+          variantId: item.variantId,
+          warehouseId,
+          from: "available",
+          to: "reserved",
+          qty: item.quantity,
+          reason: "ALLOCATION",
+          referenceType: "SHIPMENT",
+          referenceId: shipment.shipmentNumber,
+          actorId: actor.id,
         });
       }
+      await tx.orderItem.update({
+        where: { id: item.id },
+        data: { allocatedWarehouseId: warehouseId, shipmentId: shipment.id },
+      });
     }
 
-    return { shipments: plan.size };
+    return { shipments: 1 };
   }, TX);
 }
 
