@@ -55,7 +55,7 @@ Like Amazon or Flipkart, shoppers never see anything about staff or roles.
 
 Guests can browse and search freely. Adding to cart, wishlist or checkout sends them to sign in and brings them back to the same page.
 
-Security: passwords are hashed with scrypt; sessions are random tokens in an httpOnly cookie, and only a SHA-256 hash is stored in the `Session` table. Middleware bounces signed-out visitors from protected pages, and every page and API route checks the role on the server. A customer account cannot sign in through the staff login, and the other way round.
+Security: passwords are hashed with scrypt; sessions are random tokens in an httpOnly cookie, and only a SHA-256 hash is stored in the `Session` table. Protected pages and API routes enforce access on the server. Middleware currently passes requests through and does not redirect signed-out visitors. A customer account cannot sign in through the staff login, and the other way round.
 
 ### Seeded accounts (password `Subsel@123` for all)
 
