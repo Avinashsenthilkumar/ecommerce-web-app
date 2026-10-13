@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import { SlidersHorizontal, X } from "lucide-react";
+import { Portal } from "@/components/Portal";
+import { useScrollLock } from "@/lib/useScrollLock";
 
 export type FacetData = {
   brands: { name: string; count: number }[];
@@ -79,12 +81,7 @@ export function ShopFilters({
     return () => document.removeEventListener("keydown", esc);
   }, []);
 
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
+  useScrollLock(open);
 
   const activeCount =
     active.brands.length +
@@ -253,7 +250,13 @@ export function ShopFilters({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Filters">
+        <Portal>
+        <div
+          className="fixed inset-x-0 top-0 z-[60] h-[100dvh] lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Filters"
+        >
           <button
             type="button"
             aria-label="Close filters"
@@ -262,8 +265,9 @@ export function ShopFilters({
           />
           <div
             className={clsx(
-              "absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto rounded-t-[24px] bg-paper",
+              "absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto overscroll-contain rounded-t-[24px] bg-paper",
               "pb-[calc(1.25rem+env(safe-area-inset-bottom))]",
+              "motion-safe:animate-[sheet-up_.24s_ease-out]",
             )}
           >
             <div className="sticky top-0 flex items-center justify-between border-b border-line bg-paper px-5 py-4">
@@ -283,6 +287,7 @@ export function ShopFilters({
             <div className="px-5 py-5">{panel}</div>
           </div>
         </div>
+        </Portal>
       )}
     </>
   );

@@ -9,6 +9,7 @@ import { SalesReportPanel } from "@/components/admin/SalesReportPanel";
 import { Pagination } from "@/components/Pagination";
 import { paginate, pageFromParam } from "@/lib/paginate";
 import { fmtDate, inr } from "@/lib/format";
+import { TableScroll } from "@/components/TableScroll";
 
 export const metadata = { title: "Sales & products — subsel admin" };
 
@@ -75,12 +76,14 @@ export default async function AdminAnalyticsPage({
           <VendorTrendCharts trends={analytics.trends} />
         </Section>
 
-        <Section
-          title="Sales report"
-          hint="Generate and read totals by day, month or year — or download the same selection as CSV."
-        >
-          <SalesReportPanel years={analytics.years} />
-        </Section>
+        <div id="report" className="flex-none scroll-mt-4">
+          <Section
+            title="Sales report"
+            hint="Generate and read totals by day, month or year — or download the same selection as CSV."
+          >
+            <SalesReportPanel years={analytics.years} />
+          </Section>
+        </div>
 
         {/* Seller-wise sales */}
         <div id="sellers" className="flex-none scroll-mt-4">
@@ -108,7 +111,7 @@ export default async function AdminAnalyticsPage({
               </p>
             ) : (
               <>
-                <div className="overflow-x-auto">
+                <TableScroll>
                   <table className="w-full min-w-[900px] text-left text-sm">
                     <thead className="sticky top-0 bg-white text-xs text-slate">
                       <tr>
@@ -149,7 +152,7 @@ export default async function AdminAnalyticsPage({
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableScroll>
                 <Pagination
                   className="px-4 pb-4"
                   page={sellerRows.page}
@@ -176,7 +179,7 @@ export default async function AdminAnalyticsPage({
               </p>
             ) : (
               <>
-                <div className="overflow-x-auto">
+                <TableScroll>
                   <table className="w-full min-w-[900px] text-left text-sm">
                     <thead className="sticky top-0 bg-white text-xs text-slate">
                       <tr>
@@ -205,7 +208,7 @@ export default async function AdminAnalyticsPage({
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </TableScroll>
                 <Pagination
                   className="px-4 pb-4"
                   page={products.page}

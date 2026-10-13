@@ -2,6 +2,7 @@ import { staffGate } from "@/lib/auth";
 import {
   getWarehouseFloor,
   getWarehouseProductLabels,
+  PICK_SLA_HOURS,
 } from "@/lib/services/fulfilment";
 import { AccessGate } from "@/components/AccessGate";
 import { Board, Empty, OpsShell, Section, StatCard, StatRow } from "@/components/OpsShell";
@@ -10,6 +11,7 @@ import { ActionButton } from "@/components/ActionButton";
 import { ScanForm } from "@/components/ScanForm";
 import { QrLabel } from "@/components/QrLabel";
 import { ProductBarcodeLabels } from "@/components/ProductBarcodeLabels";
+import { PickPackQueue, type QueueRow } from "@/components/warehouse/PickPackQueue";
 
 export const metadata = { title: "Warehouse management — pick, pack, QR label | subsel" };
 
@@ -33,74 +35,59 @@ export default async function WarehousePage() {
     ),
   ]);
 
+  // Flattened for the client queue: plain values only, no Prisma objects or Dates.
+  const queueRows: QueueRow[] = pickPack.map((s) => {
+    const addr = s.order.shippingAddress as unknown as Addr;
+    return {
+      id: s.id,
+      shipmentNumber: s.shipmentNumber,
+      status: s.status,
+      orderNumber: s.order.orderNumber,
+      orderStatus: s.order.status,
+      warehouseName: s.warehouse.name,
+      destination: `${addr.name} (${addr.city} ${addr.pincode})`,
+      paymentType: s.paymentType,
+      priority: s.priority.level,
+      priorityReason: s.priority.reason,
+      issues: s.issues,
+      parcels: s.orderProgress.parcels,
+      parcelsReady: s.orderProgress.ready,
+      items: s.items.map((i) => ({
+        id: i.id,
+        sku: i.sku,
+        productName: i.productName,
+        variantLabel: i.variantLabel,
+        quantity: i.quantity,
+        pickedQty: i.pickedQty,
+      })),
+    };
+  });
+
   return (
     <OpsShell title="Warehouse management" subtitle="Chennai & Thanjavur fulfilment centres" tabs={TABS} active="/warehouse">
       <StatRow>
         <StatCard label="Work queue" value={stats.ordersOnFloor} hint="Orders on the floor" />
-        <StatCard label="Reserved units" value={stats.reservedUnits} hint="Awaiting pick" />
+        <StatCard
+          label="High priority"
+          value={stats.highPriority}
+          hint={`Past the ${PICK_SLA_HOURS}h pick SLA`}
+          tone={stats.highPriority ? "warn" : undefined}
+        />
+        <StatCard
+          label="Stock checks"
+          value={stats.blocked}
+          hint="Short of reserved or picked units"
+          tone={stats.blocked ? "warn" : undefined}
+        />
         <StatCard label="Packed units" value={stats.packedUnits} hint="Ready to ship" />
-        <StatCard label="Labels pending" value={stats.labelsPending} hint="QR not generated" tone={stats.labelsPending ? "warn" : undefined} />
       </StatRow>
 
       <Board className="xl:grid-cols-2">
-      <Section title="Pick & pack queue" hint="Scan each item before marking picked">
-        {pickPack.length === 0 ? (
-          <Empty>Nothing on the floor. Allocate an order from the admin console.</Empty>
-        ) : (
-          <ul className="divide-y divide-line">
-            {pickPack.map((s) => {
-              const nextSku = s.items.find((i) => i.pickedQty < i.quantity)?.sku;
-              const units = s.items.reduce((a, i) => a + i.quantity, 0);
-              const picked = s.items.reduce((a, i) => a + Math.min(i.pickedQty, i.quantity), 0);
-              const addr = s.order.shippingAddress as unknown as Addr;
-              return (
-                <li key={s.id} className="grid gap-5 px-5 py-5 2xl:grid-cols-[1fr_1.1fr]">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-bold tabular">{s.shipmentNumber}</p>
-                      <StatusBadge status={s.status} />
-                    </div>
-                    <p className="text-xs text-slate">
-                      {s.order.orderNumber}, {s.warehouse.name}, to {addr.name} ({addr.city} {addr.pincode})
-                    </p>
-                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-mist" aria-label={`${picked} of ${units} units picked`}>
-                      <div className="h-full bg-pine transition-all" style={{ width: `${(picked / units) * 100}%` }} />
-                    </div>
-                    <ul className="mt-3 space-y-1.5 text-sm">
-                      {s.items.map((i) => (
-                        <li key={i.id} className="flex justify-between gap-3 tabular">
-                          <span>
-                            <b>{i.sku}</b> <span className="text-slate">{i.productName} ({i.variantLabel})</span>
-                          </span>
-                          <span className={i.pickedQty >= i.quantity ? "font-bold text-pine" : "text-slate"}>
-                            {i.pickedQty}/{i.quantity}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="space-y-3 2xl:border-l 2xl:border-line 2xl:pl-5">
-                    {s.status === "ALLOCATED" ? (
-                      <ScanForm
-                        url="/api/warehouse"
-                        body={{ action: "pick", shipmentId: s.id }}
-                        placeholder="Scan item barcode (SKU)"
-                        buttonLabel="Record pick"
-                        demoValue={nextSku}
-                        demoLabel="Use next SKU"
-                      />
-                    ) : (
-                      <div className="space-y-3">
-                        <p className="text-sm text-pine">All {units} unit(s) picked and verified.</p>
-                        <ActionButton url="/api/warehouse" body={{ action: "pack", shipmentId: s.id }} label="Confirm packed" variant="pine" size="md" />
-                      </div>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+      <Section
+        title="Pick & pack queue"
+        hint="Sorted by priority. Scan unit by unit, pick a whole parcel, or clear a batch."
+      >
+        <PickPackQueue rows={queueRows} />
       </Section>
 
       <Section title="QR shipping labels & dispatch" hint="Generate the label, then hand the parcel to a courier">

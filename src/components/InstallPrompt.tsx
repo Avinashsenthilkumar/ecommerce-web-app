@@ -45,7 +45,8 @@ export function InstallPrompt() {
 
   if (!show) return null;
   return (
-    <div className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 flex items-center gap-3 rounded-[22px] border border-line bg-white p-3 shadow-[0_18px_40px_-18px_rgba(28,25,23,0.35)] lg:hidden" role="dialog" aria-label="Install the subsel app">
+    // Sits clear of the tab bar *and* of the pinned buy / checkout bars.
+    <div className="fixed inset-x-3 bottom-[calc(9.25rem+env(safe-area-inset-bottom))] z-50 flex items-center gap-3 rounded-[22px] border border-line bg-white p-3 shadow-[0_18px_40px_-18px_rgba(28,25,23,0.35)] lg:hidden" role="dialog" aria-label="Install the subsel app">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-paper"><LogoMark size={28} /></div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">Get the subsel app</p>

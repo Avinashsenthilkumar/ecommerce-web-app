@@ -9,7 +9,7 @@ import { variantPurchasableStock } from "@/lib/services/inventory";
 import { fmtDate } from "@/lib/format";
 import { ReviewForm } from "@/components/ReviewForm";
 import { Star, BadgeCheck } from "lucide-react";
-import { ProductImage } from "@/components/ProductImage";
+import { ProductGallery } from "@/components/ProductGallery";
 import { Price, Rating } from "@/components/Price";
 import { BuyBox } from "@/components/BuyBox";
 import { ProductCard } from "@/components/ProductCard";
@@ -68,6 +68,7 @@ export default async function ProductPage({
   });
 
   return (
+    // Extra room at the bottom on phones: the pinned buy bar sits over the page.
     <div className="shell pb-24 pt-8 sm:pt-10 lg:pb-0">
       <nav
         className="mb-6 flex gap-2 text-sm text-slate"
@@ -86,23 +87,7 @@ export default async function ProductPage({
       </nav>
 
       <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(product.images.length
-            ? product.images
-            : [{ id: "none", url: "", alt: product.name }]
-          ).map((img, index) => (
-            <div
-              key={img.id}
-              className={`aspect-[4/5] overflow-hidden rounded-[24px] border border-line bg-mist ${index === 0 ? "sm:col-span-2" : ""}`}
-            >
-              <ProductImage
-                src={img.url}
-                alt={img.alt ?? product.name}
-                className="h-full w-full"
-              />
-            </div>
-          ))}
-        </div>
+        <ProductGallery images={product.images} name={product.name} />
 
         <div className="rounded-[24px] border border-line bg-white p-5 sm:p-7 lg:sticky lg:top-6">
           <p className="eyebrow">{product.brand.name}</p>
@@ -131,7 +116,7 @@ export default async function ProductPage({
             />
           </div>
 
-          <ul className="mt-8 grid gap-3 sm:grid-cols-3">
+          <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {PROMISES.map((p) => (
               <li
                 key={p.title}
@@ -188,7 +173,7 @@ export default async function ProductPage({
                   size={16}
                   className={
                     n <= Math.round(product.ratingAvg)
-                      ? "fill-ink text-ink"
+                      ? "fill-[#D4A72C] text-[#D4A72C]"
                       : "text-line"
                   }
                 />
@@ -245,7 +230,7 @@ export default async function ProductPage({
           </div>
           <div className="space-y-3">
             {reviews.length === 0 ? (
-              <p className="rounded-[24px] border border-line bg-white p-6 text-sm text-slate">
+              <p className="rounded-[24px] border border-line bg-white p-5 text-sm text-slate sm:p-6">
                 No written reviews yet.
               </p>
             ) : (
@@ -265,7 +250,7 @@ export default async function ProductPage({
                               size={14}
                               className={
                                 n <= r.rating
-                                  ? "fill-ink text-ink"
+                                  ? "fill-[#D4A72C] text-[#D4A72C]"
                                   : "text-line"
                               }
                             />

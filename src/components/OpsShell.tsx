@@ -83,14 +83,25 @@ export async function OpsShell({
   return (
     <div className="min-h-screen bg-paper">
       {/* Sidebar */}
-      <aside className="border-b border-line bg-white lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:w-60 lg:flex-col lg:border-b-0 lg:border-r">
-        <div className="flex h-14 items-center px-5 lg:h-16">
+      <aside className="relative border-b border-line bg-white pt-[env(safe-area-inset-top)] lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:w-60 lg:flex-col lg:border-b-0 lg:border-r lg:pt-0">
+        <div className="flex h-14 items-center justify-between gap-3 px-5 lg:h-16">
           <Logo href={ROLE_HOME[role]} />
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 text-xs text-slate lg:hidden"
+          >
+            Storefront <ExternalLink size={12} />
+          </Link>
         </div>
         <p className="hidden px-5 pb-2 pt-4 text-[11px] font-medium uppercase tracking-[0.2em] text-slate lg:block">
           {role === "VENDOR" ? "Seller" : "Operations"}
         </p>
-        <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:pb-3" aria-label="Consoles">
+        {/* On phones this is a sideways strip of consoles; the hidden scrollbar
+            and the fade at the edge (below) show it keeps going. */}
+        <nav
+          className="relative flex gap-1 overflow-x-auto px-3 pb-3 [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-1 lg:flex-col lg:overflow-y-auto lg:pb-3 [&::-webkit-scrollbar]:hidden"
+          aria-label="Consoles"
+        >
           {nav.map((n, index) => {
             const on = active === n.href;
             const count = counts[n.href] ?? 0;
@@ -122,6 +133,10 @@ export async function OpsShell({
             );
           })}
         </nav>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute bottom-0 right-0 h-[52px] w-8 bg-gradient-to-l from-white to-transparent lg:hidden"
+        />
         {user && (
           <div className="hidden border-t border-line p-4 lg:block">
             <div className="flex items-center gap-3">
@@ -197,7 +212,8 @@ export function Section({
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold">{title}</h2>
-          {hint && <p className="truncate text-xs text-slate">{hint}</p>}
+          {/* Wraps on phones instead of being cut off; one tidy line on desktop. */}
+          {hint && <p className="text-xs text-slate lg:truncate">{hint}</p>}
         </div>
         {action}
       </div>

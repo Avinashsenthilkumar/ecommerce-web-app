@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { callApi } from "@/lib/client/api";
 import { inr } from "@/lib/format";
 import { pageWindow } from "@/lib/paginate";
+import { TableScroll } from "@/components/TableScroll";
 
 type Period = "day" | "month" | "year";
 
@@ -258,7 +259,7 @@ export function SalesReportPanel({ years }: { years: number[] }) {
           </dl>
 
           {/* Period rows */}
-          <div className="overflow-x-auto">
+          <TableScroll>
             <table className="w-full min-w-[520px] text-left text-sm">
               <thead className="bg-mist/50 text-xs text-slate">
                 <tr>
@@ -289,7 +290,7 @@ export function SalesReportPanel({ years }: { years: number[] }) {
                 )}
               </tbody>
             </table>
-          </div>
+          </TableScroll>
           <Pager page={Math.min(periodPage, periodPages)} pageCount={periodPages} onChange={setPeriodPage} />
 
           {/* Seller rows */}
@@ -301,7 +302,7 @@ export function SalesReportPanel({ years }: { years: number[] }) {
                 {inr(report.sellerTotals.commission)}
               </p>
             </div>
-            <div className="overflow-x-auto">
+            <TableScroll>
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="bg-mist/50 text-xs text-slate">
                   <tr>
@@ -341,7 +342,7 @@ export function SalesReportPanel({ years }: { years: number[] }) {
                   )}
                 </tbody>
               </table>
-            </div>
+            </TableScroll>
             <Pager page={Math.min(sellerPage, sellerPages)} pageCount={sellerPages} onChange={setSellerPage} />
           </div>
         </>
