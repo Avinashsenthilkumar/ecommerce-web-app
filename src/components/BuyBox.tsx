@@ -45,7 +45,7 @@ export function BuyBox({
     () => variants.find((x) => x.id === selected),
     [variants, selected],
   );
-  const max = Math.min(v?.stock ?? 0, 10);
+  const max = v?.stock ?? 0;
   const anyInStock = variants.some((variant) => variant.stock > 0);
   const colorSizeVariants = variants.map((variant) => ({
     variant,
@@ -97,6 +97,10 @@ export function BuyBox({
 
   async function add(mode: "cart" | "buy") {
     if (!v) return;
+    if (qty > v.stock) {
+      setMsg({ ok: false, text: `Only ${v.stock} ${v.label} available. Reduce the quantity to continue.` });
+      return;
+    }
     setBusy(mode);
     setMsg(null);
     try {
@@ -268,35 +272,42 @@ export function BuyBox({
           <button
             type="button"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
-            className="h-9 w-9 rounded-full text-lg leading-none hover:bg-mist"
+            disabled={qty <= 1}
+            className="h-9 w-9 rounded-full text-lg leading-none hover:bg-mist disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Decrease quantity"
           >
             −
           </button>
-          <span className="w-8 text-center text-sm tabular" aria-live="polite">
+          <span
+            className="w-8 text-center text-sm tabular"
+            aria-live="polite"
+            aria-label={`Quantity ${qty}`}
+          >
             {qty}
           </span>
           <button
             type="button"
-            onClick={() => setQty((q) => Math.min(max || 1, q + 1))}
-            className="h-9 w-9 rounded-full text-lg leading-none hover:bg-mist"
+            onClick={() => setQty((q) => Math.min(max, q + 1))}
+            disabled={qty >= max}
+            className="h-9 w-9 rounded-full text-lg leading-none hover:bg-mist disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Increase quantity"
           >
             +
           </button>
         </div>
-        <p className="text-sm text-slate">
+        <div className="text-sm text-slate" aria-live="polite">
           {v && v.stock > 0 ? (
-            <>
-              <span className={v.stock <= 8 ? "text-amber" : undefined}>
-                {v.stock} in stock
+            <p>
+              <span className={v.stock - qty <= 8 ? "font-medium text-amber" : "font-medium text-ink"}>
+                {v.stock - qty} remaining
               </span>
-              {v.warehouse && <> · {v.warehouse}</>}
-            </>
+              <span className="text-slate"> after selecting {qty}</span>
+              {v.warehouse && <span className="block text-xs text-slate">{v.warehouse}</span>}
+            </p>
           ) : (
             <span className="text-sale">Out of stock in this option</span>
           )}
-        </p>
+        </div>
       </div>
 
       {v && v.stock === 0 && anyInStock && (

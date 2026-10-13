@@ -22,6 +22,14 @@ const COLOR_SWATCHES: Record<string, string> = {
   yellow: "#FACC15",
 };
 
+export function productColorName(label: string) {
+  const normalized = label.trim().toLowerCase().replace(/[_-]+/g, " ");
+  return Object.keys(COLOR_SWATCHES).find((color) =>
+    new RegExp(`(?:^|[^a-z])${color}(?:$|[^a-z])`, "i").test(normalized),
+  );
+}
+
 export function productColor(label: string) {
-  return COLOR_SWATCHES[label.trim().toLowerCase()];
+  const color = productColorName(label);
+  return color ? COLOR_SWATCHES[color] : undefined;
 }

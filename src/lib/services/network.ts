@@ -29,13 +29,30 @@ export async function getHubOverview() {
       include: { _count: { select: { currentShipments: { where: { status: "AT_HUB" } } } } },
     }),
     prisma.shipment.findMany({
-      where: { status: { in: ["IN_TRANSIT", "AT_HUB"] } },
-      orderBy: { dispatchedAt: "asc" },
+      where: {
+        status: {
+          in: [
+            "ALLOCATED",
+            "PICKED",
+            "PACKED",
+            "LABELLED",
+            "IN_TRANSIT",
+            "AT_HUB",
+            "OUT_FOR_DELIVERY",
+          ],
+        },
+      },
+      orderBy: { createdAt: "asc" },
       include: {
         warehouse: { select: { name: true } },
         order: { select: { orderNumber: true } },
         items: { select: { productName: true, variantLabel: true, quantity: true } },
         legs: { orderBy: { sequence: "asc" }, include: { hub: { select: { id: true, name: true } } } },
+        scans: {
+          orderBy: { createdAt: "desc" },
+          take: 4,
+          select: { id: true, type: true, locationLabel: true, createdAt: true, remarks: true },
+        },
       },
     }),
     prisma.shipment.count({ where: { status: "OUT_FOR_DELIVERY" } }),
@@ -45,7 +62,7 @@ export async function getHubOverview() {
     hubs,
     network,
     stats: {
-      inNetwork: network.length,
+      inNetwork: network.filter((s) => ["IN_TRANSIT", "AT_HUB"].includes(s.status)).length,
       awaitingIntake,
       outForDelivery,
       hubsOnline: hubs.filter((h) => h.isOnline).length,

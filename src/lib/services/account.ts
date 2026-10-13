@@ -15,6 +15,24 @@ export async function addAddress(userId: string, a: AddressInput, makeDefault = 
   });
 }
 
+export async function updateAddress(
+  userId: string,
+  id: string,
+  address: AddressInput,
+  makeDefault = false,
+) {
+  await own(userId, id);
+  return prisma.$transaction(async (tx) => {
+    if (makeDefault) {
+      await tx.address.updateMany({ where: { userId }, data: { isDefault: false } });
+    }
+    return tx.address.update({
+      where: { id },
+      data: { ...address, ...(makeDefault ? { isDefault: true } : {}) },
+    });
+  });
+}
+
 async function own(userId: string, id: string) {
   const a = await prisma.address.findUnique({ where: { id } });
   if (!a || a.userId !== userId) throw new ApiError(404, "Address not found.");

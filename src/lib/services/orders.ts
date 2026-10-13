@@ -210,6 +210,27 @@ export function listOrdersForUser(userId: string) {
   });
 }
 
+export const ORDERS_PAGE_SIZE = 10;
+
+export async function listOrdersPageForUser(
+  userId: string,
+  requestedPage: number,
+) {
+  const where = { userId };
+  const total = await prisma.order.count({ where });
+  const pageCount = Math.max(1, Math.ceil(total / ORDERS_PAGE_SIZE));
+  const page = Math.min(Math.max(1, requestedPage), pageCount);
+  const items = await prisma.order.findMany({
+    where,
+    orderBy: { placedAt: "desc" },
+    skip: (page - 1) * ORDERS_PAGE_SIZE,
+    take: ORDERS_PAGE_SIZE,
+    include: orderDetailInclude,
+  });
+
+  return { items, page, pageCount, pageSize: ORDERS_PAGE_SIZE, total };
+}
+
 export async function getOrderForUser(orderNumber: string, user: CurrentUser) {
   const order = await prisma.order.findUnique({
     where: { orderNumber },

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ProductCardData } from "@/lib/services/catalog";
 import { productPurchasableStock, variantPurchasableStock } from "@/lib/services/inventory";
-import { productColor } from "@/lib/product-colors";
+import { productColor, productColorName } from "@/lib/product-colors";
 import { ProductImage } from "./ProductImage";
 import { CardPrice, Rating } from "./Price";
 import { QuickAdd } from "./QuickAdd";
@@ -23,8 +23,8 @@ export function ProductCard({
   const colors = [
     ...new Set(
       p.variants
-        .map((variant) => variant.label.trim())
-        .filter((label) => productColor(label)),
+        .map((variant) => productColorName(variant.label))
+        .filter((color): color is string => Boolean(color)),
     ),
   ];
   return (
@@ -43,7 +43,7 @@ export function ProductCard({
       <div className="mt-4 flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <p className="eyebrow truncate">{p.brand.name}</p>
-          <h3 className="text-[15px] leading-snug">
+          <h3 className="mt-1.5 text-[15px] font-semibold leading-snug text-ink sm:text-base">
             <Link
               href={`/product/${p.slug}`}
               className="hover:underline hover:underline-offset-4"

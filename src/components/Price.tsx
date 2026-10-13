@@ -36,7 +36,7 @@ export function CardPrice({ price, mrp }: { price: number; mrp: number }) {
 export function Rating({ avg, count, suffix = "" }: { avg: number; count: number; suffix?: string }) {
   return (
     <div className="flex items-center gap-1.5 text-xs text-slate tabular">
-      <Star size={12} className="fill-ink text-ink" aria-hidden />
+      <Star size={12} className="fill-[#D4A72C] text-[#D4A72C]" aria-hidden />
       <span>{avg.toFixed(1)}</span>
       <span className="text-line" aria-hidden>|</span>
       <span>

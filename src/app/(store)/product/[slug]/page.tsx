@@ -68,7 +68,7 @@ export default async function ProductPage({
   });
 
   return (
-    <div className="shell pt-10">
+    <div className="shell pb-16 pt-8 sm:pt-10">
       <nav
         className="mb-6 flex gap-2 text-sm text-slate"
         aria-label="Breadcrumb"
@@ -85,15 +85,15 @@ export default async function ProductPage({
         </Link>
       </nav>
 
-      <div className="grid gap-10 lg:grid-cols-2 lg:gap-10">
-        <div className="space-y-4">
+      <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
+        <div className="grid gap-3 sm:grid-cols-2">
           {(product.images.length
             ? product.images
             : [{ id: "none", url: "", alt: product.name }]
-          ).map((img) => (
+          ).map((img, index) => (
             <div
               key={img.id}
-              className="aspect-[4/5] overflow-hidden rounded-card border border-line bg-mist"
+              className={`aspect-[4/5] overflow-hidden rounded-[24px] border border-line bg-mist ${index === 0 ? "sm:col-span-2" : ""}`}
             >
               <ProductImage
                 src={img.url}
@@ -104,7 +104,7 @@ export default async function ProductPage({
           ))}
         </div>
 
-        <div className="lg:pl-2">
+        <div className="rounded-[24px] border border-line bg-white p-5 sm:p-7 lg:sticky lg:top-6">
           <p className="eyebrow">{product.brand.name}</p>
           <h1 className="h-display mt-3 text-[1.9rem] leading-[1.05] sm:text-[2.75rem]">
             {product.name}
@@ -170,13 +170,13 @@ export default async function ProductPage({
       </div>
 
       <section className="pt-16 sm:pt-24" id="reviews">
-        <div className="grid gap-10 lg:grid-cols-[20rem_1fr]">
-          <div>
+        <div className="grid gap-8 lg:grid-cols-[19rem_1fr] lg:gap-10">
+          <div className="space-y-5">
             <h2 className="section-title text-[2.2rem] sm:text-[2.6rem]">
               Customer reviews
             </h2>
             <div className="mt-5 flex items-baseline gap-3">
-              <span className="font-display text-5xl font-medium tabular">
+              <span className="font-display text-5xl font-semibold tabular">
                 {product.ratingAvg.toFixed(1)}
               </span>
               <span className="text-sm text-slate">out of 5</span>
@@ -200,7 +200,7 @@ export default async function ProductPage({
             </p>
 
             {breakdown.total > 0 && (
-              <ul className="mt-5 space-y-1.5">
+              <ul className="mt-5 space-y-2 rounded-2xl bg-mist/60 p-4">
                 {breakdown.rows.map((row) => (
                   <li key={row.star} className="flex items-center gap-3 text-xs">
                     <span className="w-8 shrink-0 tabular text-slate">{row.star}★</span>
@@ -243,17 +243,17 @@ export default async function ProductPage({
               )}
             </div>
           </div>
-          <div>
+          <div className="space-y-3">
             {reviews.length === 0 ? (
               <p className="rounded-[24px] border border-line bg-white p-6 text-sm text-slate">
                 No written reviews yet.
               </p>
             ) : (
-              <ul className="divide-y divide-line rounded-[24px] border border-line bg-white">
+              <ul className="space-y-3">
                 {reviews.map((r) => {
                   const [first, last] = r.user.fullName.split(" ");
                   return (
-                    <li key={r.id} className="p-6">
+                    <li key={r.id} className="rounded-[20px] border border-line bg-white p-5 sm:p-6">
                       <div className="flex flex-wrap items-center gap-3">
                         <div
                           className="flex gap-0.5"
@@ -271,7 +271,7 @@ export default async function ProductPage({
                             />
                           ))}
                         </div>
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-semibold text-ink">
                           {first} {last ? `${last[0]}.` : ""}
                         </span>
                         {r.verified && (

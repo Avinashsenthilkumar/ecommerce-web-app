@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowDown, CheckCircle2 } from "lucide-react";
+import { ArrowDown, CheckCircle2, PackageCheck } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getSettings, rulesFrom } from "@/lib/settings";
 import { getOrderForUser } from "@/lib/services/orders";
 import { OrderCard } from "@/components/OrderCard";
+import { OrderSuccessToast } from "@/components/OrderSuccessToast";
 
 export async function generateMetadata({
   params,
@@ -37,6 +38,7 @@ export default async function OrderDetailPage({
       >
         All orders
       </Link>
+      {searchParams.placed === "1" && <OrderSuccessToast />}
       {searchParams.placed === "1" ? (
         <section className="mt-6 rounded-[24px] border border-pine/15 bg-pineSoft p-6 sm:p-8">
           <div className="flex items-start gap-4">
@@ -46,11 +48,11 @@ export default async function OrderDetailPage({
             <div>
               <p className="eyebrow text-pine">Order received</p>
               <h1 className="h-display mt-1 text-3xl sm:text-4xl">
-                Thanks, your order is in.
+                Your order is placed!
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate">
-                We’ll confirm your order next. Stock and delivery updates will
-                appear below as your parcel moves through the network.
+                Thanks for shopping with us. Your order is confirmed, and you
+                can follow its progress below as it is prepared and delivered.
               </p>
             </div>
           </div>
@@ -61,10 +63,16 @@ export default async function OrderDetailPage({
                 {order.orderNumber}
               </p>
             </div>
-            <Link href="#order-details" className="btn-primary btn-sm">
-              <ArrowDown size={15} />
-              See order status
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href="#order-details" className="btn-primary btn-sm">
+                <PackageCheck size={15} />
+                Track this order
+                <ArrowDown size={15} />
+              </Link>
+              <Link href="/shop?category=all" className="btn-outline btn-sm">
+                Continue shopping
+              </Link>
+            </div>
           </div>
         </section>
       ) : (
