@@ -56,7 +56,7 @@ export default async function HomePage() {
             <Link
               key={c.id}
               href={`/shop?category=${c.slug}`}
-              className={clsx("group relative block h-[300px] overflow-hidden rounded-card border border-line bg-mist sm:h-[420px] md:h-[520px]", i === 0 && "md:col-span-2")}
+              className={clsx("group relative block h-[220px] overflow-hidden rounded-card border border-line bg-mist sm:h-[300px] md:h-[360px]", i === 0 && "md:col-span-2")}
             >
               <ProductImage src={c.imageUrl} alt={c.name} className="absolute inset-0 h-full w-full transition-transform duration-700 group-hover:scale-[1.03]" />
               <span className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-[20px] bg-white/95 px-4 py-3.5 backdrop-blur">

@@ -69,7 +69,7 @@ export default async function ProductPage({
 
   return (
     // Extra room at the bottom on phones: the pinned buy bar sits over the page.
-    <div className="shell pb-24 pt-10 lg:pb-0">
+    <div className="shell pb-24 pt-8 sm:pt-10 lg:pb-0">
       <nav
         className="mb-6 flex gap-2 text-sm text-slate"
         aria-label="Breadcrumb"
@@ -86,10 +86,10 @@ export default async function ProductPage({
         </Link>
       </nav>
 
-      <div className="grid gap-10 lg:grid-cols-2 lg:gap-10">
+      <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
         <ProductGallery images={product.images} name={product.name} />
 
-        <div className="lg:pl-2">
+        <div className="rounded-[24px] border border-line bg-white p-5 sm:p-7 lg:sticky lg:top-6">
           <p className="eyebrow">{product.brand.name}</p>
           <h1 className="h-display mt-3 text-[1.9rem] leading-[1.05] sm:text-[2.75rem]">
             {product.name}
@@ -155,13 +155,13 @@ export default async function ProductPage({
       </div>
 
       <section className="pt-16 sm:pt-24" id="reviews">
-        <div className="grid gap-10 lg:grid-cols-[20rem_1fr]">
-          <div>
-            <h2 className="section-title">
+        <div className="grid gap-8 lg:grid-cols-[19rem_1fr] lg:gap-10">
+          <div className="space-y-5">
+            <h2 className="section-title text-[2.2rem] sm:text-[2.6rem]">
               Customer reviews
             </h2>
             <div className="mt-5 flex items-baseline gap-3">
-              <span className="font-display text-4xl font-medium tabular sm:text-5xl">
+              <span className="font-display text-5xl font-semibold tabular">
                 {product.ratingAvg.toFixed(1)}
               </span>
               <span className="text-sm text-slate">out of 5</span>
@@ -173,7 +173,7 @@ export default async function ProductPage({
                   size={16}
                   className={
                     n <= Math.round(product.ratingAvg)
-                      ? "fill-ink text-ink"
+                      ? "fill-[#D4A72C] text-[#D4A72C]"
                       : "text-line"
                   }
                 />
@@ -185,7 +185,7 @@ export default async function ProductPage({
             </p>
 
             {breakdown.total > 0 && (
-              <ul className="mt-5 space-y-1.5">
+              <ul className="mt-5 space-y-2 rounded-2xl bg-mist/60 p-4">
                 {breakdown.rows.map((row) => (
                   <li key={row.star} className="flex items-center gap-3 text-xs">
                     <span className="w-8 shrink-0 tabular text-slate">{row.star}★</span>
@@ -228,17 +228,17 @@ export default async function ProductPage({
               )}
             </div>
           </div>
-          <div>
+          <div className="space-y-3">
             {reviews.length === 0 ? (
               <p className="rounded-[24px] border border-line bg-white p-5 text-sm text-slate sm:p-6">
                 No written reviews yet.
               </p>
             ) : (
-              <ul className="divide-y divide-line rounded-[24px] border border-line bg-white">
+              <ul className="space-y-3">
                 {reviews.map((r) => {
                   const [first, last] = r.user.fullName.split(" ");
                   return (
-                    <li key={r.id} className="p-5 sm:p-6">
+                    <li key={r.id} className="rounded-[20px] border border-line bg-white p-5 sm:p-6">
                       <div className="flex flex-wrap items-center gap-3">
                         <div
                           className="flex gap-0.5"
@@ -250,13 +250,13 @@ export default async function ProductPage({
                               size={14}
                               className={
                                 n <= r.rating
-                                  ? "fill-ink text-ink"
+                                  ? "fill-[#D4A72C] text-[#D4A72C]"
                                   : "text-line"
                               }
                             />
                           ))}
                         </div>
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-semibold text-ink">
                           {first} {last ? `${last[0]}.` : ""}
                         </span>
                         {r.verified && (

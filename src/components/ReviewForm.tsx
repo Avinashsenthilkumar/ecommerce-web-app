@@ -36,8 +36,8 @@ export function ReviewForm({
   }
 
   return (
-    <form onSubmit={submit} className="rounded-[24px] border border-line bg-white p-5">
-      <p className="text-sm font-medium">
+    <form onSubmit={submit} className="rounded-[24px] border border-line bg-white p-5 shadow-sm">
+      <p className="text-sm font-semibold text-ink">
         {verified ? "You bought this. How was it?" : "Rate this product"}
       </p>
       {verified && (
@@ -57,11 +57,11 @@ export function ReviewForm({
             onMouseEnter={() => setHover(n)}
             className="p-1"
           >
-            <Star size={22} className={clsx((hover || rating) >= n ? "fill-ink text-ink" : "text-line")} />
+            <Star size={22} className={clsx((hover || rating) >= n ? "fill-[#D4A72C] text-[#D4A72C]" : "text-line")} />
           </button>
         ))}
       </div>
-      <textarea className="input mt-3 min-h-[90px]" placeholder="What did you like or dislike? (optional)" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={1000} />
+      <textarea className="input mt-3 min-h-[110px] rounded-2xl py-3 leading-relaxed" placeholder="What did you like or dislike? (optional)" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={1000} />
       {error && <p className="mt-2 text-sm text-sale">{error}</p>}
       <button disabled={busy || rating === 0} className="btn-primary mt-3">
         {busy ? "Posting…" : "Post review"}

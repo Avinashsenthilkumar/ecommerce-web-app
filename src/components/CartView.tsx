@@ -4,11 +4,11 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import clsx from "clsx";
-import { Trash2 } from "lucide-react";
+import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { callApi } from "@/lib/client/api";
 import { inr } from "@/lib/format";
 import { ProductImage } from "./ProductImage";
-import { AddressFields, emptyAddress, type AddressValue } from "./account/AddressFields";
+import { AddressFields, emptyAddress, formatAddress, type AddressValue } from "./account/AddressFields";
 
 export type CartLineView = {
   id: string;
@@ -39,6 +39,7 @@ export function CartView({ lines, totals, addresses, userName, userPhone, rules 
   const initial = addresses.find((a) => a.isDefault) ?? addresses[0];
   const [savedId, setSavedId] = useState<string | null>(initial?.id ?? null);
   const [addr, setAddr] = useState<AddressValue>(initial ? pick(initial) : emptyAddress(userName, userPhone));
+  const [addressMode, setAddressMode] = useState<"selected" | "new" | "edit">(initial ? "selected" : "new");
   const [payment, setPayment] = useState<PaymentKey>(rules.paymentMethods[0] ?? "UPI");
   const [lineError, setLineError] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
@@ -134,46 +135,99 @@ export function CartView({ lines, totals, addresses, userName, userPhone, rules 
               <h2 className="text-sm font-medium">Delivery address</h2>
             </header>
             <div className="space-y-6 px-5 py-6">
-              {addresses.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {addresses.map((a) => (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => {
-                        setSavedId(a.id);
-                        setAddr(pick(a));
-                      }}
-                      aria-pressed={savedId === a.id}
-                      className={clsx(
-                        "rounded-full border px-4 py-2 text-left text-xs transition-colors",
-                        savedId === a.id ? "border-ink bg-mist" : "border-line bg-white hover:border-ink/40",
-                      )}
-                    >
-                      <span className="font-medium">{a.name}</span>, {a.line1.slice(0, 22)}{a.line1.length > 22 ? "…" : ""}, {a.pincode}
-                    </button>
-                  ))}
+              {addressMode === "selected" && savedId ? (
+                <div className="rounded-2xl border border-line bg-mist/60 p-4">
+                  <div className="flex items-start gap-3">
+                    <MapPin size={18} className="mt-0.5 shrink-0 text-pine" aria-hidden />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-ink">{addr.name}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-slate">{formatAddress(addr)}</p>
+                      <p className="mt-1 text-sm text-slate">{addr.phone}</p>
+                    </div>
+                  </div>
+                  {addresses.length > 1 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {addresses.filter((a) => a.id !== savedId).map((a) => (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => {
+                            setSavedId(a.id);
+                            setAddr(pick(a));
+                          }}
+                          className="btn-outline btn-sm"
+                        >
+                          Use {a.name}&apos;s address
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold">
+                      {addressMode === "edit" ? "Edit address for this order" : "Add a delivery address"}
+                    </p>
+                    {savedId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const selected = addresses.find((a) => a.id === savedId);
+                          if (selected) setAddr(pick(selected));
+                          setAddressMode("selected");
+                        }}
+                        className="btn-ghost btn-sm"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                  <AddressFields
+                    value={addr}
+                    onChange={setAddr}
+                    idPrefix="checkout"
+                  />
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {addressMode === "selected" && savedId && (
+                  <button
+                    type="button"
+                    onClick={() => setAddressMode("edit")}
+                    className="btn-outline btn-sm"
+                  >
+                    <Pencil size={14} aria-hidden /> Edit for this order
+                  </button>
+                )}
+                {addressMode !== "new" && (
                   <button
                     type="button"
                     onClick={() => {
                       setSavedId(null);
                       setAddr(emptyAddress(userName, userPhone));
+                      setAddressMode("new");
                     }}
-                    aria-pressed={savedId === null}
-                    className={clsx("rounded-full border px-4 py-2 text-xs", savedId === null ? "border-ink bg-mist" : "border-line bg-white hover:border-ink/40")}
+                    className="btn-primary btn-sm"
                   >
-                    New address
+                    <Plus size={15} aria-hidden /> Add new address
                   </button>
-                </div>
-              )}
-              <AddressFields
-                value={addr}
-                onChange={(v) => {
-                  setAddr(v);
-                  setSavedId(null);
-                }}
-                idPrefix="checkout"
-              />
+                )}
+                {addressMode === "new" && addresses.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const selected = initial!;
+                      setSavedId(selected.id);
+                      setAddr(pick(selected));
+                      setAddressMode("selected");
+                    }}
+                    className="btn-outline btn-sm"
+                  >
+                    Choose saved address
+                  </button>
+                )}
+              </div>
             </div>
           </section>
         </div>
