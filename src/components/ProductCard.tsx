@@ -34,6 +34,7 @@ export function ProductCard({
           <ProductImage
             src={p.images[0]?.url}
             alt={p.name}
+            sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
             className="h-full w-full transition-transform duration-700 group-hover:scale-[1.03]"
           />
         </Link>

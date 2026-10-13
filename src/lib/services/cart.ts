@@ -50,13 +50,22 @@ export function lineUnitPrice(line: CartLine) {
  * Default example: ₹23,298 − 5% = ₹22,133, + 18% GST = ₹26,117.
  */
 export function priceBreakdown(subtotal: number, r: StoreRules) {
-  const discountTotal = Math.round(subtotal * r.discountRate);
-  const taxable = subtotal - discountTotal;
-  const taxTotal = Math.round(taxable * r.gstRate);
+  const safeSubtotal = Number.isFinite(subtotal) ? Math.max(0, Math.trunc(subtotal)) : 0;
+  const safeDiscountRate = Number.isFinite(r.discountRate)
+    ? Math.min(Math.max(0, r.discountRate), 1)
+    : 0;
+  const safeGstRate = Number.isFinite(r.gstRate)
+    ? Math.min(Math.max(0, r.gstRate), 1)
+    : 0;
+
+  const discountTotal = Math.round(safeSubtotal * safeDiscountRate);
+  const taxable = Math.max(0, safeSubtotal - discountTotal);
+  const taxTotal = Math.round(taxable * safeGstRate);
   const shippingFee =
-    subtotal === 0 || subtotal >= r.freeShippingFrom ? 0 : r.shippingFee;
+    safeSubtotal === 0 || safeSubtotal >= r.freeShippingFrom ? 0 : r.shippingFee;
+
   return {
-    subtotal,
+    subtotal: safeSubtotal,
     discountTotal,
     taxTotal,
     shippingFee,
@@ -65,16 +74,19 @@ export function priceBreakdown(subtotal: number, r: StoreRules) {
 }
 
 export function cartTotals(items: CartLine[], r: StoreRules) {
-  const subtotal = items.reduce((s, l) => s + lineUnitPrice(l) * l.quantity, 0);
+  const subtotal = items.reduce(
+    (s, l) => s + Number(lineUnitPrice(l)) * Number(l.quantity || 0),
+    0,
+  );
   const mrpTotal = items.reduce(
-    (s, l) => s + l.variant.product.mrp * l.quantity,
+    (s, l) => s + Number(l.variant.product.mrp) * Number(l.quantity || 0),
     0,
   );
   return {
     ...priceBreakdown(subtotal, r),
     mrpTotal,
     savedVsMrp: Math.max(0, mrpTotal - subtotal),
-    units: items.reduce((s, l) => s + l.quantity, 0),
+    units: items.reduce((s, l) => s + Number(l.quantity || 0), 0),
   };
 }
 
@@ -91,6 +103,11 @@ export async function addToCart(
   variantId: string,
   qty: number,
 ) {
+  const safeQty = Number.isFinite(qty) ? Math.max(0, Math.trunc(qty)) : 0;
+  if (safeQty <= 0) {
+    throw new ApiError(400, "Quantity must be at least 1.");
+  }
+
   const variant = await prisma.productVariant.findUnique({
     where: { id: variantId },
     include: {
@@ -120,7 +137,7 @@ export async function addToCart(
   const existing = await prisma.cartItem.findUnique({
     where: { cartId_variantId: { cartId: cart.id, variantId } },
   });
-  const nextQty = (existing?.quantity ?? 0) + qty;
+  const nextQty = (existing?.quantity ?? 0) + safeQty;
   if (nextQty > stock) {
     throw new ApiError(
       409,
@@ -132,7 +149,7 @@ export async function addToCart(
 
   await prisma.cartItem.upsert({
     where: { cartId_variantId: { cartId: cart.id, variantId } },
-    create: { cartId: cart.id, variantId, quantity: qty },
+    create: { cartId: cart.id, variantId, quantity: safeQty },
     update: { quantity: nextQty },
   });
   return { count: await cartCount(userId) };

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
+import Image from "next/image";
 import { resolveProductImageUrl } from "@/lib/product-image";
 
 /**
@@ -13,11 +14,13 @@ export function ProductImage({
   src,
   alt,
   className,
+  sizes = "50vw",
   priority = false,
 }: {
   src?: string | null;
   alt: string;
   className?: string;
+  sizes?: string;
   priority?: boolean;
 }) {
   const resolvedSrc = useMemo(
@@ -56,12 +59,15 @@ export function ProductImage({
     );
   }
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       ref={ref}
       src={resolvedSrc}
       alt={alt}
-      loading={priority ? "eager" : "lazy"}
+      width={1200}
+      height={1500}
+      sizes={sizes}
+      priority={priority}
+      unoptimized={!resolvedSrc.startsWith("/") || resolvedSrc.startsWith("//")}
       decoding="async"
       className={clsx("object-cover", className)}
       onLoad={(e) => e.currentTarget.naturalWidth > 0 && setFailed(false)}
