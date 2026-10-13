@@ -2,17 +2,16 @@ import Link from "next/link";
 import { Heart, ShoppingBag } from "lucide-react";
 import { getCurrentUser, ROLE_HOME } from "@/lib/auth";
 import { getNavigationItems, getSettings } from "@/lib/settings";
-import { cartCount } from "@/lib/services/cart";
 import { Logo } from "./Logo";
 import { AccountMenu } from "./AccountMenu";
 import { HeaderSearch } from "./HeaderSearch";
 import { MobileNav } from "./MobileNav";
 
-export async function Header() {
+export async function Header({ bagCount }: { bagCount: number }) {
   const [user, s] = await Promise.all([getCurrentUser(), getSettings()]);
   const navItems = getNavigationItems(s).filter((item) => item.visible);
   const isCustomer = user?.role === "CUSTOMER";
-  const count = user && isCustomer ? await cartCount(user.id) : 0;
+  const count = bagCount;
   const accountUser = user
     ? {
         firstName: user.fullName.split(" ")[0],
