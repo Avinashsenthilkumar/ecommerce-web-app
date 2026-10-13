@@ -68,7 +68,7 @@ export default async function ProductPage({
   });
 
   return (
-    <div className="shell pb-16 pt-8 sm:pt-10">
+    <div className="shell pb-24 pt-8 sm:pt-10 lg:pb-0">
       <nav
         className="mb-6 flex gap-2 text-sm text-slate"
         aria-label="Breadcrumb"
