@@ -70,7 +70,9 @@ export function ProductImage({
       height={1500}
       sizes={sizes}
       priority={priority}
-      unoptimized={!isCloudinaryImageUrl(resolvedSrc)}
+      unoptimized={
+        !resolvedSrc.startsWith("/") && !isCloudinaryImageUrl(resolvedSrc)
+      }
       decoding="async"
       className={clsx("object-cover", className)}
       onLoad={(e) => e.currentTarget.naturalWidth > 0 && setFailed(false)}
