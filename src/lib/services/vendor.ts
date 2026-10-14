@@ -4,7 +4,6 @@ import { ApiError } from "../api";
 import { moveStock } from "./inventory";
 import { getSettings, rulesFrom } from "../settings";
 import type { CurrentUser } from "../auth";
-import { resolveProductImageUrl } from "../product-image";
 
 export function listVendors() {
   return prisma.vendor.findMany({
@@ -445,7 +444,9 @@ export async function createVendorProduct(
       });
       const imageUrls = input.images.length
         ? input.images
-        : [resolveProductImageUrl(input.name, input.imageUrl)];
+        : input.imageUrl
+          ? [input.imageUrl]
+          : [];
       const product = await tx.product.create({
         data: {
           slug,
