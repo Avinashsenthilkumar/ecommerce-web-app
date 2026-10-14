@@ -41,13 +41,13 @@ npm install
 cp .env.example .env          # set DATABASE_URL to your PostgreSQL database
 npx prisma db push            # creates all tables
 npm run db:seed               # loads 30 products (5 per category), hubs, riders and one delivered order
-npm run images                # downloads the prototype photos + logo into public/
+# Optional: npm run images    # downloads unused prototype photos + logo into public/
 npm run dev                   # http://localhost:3000
 ```
 
 `npm run db:reset` wipes and re-seeds at any time.
 
-Photos: 23 product images ship inside `public/products`. `npm run images` additionally pulls the 8 original prototype photos, the category tiles and the logo (needs internet). Anything it can't find is listed at the end; drop those files into `public/products/` with the names in `public/products/README.md`. Until then the UI shows clean placeholders.
+Product, category and hero photos are hidden by default; the storefront uses clean placeholders. Upload images from Admin → Product catalogue or Store settings. The product catalogue supports up to five Cloudinary images per product, full listing details, specifications, variants and stock by warehouse. Configure the Cloudinary credentials in `.env`; existing non-Cloudinary image records are preserved unless an admin saves that product.
 
 ## Accounts and logins
 

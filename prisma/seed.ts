@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../src/lib/password";
-import { resolveProductImageUrl } from "../src/lib/product-image";
 import catalog from "./catalog.json";
 
 const prisma = new PrismaClient();
@@ -260,43 +259,37 @@ async function main() {
       slug: "men",
       name: "Men",
       tagline: "Tailoring, knitwear & footwear",
-      imageUrl: "/assets/cat-men-DnwSovaf.jpg",
     },
     {
       slug: "women",
       name: "Women",
       tagline: "Editorial layers for every season",
-      imageUrl: "/assets/cat-women-cU_9HMCT.jpg",
     },
     {
       slug: "children",
       name: "Children",
       tagline: "Soft, durable, playful",
-      imageUrl: "/assets/cat-children-CR0xgnYV.jpg",
     },
     {
       slug: "electronics",
       name: "Electronics",
       tagline: "Sound, screens & everyday tech",
-      imageUrl: "/assets/cat-electronics-Dpfn04Dd.jpg",
     },
     {
       slug: "accessories",
       name: "Accessories",
       tagline: "Leather, steel & small goods",
-      imageUrl: "/assets/cat-accessories-BjiqwQD5.jpg",
     },
     {
       slug: "home",
       name: "Home",
       tagline: "Objects for slower mornings",
-      imageUrl: "/assets/cat-home-CXOvODvK.jpg",
     },
   ];
   const cats: Record<string, string> = {};
   for (const [i, c] of catData.entries()) {
     const row = await prisma.category.create({
-      data: { ...c, sortOrder: i, imageUrl: c.imageUrl },
+      data: { ...c, sortOrder: i },
     });
     cats[c.slug] = row.id;
   }
@@ -313,7 +306,6 @@ async function main() {
     price: number;
     rating: number;
     reviews: number;
-    image: string;
     wh: "CHN" | "TNJ";
     short: string;
     desc: string;
@@ -335,7 +327,6 @@ async function main() {
       create: { name: p.brand },
       update: {},
     });
-    const productImageUrl = resolveProductImageUrl(p.name, p.image);
     const product = await prisma.product.create({
       data: {
         slug: p.slug,
@@ -352,7 +343,6 @@ async function main() {
         isFeatured: !!p.featured,
         isNewArrival: !!p.new,
         status,
-        images: { create: [{ url: productImageUrl, alt: p.name }] },
         specs: {
           create: p.specs.map(([key, value], i) => ({
             key,
@@ -471,8 +461,6 @@ async function main() {
       productName: "Studio ANC Wireless Headphones",
       variantLabel: "Charcoal",
       sku: "KES-ANC-BLK",
-      imageUrl:
-        "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=900&q=80",
       quantity: 1,
       unitMrp: 24999,
       unitPrice: 18999,
