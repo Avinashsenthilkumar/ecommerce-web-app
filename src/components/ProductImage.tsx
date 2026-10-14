@@ -3,10 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import Image from "next/image";
-import { resolveProductImageUrl } from "@/lib/product-image";
+import {
+  isCloudinaryImageUrl,
+  resolveProductImageUrl,
+} from "@/lib/product-image";
 
 /**
- * Plain <img> with a designed fallback.
+ * Image with a designed fallback.
  * The effect also catches images that failed while the page was still server-rendered
  * (React never fires onError for those), so a missing file never shows a broken icon.
  */
@@ -67,7 +70,7 @@ export function ProductImage({
       height={1500}
       sizes={sizes}
       priority={priority}
-      unoptimized={!resolvedSrc.startsWith("/") || resolvedSrc.startsWith("//")}
+      unoptimized={!isCloudinaryImageUrl(resolvedSrc)}
       decoding="async"
       className={clsx("object-cover", className)}
       onLoad={(e) => e.currentTarget.naturalWidth > 0 && setFailed(false)}

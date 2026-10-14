@@ -165,9 +165,23 @@ function findBestRealImage(name: string) {
   return null;
 }
 
+export function isCloudinaryImageUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      url.hostname === "res.cloudinary.com" &&
+      url.pathname.includes("/image/upload/")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function resolveProductImageUrl(name: string, source?: string | null) {
   const trimmed = (source ?? "").trim();
   if (trimmed.startsWith("data:image/")) return trimmed;
+  if (isCloudinaryImageUrl(trimmed)) return trimmed;
 
   const mapped = findBestRealImage(name);
   if (mapped) return mapped;
