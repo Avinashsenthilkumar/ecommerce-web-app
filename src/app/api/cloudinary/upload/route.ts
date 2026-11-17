@@ -8,6 +8,7 @@ const uploadSchema = z.object({
     .string()
     .trim()
     .min(1)
+    .max(2_800_000, "Image must be no larger than 2 MB.")
     .regex(/^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/),
 });
 

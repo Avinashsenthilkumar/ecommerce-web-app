@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { cache } from "react";
 import { prisma } from "../prisma";
 
 export const productCardInclude = {
@@ -142,19 +143,31 @@ export async function listProductsPage(
   pageSize = PAGE_SIZE,
 ) {
   const where = buildWhere(filters);
-  const total = await prisma.product.count({ where });
+  const [total, items] = await Promise.all([
+    prisma.product.count({ where }),
+    prisma.product.findMany({
+      where,
+      orderBy: buildOrderBy(filters.sort),
+      skip: (Math.max(1, page) - 1) * pageSize,
+      take: pageSize,
+      include: productCardInclude,
+    }),
+  ]);
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   // Clamp before querying, so a page number past the end (an old link, a
   // bookmark, a filter that shrank the result set) still shows real products.
   const current = Math.min(Math.max(1, page), pageCount);
-  const items = await prisma.product.findMany({
-    where,
-    orderBy: buildOrderBy(filters.sort),
-    skip: (current - 1) * pageSize,
-    take: pageSize,
-    include: productCardInclude,
-  });
-  return { items, total, page: current, pageCount, pageSize };
+  const currentItems =
+    current === Math.max(1, page)
+      ? items
+      : await prisma.product.findMany({
+          where,
+          orderBy: buildOrderBy(filters.sort),
+          skip: (current - 1) * pageSize,
+          take: pageSize,
+          include: productCardInclude,
+        });
+  return { items: currentItems, total, page: current, pageCount, pageSize };
 }
 
 /**
@@ -194,7 +207,7 @@ export async function getProductFacets(
   };
 }
 
-export function getProductBySlug(slug: string) {
+export const getProductBySlug = cache((slug: string) => {
   return prisma.product.findUnique({
     where: { slug },
     include: {
@@ -216,7 +229,7 @@ export function getProductBySlug(slug: string) {
       },
     },
   });
-}
+});
 
 export type ProductDetail = NonNullable<
   Awaited<ReturnType<typeof getProductBySlug>>

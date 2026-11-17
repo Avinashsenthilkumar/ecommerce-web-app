@@ -34,7 +34,7 @@ export const DEFAULTS = {
   "home.ctaPrimaryHref": "/shop?category=all",
   "home.ctaSecondary": "Explore Collection",
   "home.ctaSecondaryHref": "/shop?category=women",
-  "home.heroImage": "/assets/hero-b_Z3yfX2.jpg",
+  "home.heroImage": "",
   "home.showCategories": "1",
   "home.categoriesEyebrow": "Categories",
   "home.categoriesTitle": "Six departments, one checkout.",

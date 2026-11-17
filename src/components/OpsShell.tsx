@@ -7,6 +7,7 @@ import {
   Network,
   Truck,
   Package,
+  PackageSearch,
   Settings,
   ExternalLink,
   BarChart3,
@@ -24,6 +25,7 @@ type Tab = { href: string; label: string; icon?: LucideIcon; group?: string };
 const STAFF_NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, group: "Business" },
   { href: "/admin/analytics", label: "Sales & products", icon: BarChart3, group: "Business" },
+  { href: "/admin/products", label: "Product catalogue", icon: PackageSearch, group: "Business" },
   { href: "/admin/sellers", label: "Sellers & listings", icon: Store, group: "Business" },
   { href: "/warehouse", label: "Warehouse", icon: Warehouse, group: "Fulfilment" },
   { href: "/hub", label: "Hub", icon: Network, group: "Fulfilment" },

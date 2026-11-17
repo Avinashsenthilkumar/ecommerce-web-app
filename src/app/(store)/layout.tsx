@@ -12,7 +12,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
   const bag = user?.role === "CUSTOMER" ? await cartCount(user.id) : 0;
   return (
     <>
-      <Header />
+      <Header bagCount={bag} />
       {/* bottom padding keeps content clear of the phone tab bar */}
       <div className="pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
         <main>{children}</main>
