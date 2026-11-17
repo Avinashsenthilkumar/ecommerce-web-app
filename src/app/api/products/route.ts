@@ -10,6 +10,7 @@ export const GET = handle(async (req) => {
     sort: (url.searchParams.get("sort") as SortKey) ?? undefined,
   });
   return products.map((p) => ({
+    id: p.id,
     slug: p.slug,
     name: p.name,
     brand: p.brand.name,

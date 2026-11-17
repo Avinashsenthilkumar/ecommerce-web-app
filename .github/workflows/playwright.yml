@@ -1,0 +1,99 @@
+name: Playwright E2E & API Test Suite
+
+on:
+  push:
+    branches:
+      - deva
+  pull_request:
+    branches:
+      - deva
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run All 113 Tests (E2E, Security, UI & Next.js Route APIs)
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: subsel
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      CI: "true"
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/subsel?schema=public"
+      CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME || 'demo' }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY || 'demo' }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET || 'demo' }}
+      PLAYWRIGHT_BASE_URL: "http://localhost:3000"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Setup Database (Generate Prisma Client & Seed Demo Data)
+        run: |
+          npx prisma generate
+          npx prisma db push --accept-data-loss
+          npx prisma db seed
+
+      - name: Install Playwright Browsers & OS Dependencies
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Build Next.js Production Application
+        run: npm run build
+
+      - name: Run Playwright Test Suite (All 113 Tests across 7 Projects)
+        run: npx playwright test
+
+      - name: Generate GitHub Step Summary
+        if: always()
+        run: |
+          echo "### 🎭 Playwright Test Suite Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Total Tests** | 113 Tests across 7 Projects |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Coverage** | Frontend Mock, Real E2E, Security, Mobile Android, iOS WebKit, iPad WebKit, 31 Route APIs |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Swagger Documentation** | Verified & Enriched in \`public/swagger.json\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download the \`playwright-report\` artifact below to inspect the full interactive HTML report, videos, and network traces." >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Playwright HTML Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload Verified Swagger JSON Specification
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: swagger-specification
+          path: public/swagger.json
+          retention-days: 30

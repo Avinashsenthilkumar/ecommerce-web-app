@@ -17,7 +17,14 @@
     "db:seed": "prisma db seed",
     "db:reset": "prisma db push --force-reset --accept-data-loss && prisma db seed",
     "db:studio": "prisma studio",
-    "images": "node scripts/download-images.mjs"
+    "images": "node scripts/download-images.mjs",
+    "test:api": "playwright test --project=api-tests",
+    "test:e2e": "playwright test",
+    "test:e2e:mock": "playwright test --project=mock-frontend",
+    "test:e2e:real": "playwright test --project=real-desktop",
+    "test:e2e:security": "playwright test --project=security",
+    "test:e2e:ui": "playwright test --project=mobile-android --project=mobile-ios --project=tablet-ipad",
+    "test:e2e:report": "playwright show-report"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -35,6 +42,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@types/node": "^20.16.11",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",

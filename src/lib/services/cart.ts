@@ -31,13 +31,20 @@ export async function storeRules() {
   return rulesFrom(await getSettings());
 }
 
-export function getCart(userId: string) {
-  return prisma.cart.upsert({
-    where: { userId },
-    create: { userId },
-    update: {},
-    include: cartInclude,
-  });
+export async function getCart(userId: string) {
+  try {
+    return await prisma.cart.upsert({
+      where: { userId },
+      create: { userId },
+      update: {},
+      include: cartInclude,
+    });
+  } catch {
+    return await prisma.cart.findUniqueOrThrow({
+      where: { userId },
+      include: cartInclude,
+    });
+  }
 }
 
 export function lineUnitPrice(line: CartLine) {
@@ -112,11 +119,18 @@ export async function addToCart(
     throw new ApiError(404, "This product is no longer available.");
 
   const stock = maxAvailableAtWarehouse(variant.inventory);
-  const cart = await prisma.cart.upsert({
-    where: { userId },
-    create: { userId },
-    update: {},
-  });
+  let cart;
+  try {
+    cart = await prisma.cart.upsert({
+      where: { userId },
+      create: { userId },
+      update: {},
+    });
+  } catch {
+    cart = await prisma.cart.findUniqueOrThrow({
+      where: { userId },
+    });
+  }
   const existing = await prisma.cartItem.findUnique({
     where: { cartId_variantId: { cartId: cart.id, variantId } },
   });
