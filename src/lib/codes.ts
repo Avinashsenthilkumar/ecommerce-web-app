@@ -21,5 +21,5 @@ export const refundNumber = async (tx: Tx) => `RFD-${ymd()}-${pad(await nextSeq(
 export const trackingNumber = () => `TRK-${randomInt(100000, 999999)}`;
 export const qrToken = (shipmentNo: string) =>
   `SUBSEL:${shipmentNo}:${randomBytes(3).toString("hex").toUpperCase()}`;
-export const deliveryOtp = () => String(randomInt(1000, 9999));
+export const deliveryOtp = () => String(randomInt(1000, 10000));
 export const gatewayTxn = () => `pay_demo_${randomBytes(6).toString("hex")}`;

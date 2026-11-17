@@ -43,6 +43,7 @@ test.describe("API: Orders & Checkout (/api/orders/*)", () => {
 
     const start = Date.now();
     const res = await page.request.post("/api/orders", {
+      headers: { "Idempotency-Key": crypto.randomUUID() },
       data: {
         address: {
           name: "Priya Narayanan",
@@ -71,6 +72,47 @@ test.describe("API: Orders & Checkout (/api/orders/*)", () => {
       durationMs: duration,
       responseBody: body,
     });
+  });
+
+  test("POST /api/orders - Retry with the same idempotency key returns the original payment", async ({ page }) => {
+    await loginCustomer(page);
+
+    const prodRes = await page.request.get("/api/products?page=1");
+    const prodJson = await prodRes.json();
+    const list = Array.isArray(prodJson?.data) ? prodJson.data : prodJson?.data?.products || [];
+    const variantId = list?.[0]?.variants?.[0]?.id;
+    expect(variantId).toBeTruthy();
+    await page.request.post("/api/cart", {
+      data: { variantId, quantity: 1 },
+    });
+
+    const idempotencyKey = crypto.randomUUID();
+    const request = () =>
+      page.request.post("/api/orders", {
+        headers: { "Idempotency-Key": idempotencyKey },
+        data: {
+          address: {
+            name: "Priya Narayanan",
+            phone: "9840012345",
+            line1: "14, 3rd Cross Street",
+            city: "Chennai",
+            state: "Tamil Nadu",
+            pincode: "600042",
+          },
+          paymentMethod: "UPI",
+        },
+      });
+
+    const [first, retry] = await Promise.all([request(), request()]);
+    expect(first.status()).toBe(200);
+    expect(retry.status()).toBe(200);
+    const [firstBody, retryBody] = await Promise.all([first.json(), retry.json()]);
+    expect(firstBody.ok).toBe(true);
+    expect(retryBody.data.orderNumber).toBe(firstBody.data.orderNumber);
+
+    const detail = await page.request.get(`/api/orders/${firstBody.data.orderNumber}`);
+    const detailBody = await detail.json();
+    expect(detailBody.data.payments.filter((payment: { status: string }) => payment.status === "SUCCESS")).toHaveLength(1);
   });
 
   test("GET /api/orders/{orderNumber} - Retrieve order details", async ({ page }) => {

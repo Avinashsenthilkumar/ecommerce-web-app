@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import clsx from "clsx";
@@ -44,6 +44,7 @@ export function CartView({ lines, totals, addresses, userName, userPhone, rules 
   const [lineError, setLineError] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [placing, setPlacing] = useState(false);
+  const checkoutKey = useRef<string | null>(null);
 
   async function lineAction(id: string, run: () => Promise<unknown>) {
     setLineError((e) => ({ ...e, [id]: "" }));
@@ -62,7 +63,20 @@ export function CartView({ lines, totals, addresses, userName, userPhone, rules 
     setPlacing(true);
     setError("");
     try {
-      const res = await callApi<{ orderNumber: string }>("/api/orders", "POST", { address: addr, paymentMethod: payment });
+      const idempotencyKey =
+        checkoutKey.current ??
+        sessionStorage.getItem("subsel_checkout_idempotency_key") ??
+        crypto.randomUUID();
+      checkoutKey.current = idempotencyKey;
+      sessionStorage.setItem("subsel_checkout_idempotency_key", idempotencyKey);
+      const res = await callApi<{ orderNumber: string }>(
+        "/api/orders",
+        "POST",
+        { address: addr, paymentMethod: payment },
+        { "Idempotency-Key": idempotencyKey },
+      );
+      sessionStorage.removeItem("subsel_checkout_idempotency_key");
+      checkoutKey.current = null;
       router.push(`/orders/${res.orderNumber}?placed=1`);
       router.refresh();
     } catch (err) {

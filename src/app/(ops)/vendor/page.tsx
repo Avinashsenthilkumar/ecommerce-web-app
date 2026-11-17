@@ -10,6 +10,7 @@ import { Board, Empty, OpsShell, Section, StatCard, StatRow } from "@/components
 import { ProductImage } from "@/components/ProductImage";
 import { RestockForm } from "@/components/vendor/RestockForm";
 import { NewProductForm } from "@/components/vendor/NewProductForm";
+import { PriceReviewForm } from "@/components/vendor/PriceReviewForm";
 import { BarChart3, Package } from "lucide-react";
 import { TableScroll } from "@/components/TableScroll";
 
@@ -74,6 +75,13 @@ export default async function VendorPage() {
                     <p className="mt-1 text-sm font-semibold tabular">
                       {inr(p.sellingPrice)} <span className="text-xs font-normal text-slate line-through">{inr(p.mrp)}</span>
                     </p>
+                    {p.status === "ACTIVE" && (
+                      <PriceReviewForm
+                        productId={p.id}
+                        mrp={p.mrp}
+                        sellingPrice={p.sellingPrice}
+                      />
+                    )}
                   </div>
                 </div>
                 <TableScroll>

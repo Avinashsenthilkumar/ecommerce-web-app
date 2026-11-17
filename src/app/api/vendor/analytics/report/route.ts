@@ -30,7 +30,12 @@ export async function GET(request: Request) {
     );
     const csv = [
       ["Period", "Orders", "Units sold", "Revenue (INR)"],
-      ...rows.map((row) => [row.period, row.orders, row.unitsSold, row.revenue]),
+      ...rows.map((row) => [
+        row.period,
+        row.orders,
+        row.unitsSold,
+        Math.round(row.revenue),
+      ]),
     ]
       .map((row) => row.join(","))
       .join("\r\n");

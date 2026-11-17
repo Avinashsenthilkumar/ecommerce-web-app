@@ -44,9 +44,19 @@ export default async function CourierPage() {
                 {c.vehicleNumber}, {c._count.shipments} parcel(s) assigned
               </p>
             </div>
-            <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${c.isAvailable ? "bg-pineSoft text-pine" : "bg-mist text-slate"}`}>
-              {c.isAvailable ? "On shift" : "Off shift"}
-            </span>
+            <div className="flex flex-col items-end gap-2">
+              <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${c.isAvailable ? "bg-pineSoft text-pine" : "bg-mist text-slate"}`}>
+                {c.isAvailable ? "On shift" : "Off shift"}
+              </span>
+              {c.userId === user.id && (
+                <ActionButton
+                  url="/api/courier"
+                  body={{ action: "shift", isAvailable: !c.isAvailable }}
+                  label={c.isAvailable ? "Go off shift" : "Start shift"}
+                  variant="outline"
+                />
+              )}
+            </div>
           </div>
         ))}
       </div>

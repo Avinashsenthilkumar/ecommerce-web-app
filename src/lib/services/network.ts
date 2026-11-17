@@ -5,6 +5,7 @@ import { recomputeOrderStatus } from "./orders";
 import type { CurrentUser } from "../auth";
 
 const TX = { timeout: 20000 };
+const MIN_FAILED_ATTEMPT_INTERVAL_MS = 5 * 60 * 1000;
 
 async function findByCode(tx: Tx, code: string) {
   const c = code.trim();
@@ -363,25 +364,68 @@ export async function getCourierBoard() {
   };
 }
 
+export async function setCourierAvailability(userId: string, isAvailable: boolean) {
+  const updated = await prisma.courier.updateMany({
+    where: { userId },
+    data: { isAvailable },
+  });
+  if (updated.count === 0) throw new ApiError(404, "Courier profile not found.");
+  return { isAvailable };
+}
+
 export async function deliverShipment(
   shipmentId: string,
   input: { code: string; otp: string; codCollected?: number },
   actor: CurrentUser,
 ) {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "Shipment" WHERE "id" = ${shipmentId} FOR UPDATE`;
     const s = await tx.shipment.findUnique({
       where: { id: shipmentId },
       include: { attempts: true, order: { include: { payments: true } } },
     });
     if (!s) throw new ApiError(404, "Shipment not found.");
     if (s.status !== "OUT_FOR_DELIVERY" || !s.courierId) throw new ApiError(409, "This parcel is not out for delivery.");
+    if (s.otpLockedAt) {
+      throw new ApiError(423, "Delivery OTP is locked. Ask hub or admin staff to unlock it.");
+    }
     if (!matchesCode(s, input.code)) throw new ApiError(422, "Scanned code does not match this parcel.");
     if (input.otp.trim() !== s.deliveryOtp) {
-      throw new ApiError(422, "OTP does not match. Ask the customer for the 4-digit code on their order page.");
+      const failures = s.otpFailedAttempts + 1;
+      const locked = failures >= 5;
+      await tx.shipment.update({
+        where: { id: s.id },
+        data: {
+          otpFailedAttempts: failures,
+          otpLockedAt: locked ? new Date() : null,
+        },
+      });
+      return {
+        errorStatus: locked ? 423 : 422,
+        errorMessage: locked
+          ? "Five incorrect OTPs locked this parcel. Ask hub or admin staff to unlock it."
+          : `OTP does not match. ${5 - failures} attempt${5 - failures === 1 ? "" : "s"} remaining.`,
+      };
     }
     const isCod = s.paymentType === "COD";
     if (isCod && input.codCollected !== s.codAmount) {
       throw new ApiError(422, `Collect exactly ₹${s.codAmount.toLocaleString("en-IN")} in cash before marking delivered.`);
+    }
+
+    const delivered = await tx.shipment.updateMany({
+      where: {
+        id: s.id,
+        status: "OUT_FOR_DELIVERY",
+        updatedAt: s.updatedAt,
+      },
+      data: {
+        status: "DELIVERED",
+        deliveredAt: new Date(),
+        otpFailedAttempts: 0,
+      },
+    });
+    if (delivered.count === 0) {
+      throw new ApiError(409, "This parcel has already been updated. Refresh the runsheet.");
     }
 
     const addr = s.order.shippingAddress as { city?: string };
@@ -397,7 +441,6 @@ export async function deliverShipment(
         podValue: "OTP verified",
       },
     });
-    await tx.shipment.update({ where: { id: s.id }, data: { status: "DELIVERED", deliveredAt: new Date() } });
     await tx.scanEvent.create({
       data: {
         shipmentId: s.id,
@@ -413,14 +456,56 @@ export async function deliverShipment(
       await tx.payment.create({
         data: { orderId: s.orderId, method: "COD", gateway: "cash", amount: s.codAmount, status: "SUCCESS", paidAt: new Date() },
       });
-      const paid = s.order.payments.filter((p) => p.status === "SUCCESS").reduce((a, p) => a + p.amount, 0) + s.codAmount;
-      if (paid >= s.order.grandTotal) {
+      await tx.order.update({
+        where: { id: s.orderId },
+        data: { updatedAt: new Date() },
+      });
+      const paid = await tx.payment.aggregate({
+        where: { orderId: s.orderId, status: "SUCCESS" },
+        _sum: { amount: true },
+      });
+      if ((paid._sum.amount ?? 0) >= s.order.grandTotal) {
         await tx.order.update({ where: { id: s.orderId }, data: { paymentStatus: "PAID" } });
       }
     }
     await recomputeOrderStatus(tx, s.orderId);
     return { status: "DELIVERED" };
   }, TX);
+  if ("errorStatus" in result && typeof result.errorStatus === "number") {
+    throw new ApiError(result.errorStatus, result.errorMessage);
+  }
+  return result;
+}
+
+export async function unlockShipmentOtp(shipmentId: string, actor: CurrentUser) {
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.shipment.updateMany({
+      where: {
+        id: shipmentId,
+        status: { not: "DELIVERED" },
+        otpLockedAt: { not: null },
+      },
+      data: { otpFailedAttempts: 0, otpLockedAt: null },
+    });
+    if (updated.count === 0) {
+      const shipment = await tx.shipment.findUnique({
+        where: { id: shipmentId },
+        select: { id: true },
+      });
+      if (!shipment) throw new ApiError(404, "Shipment not found.");
+      throw new ApiError(409, "This parcel is not locked or has already been delivered.");
+    }
+    await tx.scanEvent.create({
+      data: {
+        shipmentId,
+        type: "OTP_UNLOCK",
+        locationLabel: "OTP lock administration",
+        scannedById: actor.id,
+        remarks: "Delivery OTP lock cleared by authorized staff",
+      },
+    });
+    return { unlocked: true };
+  });
 }
 
 export async function failDelivery(shipmentId: string, reason: string, actor: CurrentUser) {
@@ -428,7 +513,35 @@ export async function failDelivery(shipmentId: string, reason: string, actor: Cu
     const s = await tx.shipment.findUnique({ where: { id: shipmentId }, include: { attempts: true } });
     if (!s) throw new ApiError(404, "Shipment not found.");
     if (s.status !== "OUT_FOR_DELIVERY" || !s.courierId) throw new ApiError(409, "This parcel is not out for delivery.");
+    const lastFailed = s.attempts
+      .filter((attempt) => attempt.status === "FAILED")
+      .sort((a, b) => b.attemptedAt.getTime() - a.attemptedAt.getTime())[0];
+    if (lastFailed) {
+      const retryAt = lastFailed.attemptedAt.getTime() + MIN_FAILED_ATTEMPT_INTERVAL_MS;
+      const remainingSeconds = Math.ceil((retryAt - Date.now()) / 1000);
+      if (remainingSeconds > 0) {
+        throw new ApiError(
+          429,
+          `Wait ${remainingSeconds} seconds before recording another failed delivery attempt.`,
+        );
+      }
+    }
+
     const attemptNumber = s.attempts.length + 1;
+    const updated = await tx.shipment.updateMany({
+      where: {
+        id: s.id,
+        status: "OUT_FOR_DELIVERY",
+        updatedAt: s.updatedAt,
+      },
+      data: {
+        updatedAt: new Date(),
+        ...(attemptNumber >= 3 ? { status: "FAILED" } : {}),
+      },
+    });
+    if (updated.count === 0) {
+      throw new ApiError(409, "This parcel changed. Refresh the runsheet and try again.");
+    }
     await tx.deliveryAttempt.create({
       data: { shipmentId: s.id, courierId: s.courierId, attemptNumber, status: "FAILED", failureReason: reason },
     });
@@ -436,7 +549,6 @@ export async function failDelivery(shipmentId: string, reason: string, actor: Cu
       data: { shipmentId: s.id, type: "DELIVERY_FAILED", locationLabel: "Customer address", scannedById: actor.id, remarks: reason },
     });
     if (attemptNumber >= 3) {
-      await tx.shipment.update({ where: { id: s.id }, data: { status: "FAILED" } });
       await recomputeOrderStatus(tx, s.orderId);
     }
     return { attemptNumber };

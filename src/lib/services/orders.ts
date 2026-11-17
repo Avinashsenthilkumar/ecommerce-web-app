@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { createHash } from "crypto";
 import type { OrderStatus, Prisma } from "@prisma/client";
 import { prisma, type Tx } from "../prisma";
 import { ApiError } from "../api";
-import { gatewayTxn, orderNumber, returnNumber } from "../codes";
+import { orderNumber, returnNumber } from "../codes";
 import { cartInclude, cartTotals, lineUnitPrice, storeRules } from "./cart";
 import { moveStock } from "./inventory";
 import type { CurrentUser } from "../auth";
@@ -33,8 +34,26 @@ export const placeOrderSchema = z.object({
 export async function placeOrder(
   userId: string,
   input: z.infer<typeof placeOrderSchema>,
+  idempotencyKey: string,
 ) {
-  return prisma.$transaction(
+  const gatewayTxnId = `pay_demo_${createHash("sha256")
+    .update(`${userId}:${idempotencyKey}`)
+    .digest("hex")
+    .slice(0, 32)}`;
+  const findPreviousCheckout = () =>
+    prisma.order.findFirst({
+      where: {
+        userId,
+        payments: { some: { gatewayTxnId } },
+      },
+      select: { orderNumber: true, id: true },
+    });
+
+  const previous = await findPreviousCheckout();
+  if (previous) return previous;
+
+  try {
+    return await prisma.$transaction(
     async (tx) => {
       const cart = await tx.cart.findUnique({
         where: { userId },
@@ -55,50 +74,36 @@ export async function placeOrder(
         );
       }
 
-      const firstLine = cart.items[0];
-      const commonWarehouses = firstLine.variant.inventory
-        .filter((inventory) =>
-          cart.items.every((line) =>
-            line.variant.inventory.some(
-              (lineInventory) =>
-                lineInventory.warehouseId === inventory.warehouseId &&
-                lineInventory.available >= line.quantity,
-            ),
-          ),
-        )
-        .sort(
-          (a, b) =>
-            cart.items.reduce(
-              (sum, line) =>
-                sum +
-                (line.variant.inventory.find(
-                  (inventory) => inventory.warehouseId === b.warehouseId,
-                )?.available ?? 0),
-              0,
-            ) -
-            cart.items.reduce(
-              (sum, line) =>
-                sum +
-                (line.variant.inventory.find(
-                  (inventory) => inventory.warehouseId === a.warehouseId,
-                )?.available ?? 0),
-              0,
-            ),
-        );
-      const warehouseId = commonWarehouses[0]?.warehouseId;
-      if (!warehouseId) {
-        throw new ApiError(
-          409,
-          "Your items cannot be shipped together because no single fulfilment centre has them all in stock. Update your bag and try again.",
-        );
-      }
-      const allocations = cart.items.map((line) => ({ line, warehouseId }));
-
       const rules = await storeRules();
       if (!rules.paymentMethods.includes(input.paymentMethod)) {
         throw new ApiError(400, "That payment method is no longer available. Choose another method.");
       }
       const totals = cartTotals(cart.items, rules);
+      const allocations = cart.items.map((line) => {
+        const warehouse = [...line.variant.inventory]
+          .filter((inventory) => inventory.available >= line.quantity)
+          .sort((a, b) => b.available - a.available)[0];
+        if (!warehouse) {
+          throw new ApiError(
+            409,
+            `There is not enough stock for ${line.variant.product.name} at any one fulfilment centre. Reduce the quantity or update your bag.`,
+          );
+        }
+        return { line, warehouseId: warehouse.warehouseId };
+      });
+      const consumed = await tx.cartItem.deleteMany({
+        where: {
+          cartId: cart.id,
+          id: { in: cart.items.map((line) => line.id) },
+        },
+      });
+      if (consumed.count !== cart.items.length) {
+        throw new ApiError(
+          409,
+          "Your bag has already been checked out in another request. Refresh your bag before placing another order.",
+        );
+      }
+
       const prepaid = input.paymentMethod !== "COD";
       const number = await orderNumber(tx);
 
@@ -134,7 +139,7 @@ export async function placeOrder(
                 create: {
                   method: input.paymentMethod,
                   gateway: "demo-gateway",
-                  gatewayTxnId: gatewayTxn(),
+                  gatewayTxnId,
                   amount: totals.grandTotal,
                   status: "SUCCESS",
                   paidAt: new Date(),
@@ -171,11 +176,15 @@ export async function placeOrder(
         });
       }
 
-      await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
       return { orderNumber: order.orderNumber, id: order.id };
     },
     { timeout: 15000 },
-  );
+    );
+  } catch (error) {
+    const completed = await findPreviousCheckout();
+    if (completed) return completed;
+    throw error;
+  }
 }
 
 export const orderDetailInclude = {

@@ -34,7 +34,10 @@ if (
 }
 
 export const POST = handle(async (req) => {
-  await requireRole(["VENDOR", "ADMIN"], { allowAdmin: false });
+  const user = await requireRole(["VENDOR", "ADMIN"], { allowAdmin: false });
+  if (!user.vendor || user.vendor.status !== "APPROVED") {
+    throw new ApiError(403, "An approved seller account is required to upload images.");
+  }
 
   const { image } = await parseBody(req, uploadSchema);
 

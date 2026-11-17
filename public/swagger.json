@@ -1781,7 +1781,6 @@
                   "quantity": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 20,
                     "default": 1
                   }
                 },
@@ -1840,8 +1839,7 @@
                   },
                   "quantity": {
                     "type": "integer",
-                    "minimum": 0,
-                    "maximum": 20
+                    "minimum": 0
                   }
                 },
                 "required": [
@@ -1951,6 +1949,156 @@
                 "example": {
                   "ok": true,
                   "data": [
+                    {
+                      "id": "cmwkje226000nyhgazeo0e7k4",
+                      "orderNumber": "ORD-20261117-000126",
+                      "userId": "cmv5qistp00093gk2ow2dxi67",
+                      "shippingAddress": {
+                        "city": "Chennai",
+                        "name": "Priya Narayanan",
+                        "line1": "14, 3rd Cross Street",
+                        "line2": "",
+                        "phone": "9840012345",
+                        "state": "Tamil Nadu",
+                        "pincode": "600042"
+                      },
+                      "subtotal": 18999,
+                      "discountTotal": 950,
+                      "taxTotal": 3249,
+                      "shippingFee": 0,
+                      "grandTotal": 21298,
+                      "paymentMethod": "UPI",
+                      "paymentStatus": "PAID",
+                      "status": "PLACED",
+                      "placedAt": "2026-11-17T10:15:36.942Z",
+                      "updatedAt": "2026-11-17T10:15:36.942Z",
+                      "items": [
+                        {
+                          "id": "cmwkje227000pyhga530ss8py",
+                          "orderId": "cmwkje226000nyhgazeo0e7k4",
+                          "variantId": "cmv5qit2b008t3gk2cy7fqt7z",
+                          "productName": "Studio ANC Wireless Headphones",
+                          "variantLabel": "Charcoal",
+                          "sku": "KES-ANC-BLK",
+                          "imageUrl": "/assets/p-headphones-Dgv1yTiY.jpg",
+                          "quantity": 1,
+                          "unitMrp": 24999,
+                          "unitPrice": 18999,
+                          "lineTotal": 18999,
+                          "allocatedWarehouseId": "cmv5qistj00063gk2ksfmhnb5",
+                          "shipmentId": null,
+                          "pickedQty": 0,
+                          "returns": []
+                        }
+                      ],
+                      "payments": [
+                        {
+                          "id": "cmwkje227000qyhgaauu41hj6",
+                          "orderId": "cmwkje226000nyhgazeo0e7k4",
+                          "method": "UPI",
+                          "gateway": "demo-gateway",
+                          "gatewayTxnId": "pay_demo_a00f72d018dd3ad99cae34b6c9fbbea7",
+                          "amount": 21298,
+                          "status": "SUCCESS",
+                          "paidAt": "2026-11-17T10:15:36.940Z",
+                          "createdAt": "2026-11-17T10:15:36.942Z"
+                        }
+                      ],
+                      "refunds": [],
+                      "shipments": []
+                    },
+                    {
+                      "id": "cmwkjdwxw000ayhgaqi0nh3oy",
+                      "orderNumber": "ORD-20261117-000125",
+                      "userId": "cmv5qistp00093gk2ow2dxi67",
+                      "shippingAddress": {
+                        "city": "Chennai",
+                        "name": "Priya Narayanan",
+                        "line1": "14, 3rd Cross Street",
+                        "line2": "",
+                        "phone": "9840012345",
+                        "state": "Tamil Nadu",
+                        "pincode": "600042"
+                      },
+                      "subtotal": 18999,
+                      "discountTotal": 950,
+                      "taxTotal": 3249,
+                      "shippingFee": 0,
+                      "grandTotal": 21298,
+                      "paymentMethod": "COD",
+                      "paymentStatus": "PENDING",
+                      "status": "CANCELLED",
+                      "placedAt": "2026-11-17T10:15:30.308Z",
+                      "updatedAt": "2026-11-17T10:15:56.184Z",
+                      "items": [
+                        {
+                          "id": "cmwkjdwxw000cyhgaifjpktt8",
+                          "orderId": "cmwkjdwxw000ayhgaqi0nh3oy",
+                          "variantId": "cmv5qit2b008t3gk2cy7fqt7z",
+                          "productName": "Studio ANC Wireless Headphones",
+                          "variantLabel": "Charcoal",
+                          "sku": "KES-ANC-BLK",
+                          "imageUrl": "/assets/p-headphones-Dgv1yTiY.jpg",
+                          "quantity": 1,
+                          "unitMrp": 24999,
+                          "unitPrice": 18999,
+                          "lineTotal": 18999,
+                          "allocatedWarehouseId": "cmv5qistj00063gk2ksfmhnb5",
+                          "shipmentId": null,
+                          "pickedQty": 0,
+                          "returns": []
+                        }
+                      ],
+                      "payments": [],
+                      "refunds": [],
+                      "shipments": []
+                    },
+                    {
+                      "id": "cmwkharbl00pdy9xd9hzeqw62",
+                      "orderNumber": "ORD-20261117-000124",
+                      "userId": "cmv5qistp00093gk2ow2dxi67",
+                      "shippingAddress": {
+                        "city": "Chennai",
+                        "name": "Priya Narayanan",
+                        "line1": "14, 3rd Cross Street",
+                        "line2": "",
+                        "phone": "9840012345",
+                        "state": "Tamil Nadu",
+                        "pincode": "600042"
+                      },
+                      "subtotal": 18999,
+                      "discountTotal": 950,
+                      "taxTotal": 3249,
+                      "shippingFee": 0,
+                      "grandTotal": 21298,
+                      "paymentMethod": "COD",
+                      "paymentStatus": "PENDING",
+                      "status": "CANCELLED",
+                      "placedAt": "2026-11-17T09:17:03.825Z",
+                      "updatedAt": "2026-11-17T09:17:12.171Z",
+                      "items": [
+                        {
+                          "id": "cmwkharbl00pfy9xdhcbg70n1",
+                          "orderId": "cmwkharbl00pdy9xd9hzeqw62",
+                          "variantId": "cmv5qit2b008t3gk2cy7fqt7z",
+                          "productName": "Studio ANC Wireless Headphones",
+                          "variantLabel": "Charcoal",
+                          "sku": "KES-ANC-BLK",
+                          "imageUrl": "/assets/p-headphones-Dgv1yTiY.jpg",
+                          "quantity": 1,
+                          "unitMrp": 24999,
+                          "unitPrice": 18999,
+                          "lineTotal": 18999,
+                          "allocatedWarehouseId": "cmv5qistj00063gk2ksfmhnb5",
+                          "shipmentId": null,
+                          "pickedQty": 0,
+                          "returns": []
+                        }
+                      ],
+                      "payments": [],
+                      "refunds": [],
+                      "shipments": []
+                    },
                     {
                       "id": "cmwkdercl00juy9xdmkopogl3",
                       "orderNumber": "ORD-20261117-000123",
@@ -2343,8 +2491,8 @@
           }
         },
         "x-test-status": "passed",
-        "x-tested-at": "2026-11-17T09:17:00.378Z",
-        "x-test-duration-ms": 955
+        "x-tested-at": "2026-11-17T10:19:07.012Z",
+        "x-test-duration-ms": 1365
       },
       "post": {
         "tags": [
@@ -2355,6 +2503,19 @@
         "security": [
           {
             "CookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 128
+            },
+            "description": "Unique key reused for retries of the same checkout attempt."
           }
         ],
         "requestBody": {
@@ -2396,8 +2557,8 @@
                 "example": {
                   "ok": true,
                   "data": {
-                    "orderNumber": "ORD-20261117-000124",
-                    "id": "cmwkharbl00pdy9xd9hzeqw62"
+                    "orderNumber": "ORD-20261117-000127",
+                    "id": "cmwkjio60000aesdx1i9q3b7n"
                   }
                 }
               }
@@ -2419,8 +2580,8 @@
           }
         },
         "x-test-status": "passed",
-        "x-tested-at": "2026-11-17T09:17:03.872Z",
-        "x-test-duration-ms": 144
+        "x-tested-at": "2026-11-17T10:19:12.301Z",
+        "x-test-duration-ms": 297
       }
     },
     "/api/orders/{orderNumber}": {
@@ -2456,8 +2617,8 @@
                 "example": {
                   "ok": true,
                   "data": {
-                    "id": "cmwkharbl00pdy9xd9hzeqw62",
-                    "orderNumber": "ORD-20261117-000124",
+                    "id": "cmwkjio60000aesdx1i9q3b7n",
+                    "orderNumber": "ORD-20261117-000127",
                     "userId": "cmv5qistp00093gk2ow2dxi67",
                     "shippingAddress": {
                       "city": "Chennai",
@@ -2476,12 +2637,12 @@
                     "paymentMethod": "COD",
                     "paymentStatus": "PENDING",
                     "status": "PLACED",
-                    "placedAt": "2026-11-17T09:17:03.825Z",
-                    "updatedAt": "2026-11-17T09:17:03.825Z",
+                    "placedAt": "2026-11-17T10:19:12.216Z",
+                    "updatedAt": "2026-11-17T10:19:12.216Z",
                     "items": [
                       {
-                        "id": "cmwkharbl00pfy9xdhcbg70n1",
-                        "orderId": "cmwkharbl00pdy9xd9hzeqw62",
+                        "id": "cmwkjio60000cesdx8eahs4mq",
+                        "orderId": "cmwkjio60000aesdx1i9q3b7n",
                         "variantId": "cmv5qit2b008t3gk2cy7fqt7z",
                         "productName": "Studio ANC Wireless Headphones",
                         "variantLabel": "Charcoal",
@@ -2510,8 +2671,8 @@
           }
         },
         "x-test-status": "passed",
-        "x-tested-at": "2026-11-17T09:17:07.719Z",
-        "x-test-duration-ms": 1271
+        "x-tested-at": "2026-11-17T10:19:22.541Z",
+        "x-test-duration-ms": 145
       }
     },
     "/api/orders/{orderNumber}/cancel": {
@@ -2569,8 +2730,8 @@
           }
         },
         "x-test-status": "passed",
-        "x-tested-at": "2026-11-17T09:17:12.190Z",
-        "x-test-duration-ms": 825
+        "x-tested-at": "2026-11-17T10:19:28.510Z",
+        "x-test-duration-ms": 1946
       }
     },
     "/api/returns": {
@@ -5462,7 +5623,7 @@
                     "contact.email": "support@subsel.demo",
                     "contact.phone": "+91 79040 06912",
                     "contact.address": "Chennai & Thanjavur, Tamil Nadu",
-                    "footer.note": "Prices include GST"
+                    "footer.note": "GST calculated at checkout"
                   }
                 }
               }

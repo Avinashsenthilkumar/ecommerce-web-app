@@ -18,6 +18,18 @@ export type ReviewEligibility = {
   reviewed: boolean;
 };
 
+export function includeRating(
+  ratingAvg: number,
+  ratingCount: number,
+  rating: number,
+) {
+  const count = ratingCount + 1;
+  return {
+    ratingAvg: Math.round(((ratingAvg * ratingCount + rating) / count) * 10) / 10,
+    ratingCount: count,
+  };
+}
+
 /**
  * Any signed-in customer may rate a product once. Buying it is not required —
  * it only decides whether the review is badged as a verified purchase.
@@ -63,17 +75,13 @@ export async function addReview(
   if (e.reviewed) throw new ApiError(409, "You have already reviewed this product.");
 
   return prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`
+      SELECT "id" FROM "Product" WHERE "id" = ${input.productId} FOR UPDATE
+    `;
     const p = await tx.product.findUniqueOrThrow({ where: { id: input.productId } });
-    const count = p.ratingCount + 1;
-    const avg =
-      Math.round(((p.ratingAvg * p.ratingCount + input.rating) / count) * 10) / 10;
-    await tx.product.update({
-      where: { id: p.id },
-      data: { ratingAvg: avg, ratingCount: count },
-    });
-    return tx.review.create({
+    const review = await tx.review.create({
       data: {
-        productId: p.id,
+        productId: input.productId,
         userId: user.id,
         // Present only for a real purchase; drives the verified badge.
         orderItemId: e.orderItemId,
@@ -81,6 +89,11 @@ export async function addReview(
         comment: input.comment || null,
       },
     });
+    await tx.product.update({
+      where: { id: p.id },
+      data: includeRating(p.ratingAvg, p.ratingCount, input.rating),
+    });
+    return review;
   });
 }
 

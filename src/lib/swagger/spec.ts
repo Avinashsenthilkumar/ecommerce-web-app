@@ -335,7 +335,7 @@ export const baseOpenApiSpec: OpenApiSpec = {
                 type: "object",
                 properties: {
                   variantId: { type: "string" },
-                  quantity: { type: "integer", minimum: 1, maximum: 20, default: 1 },
+                  quantity: { type: "integer", minimum: 1, default: 1 },
                 },
                 required: ["variantId"],
               },
@@ -360,7 +360,7 @@ export const baseOpenApiSpec: OpenApiSpec = {
                 type: "object",
                 properties: {
                   itemId: { type: "string" },
-                  quantity: { type: "integer", minimum: 0, maximum: 20 },
+                  quantity: { type: "integer", minimum: 0 },
                 },
                 required: ["itemId", "quantity"],
               },
@@ -410,6 +410,13 @@ export const baseOpenApiSpec: OpenApiSpec = {
         summary: "Checkout / Place Order",
         description: "Places an order from bag items with chosen address and payment method.",
         security: [{ CookieAuth: [] }],
+        parameters: [{
+          name: "Idempotency-Key",
+          in: "header",
+          required: true,
+          schema: { type: "string", minLength: 16, maxLength: 128 },
+          description: "Unique key reused for retries of the same checkout attempt.",
+        }],
         requestBody: {
           required: true,
           content: {

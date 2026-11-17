@@ -13,6 +13,7 @@ import { ProductGallery } from "@/components/ProductGallery";
 import { Price, Rating } from "@/components/Price";
 import { BuyBox } from "@/components/BuyBox";
 import { ProductCard } from "@/components/ProductCard";
+import { getSettings, rulesFrom } from "@/lib/settings";
 
 export async function generateMetadata({
   params,
@@ -28,12 +29,6 @@ export async function generateMetadata({
     : { title: "Product not found | subsel" };
 }
 
-const PROMISES = [
-  { icon: Truck, title: "Network delivery", text: "Scanned at every leg" },
-  { icon: RotateCcw, title: "7 day returns", text: "Pickup from your door" },
-  { icon: ShieldCheck, title: "Secure payment", text: "UPI, card & COD" },
-];
-
 export default async function ProductPage({
   params,
 }: {
@@ -47,7 +42,7 @@ export default async function ProductPage({
   )
     notFound();
   const user = await getCurrentUser();
-  const [related, saved, reviews, breakdown, eligibility] = await Promise.all([
+  const [related, saved, reviews, breakdown, eligibility, settings] = await Promise.all([
     relatedProducts(product.id),
     getWishlistIds(),
     listReviews(product.id),
@@ -55,7 +50,17 @@ export default async function ProductPage({
     user?.role === "CUSTOMER"
       ? reviewEligibility(user.id, product.id)
       : Promise.resolve(null),
+    getSettings(),
   ]);
+  const promises = [
+    { icon: Truck, title: "Network delivery", text: "Scanned at every leg" },
+    {
+      icon: RotateCcw,
+      title: `${rulesFrom(settings).returnWindowDays} day returns`,
+      text: "Pickup from your door",
+    },
+    { icon: ShieldCheck, title: "Secure payment", text: "UPI, card & COD" },
+  ];
 
   const variants = product.variants.map((v) => {
     const best = [...v.inventory].sort((a, b) => b.available - a.available)[0];
@@ -117,7 +122,7 @@ export default async function ProductPage({
           </div>
 
           <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {PROMISES.map((p) => (
+            {promises.map((p) => (
               <li
                 key={p.title}
                 className="rounded-[20px] border border-line bg-white px-4 py-5"
@@ -181,11 +186,15 @@ export default async function ProductPage({
             </div>
             <p className="mt-2 text-sm text-slate">
               {product.ratingCount.toLocaleString("en-IN")} ratings
-              {breakdown.total > 0 && ` · ${breakdown.total} written`}
+              {breakdown.total > 0 && ` · ${breakdown.total} written reviews`}
             </p>
 
             {breakdown.total > 0 && (
-              <ul className="mt-5 space-y-2 rounded-2xl bg-mist/60 p-4">
+              <div className="mt-5 rounded-2xl bg-mist/60 p-4">
+                <p className="mb-3 text-xs font-semibold text-slate">
+                  Breakdown of written reviews
+                </p>
+                <ul className="space-y-2">
                 {breakdown.rows.map((row) => (
                   <li key={row.star} className="flex items-center gap-3 text-xs">
                     <span className="w-8 shrink-0 tabular text-slate">{row.star}★</span>
@@ -198,7 +207,8 @@ export default async function ProductPage({
                     <span className="w-8 shrink-0 text-right tabular text-slate">{row.count}</span>
                   </li>
                 ))}
-              </ul>
+                </ul>
+              </div>
             )}
 
             <div className="mt-6">

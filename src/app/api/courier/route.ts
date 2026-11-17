@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { handle, parseBody } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
-import { deliverShipment, failDelivery, getCourierBoard } from "@/lib/services/network";
+import {
+  deliverShipment,
+  failDelivery,
+  getCourierBoard,
+  setCourierAvailability,
+} from "@/lib/services/network";
 import { pickupReturn, qcReturn } from "@/lib/services/returns";
 
 // GET /api/courier
@@ -11,6 +16,7 @@ export const GET = handle(async () => {
 });
 
 const body = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("shift"), isAvailable: z.boolean() }),
   z.object({
     action: z.literal("deliver"),
     shipmentId: z.string(),
@@ -28,6 +34,8 @@ export const POST = handle(async (req) => {
   const user = await requireRole(["COURIER"]);
   const b = await parseBody(req, body);
   switch (b.action) {
+    case "shift":
+      return setCourierAvailability(user.id, b.isAvailable);
     case "deliver":
       return deliverShipment(b.shipmentId, { code: b.code, otp: b.otp, codCollected: b.codCollected }, user);
     case "fail":

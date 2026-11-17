@@ -537,7 +537,7 @@ async function main() {
     },
   });
 
-  // Verified reviews from other customers (ratings stay as seeded; these are the written ones)
+  // Combine imported rating totals with the seeded written reviews.
   const arun = await prisma.user.create({
     data: {
       passwordHash: pw,
@@ -604,6 +604,33 @@ async function main() {
         rating,
         comment,
         createdAt: hoursAgo(h),
+      },
+    });
+  }
+  const ratingAggregates = new Map(
+    (
+      await prisma.review.groupBy({
+        by: ["productId"],
+        _avg: { rating: true },
+        _count: { _all: true },
+      })
+    ).map((group) => [group.productId, group]),
+  );
+  for (const product of await prisma.product.findMany({
+    select: { id: true, ratingAvg: true, ratingCount: true },
+  })) {
+    const aggregate = ratingAggregates.get(product.id);
+    if (!aggregate) continue;
+    const writtenCount = aggregate._count._all;
+    const totalCount = product.ratingCount + writtenCount;
+    const totalRating =
+      product.ratingAvg * product.ratingCount +
+      (aggregate._avg.rating ?? 0) * writtenCount;
+    await prisma.product.update({
+      where: { id: product.id },
+      data: {
+        ratingAvg: Math.round((totalRating / totalCount) * 10) / 10,
+        ratingCount: totalCount,
       },
     });
   }

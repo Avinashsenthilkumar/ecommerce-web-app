@@ -41,7 +41,7 @@ Customers never see staff tools. Each staff member sees only their own console; 
 4. **Checkout** on the bag page:
    - Choose a saved address or type a new one (it is saved for next time).
    - Choose **UPI, Card, Netbanking or COD**.
-   - Price: subtotal − **5% discount** + **18% GST** + shipping (free from ₹999, otherwise ₹99).
+   - Price: subtotal − **5% discount** + **18% GST** + shipping (free when the discounted subtotal reaches ₹999, otherwise ₹99).
    - UPI / Card / Netbanking are approved instantly by the demo gateway. COD is paid at the door.
 5. The order is created with a number like `ORD-20260922-000121` and the bag is emptied.
 
@@ -83,7 +83,7 @@ Adding hubs in the database extends the network without code changes.
 **Courier** (`/courier`)
 1. The runsheet shows each parcel with the address and, for COD, the exact cash to collect.
 2. Deliver: scan the QR, enter the customer's 4-digit OTP (shown on their order page), enter the cash for COD → **Mark delivered**.
-3. If delivery fails, record the reason. After 3 failed attempts the parcel is marked Failed (return to origin).
+3. If delivery fails, record the reason. Wait at least five minutes before recording another failure; after 3 failed attempts the parcel is marked Failed (return to origin). Riders can switch themselves on or off shift; only on-shift riders are assigned new parcels.
 
 **Customer tracking** (`/orders`): every scan above appears on the customer's timeline with place and time.
 
@@ -97,7 +97,7 @@ Adding hubs in the database extends the network without code changes.
 
 ## 8. Reviews
 
-- Only a customer who **received** the product can review it, once. The review shows a **Verified purchase** badge.
+- Signed-in customers can review a product once. Reviews from customers who received it show a **Verified purchase** badge. The summary rating includes imported aggregate ratings; the star breakdown covers written reviews only.
 - The product's star rating and rating count update immediately.
 
 ## 9. Mobile app experience
@@ -106,7 +106,7 @@ Adding hubs in the database extends the network without code changes.
 - It is a **Progressive Web App**: customers can install it on the home screen. It then opens full-screen with its own icon, like a native app.
   - Android (Chrome): an **Install** banner appears.
   - iPhone (Safari): a hint says Share → Add to Home Screen.
-- Photos and app files are cached for fast repeat visits. With no internet, a branded "You are offline" screen appears. Personal pages (bag, orders, prices) always load fresh.
+- Build assets and icons are cached for fast repeat visits; product photos still need a network connection. With no internet, navigation shows a branded "You are offline" screen. Personal pages (bag, orders, prices) always load fresh.
 - Installing requires the live **HTTPS** site (for example on Vercel), or `localhost` on the same computer.
 
 ## 10. Money and stock rules
@@ -114,7 +114,7 @@ Adding hubs in the database extends the network without code changes.
 - Money is stored in whole rupees.
 - Inventory buckets per SKU per warehouse: **Available → Reserved → Picked → Packed → Shipped**. Every change is logged in Stock movements with who did it and why. Stock can never go negative.
 - Low stock: a SKU at or below 8 available units is flagged to admin.
-- Seller payout estimate = sales × (1 − commission %). Commission is 10–12% for the demo sellers.
+- Product sales are reported after store discounts and exclude GST and delivery charges. Seller payout estimate = discounted product sales × (1 − commission %). Commission is 10–12% for the demo sellers.
 
 ## 11. Demo script (15 minutes)
 

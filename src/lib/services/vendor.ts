@@ -3,6 +3,7 @@ import { prisma } from "../prisma";
 import { ApiError } from "../api";
 import { moveStock } from "./inventory";
 import { getSettings, rulesFrom } from "../settings";
+import { discountedLineTotal, sellerPayout } from "./cart";
 import type { CurrentUser } from "../auth";
 
 export function listVendors() {
@@ -38,12 +39,16 @@ export async function getVendorDashboard(vendorId: string) {
         },
       },
     }),
-    prisma.orderItem.aggregate({
+    prisma.orderItem.findMany({
       where: {
         variant: { product: { vendorId } },
         order: { status: { not: "CANCELLED" } },
       },
-      _sum: { quantity: true, lineTotal: true },
+      select: {
+        quantity: true,
+        lineTotal: true,
+        order: { select: { subtotal: true, discountTotal: true } },
+      },
     }),
     prisma.category.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.warehouse.findMany({
@@ -67,7 +72,18 @@ export async function getVendorDashboard(vendorId: string) {
       ),
     0,
   );
-  const revenue = sales._sum.lineTotal ?? 0;
+  const revenue = sales.reduce(
+    (sum, item) =>
+      sum +
+      discountedLineTotal(
+        item.lineTotal,
+        item.order.subtotal,
+        item.order.discountTotal,
+      ),
+    0,
+  );
+  const unitsSold = sales.reduce((sum, item) => sum + item.quantity, 0);
+  const payout = sellerPayout(revenue, vendor.commissionPercent).payout;
   return {
     vendor,
     products,
@@ -76,9 +92,9 @@ export async function getVendorDashboard(vendorId: string) {
     stats: {
       products: products.length,
       unitsInStock,
-      unitsSold: sales._sum.quantity ?? 0,
+      unitsSold,
       revenue,
-      payout: Math.round(revenue * (1 - vendor.commissionPercent / 100)),
+      payout,
     },
   };
 }
@@ -120,9 +136,12 @@ export async function getVendorAnalytics(vendorId: string) {
         },
         order: {
           select: {
+            id: true,
             orderNumber: true,
             placedAt: true,
             status: true,
+            subtotal: true,
+            discountTotal: true,
           },
         },
       },
@@ -162,10 +181,15 @@ export async function getVendorAnalytics(vendorId: string) {
   const pendingStatuses = new Set(["PLACED", "CONFIRMED", "ALLOCATED", "PROCESSING"]);
 
   for (const item of items) {
+    const netLineTotal = discountedLineTotal(
+      item.lineTotal,
+      item.order.subtotal,
+      item.order.discountTotal,
+    );
     const { id, name } = item.variant.product;
     const product = byProduct.get(id) ?? { name, unitsSold: 0, revenue: 0 };
     product.unitsSold += item.quantity;
-    product.revenue += item.lineTotal;
+    product.revenue += netLineTotal;
     byProduct.set(id, product);
 
     const { orderNumber, placedAt, status } = item.order;
@@ -177,10 +201,10 @@ export async function getVendorAnalytics(vendorId: string) {
       revenue: 0,
     };
     order.unitsSold += item.quantity;
-    order.revenue += item.lineTotal;
+    order.revenue += netLineTotal;
     byOrder.set(orderNumber, order);
     unitsSold += item.quantity;
-    revenue += item.lineTotal;
+    revenue += netLineTotal;
   }
 
   const today = new Date();
@@ -207,7 +231,11 @@ export async function getVendorAnalytics(vendorId: string) {
       const bucket = buckets.get(keyForDate(item.order.placedAt));
       if (bucket) {
         bucket.unitsSold += item.quantity;
-        bucket.revenue += item.lineTotal;
+        bucket.revenue += discountedLineTotal(
+          item.lineTotal,
+          item.order.subtotal,
+          item.order.discountTotal,
+        );
       }
     }
     return [...buckets.values()];
@@ -262,7 +290,7 @@ export async function getVendorAnalytics(vendorId: string) {
       pendingOrders: orderList.filter((order) => pendingStatuses.has(order.status)).length,
       totalStock: productStock.reduce((sum, product) => sum + product.units, 0),
       lowStock: productStock.filter((product) => product.lowStock).length,
-      payout: Math.round(revenue * (1 - vendor.commissionPercent / 100)),
+      payout: sellerPayout(revenue, vendor.commissionPercent).payout,
     },
     topSellingProducts: [...productPerformance]
       .sort((a, b) => b.unitsSold - a.unitsSold || b.revenue - a.revenue)
@@ -291,7 +319,14 @@ export async function getVendorSalesReport(
     select: {
       quantity: true,
       lineTotal: true,
-      order: { select: { id: true, placedAt: true } },
+      order: {
+        select: {
+          id: true,
+          placedAt: true,
+          subtotal: true,
+          discountTotal: true,
+        },
+      },
     },
     orderBy: { order: { placedAt: "asc" } },
   });
@@ -308,7 +343,11 @@ export async function getVendorSalesReport(
     const group = groups.get(key) ?? { orders: new Set<string>(), units: 0, revenue: 0 };
     group.orders.add(item.order.id);
     group.units += item.quantity;
-    group.revenue += item.lineTotal;
+    group.revenue += discountedLineTotal(
+      item.lineTotal,
+      item.order.subtotal,
+      item.order.discountTotal,
+    );
     groups.set(key, group);
   }
 
@@ -410,6 +449,58 @@ export const createProductSchema = z
       path: ["images"],
     },
   );
+
+export const priceReviewSchema = z
+  .object({
+    mrp: z.number().int().positive(),
+    sellingPrice: z.number().int().positive(),
+  })
+  .refine((value) => value.sellingPrice <= value.mrp, {
+    message: "Selling price cannot be above MRP",
+    path: ["sellingPrice"],
+  });
+
+export async function submitProductPriceForReview(
+  user: CurrentUser,
+  productId: string,
+  input: z.infer<typeof priceReviewSchema>,
+) {
+  const vendor = user.vendor;
+  if (!vendor || vendor.status !== "APPROVED") {
+    throw new ApiError(403, "An approved seller account is required.");
+  }
+  const product = await prisma.product.findFirst({
+    where: { id: productId, vendorId: vendor.id },
+    select: { id: true, status: true, mrp: true, sellingPrice: true },
+  });
+  if (!product) throw new ApiError(404, "Listing not found.");
+  if (product.status !== "ACTIVE") {
+    throw new ApiError(409, "Only live listings can submit a price change.");
+  }
+  if (product.mrp === input.mrp && product.sellingPrice === input.sellingPrice) {
+    throw new ApiError(422, "Enter a price or MRP different from the current listing.");
+  }
+
+  const updated = await prisma.product.updateMany({
+    where: {
+      id: product.id,
+      vendorId: vendor.id,
+      status: "ACTIVE",
+      mrp: product.mrp,
+      sellingPrice: product.sellingPrice,
+    },
+    data: {
+      mrp: input.mrp,
+      sellingPrice: input.sellingPrice,
+      status: "PENDING_REVIEW",
+      reviewNote: "Seller-submitted price change pending admin review.",
+    },
+  });
+  if (updated.count !== 1) {
+    throw new ApiError(409, "This listing changed. Refresh and try again.");
+  }
+  return { status: "PENDING_REVIEW" as const };
+}
 
 const slugify = (s: string) =>
   s

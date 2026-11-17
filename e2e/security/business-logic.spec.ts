@@ -50,6 +50,7 @@ test.describe("Security: Business Logic & Quantity Tampering", () => {
     }
 
     const resOrder = await page.request.post("/api/orders", {
+      headers: { "Idempotency-Key": crypto.randomUUID() },
       data: {
         address: {
           name: "Test User",

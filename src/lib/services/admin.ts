@@ -1,4 +1,5 @@
 import { prisma } from "../prisma";
+import { discountedLineTotal, sellerPayout } from "./cart";
 
 export async function getAdminSalesAnalytics() {
   const [products, items] = await Promise.all([
@@ -28,7 +29,14 @@ export async function getAdminSalesAnalytics() {
         quantity: true,
         lineTotal: true,
         variant: { select: { productId: true } },
-        order: { select: { id: true, placedAt: true } },
+        order: {
+          select: {
+            id: true,
+            placedAt: true,
+            subtotal: true,
+            discountTotal: true,
+          },
+        },
       },
       orderBy: { order: { placedAt: "asc" } },
     }),
@@ -48,7 +56,6 @@ export async function getAdminSalesAnalytics() {
     start.setUTCHours(0, 0, 0, 0);
     return start.toISOString().slice(0, 10);
   };
-
   const addToPeriod = (key: string, orderId: string, quantity: number, lineTotal: number) => {
     const bucket = orderGroups.get(key) ?? { orders: new Set<string>(), unitsSold: 0, revenue: 0 };
     bucket.orders.add(orderId);
@@ -58,24 +65,29 @@ export async function getAdminSalesAnalytics() {
   };
 
   for (const item of items) {
+    const netLineTotal = discountedLineTotal(
+      item.lineTotal,
+      item.order.subtotal,
+      item.order.discountTotal,
+    );
     const product = productSales.get(item.variant.productId) ?? {
       unitsSold: 0,
       revenue: 0,
       orders: new Set<string>(),
     };
     product.unitsSold += item.quantity;
-    product.revenue += item.lineTotal;
+    product.revenue += netLineTotal;
     product.orders.add(item.order.id);
     productSales.set(item.variant.productId, product);
     totalOrders.add(item.order.id);
     unitsSold += item.quantity;
-    revenue += item.lineTotal;
+    revenue += netLineTotal;
 
     const date = item.order.placedAt;
-    addToPeriod(`year:${date.getUTCFullYear()}`, item.order.id, item.quantity, item.lineTotal);
-    addToPeriod(`month:${date.toISOString().slice(0, 7)}`, item.order.id, item.quantity, item.lineTotal);
-    addToPeriod(`day:${date.toISOString().slice(0, 10)}`, item.order.id, item.quantity, item.lineTotal);
-    addToPeriod(`week:${weekKey(date)}`, item.order.id, item.quantity, item.lineTotal);
+    addToPeriod(`year:${date.getUTCFullYear()}`, item.order.id, item.quantity, netLineTotal);
+    addToPeriod(`month:${date.toISOString().slice(0, 7)}`, item.order.id, item.quantity, netLineTotal);
+    addToPeriod(`day:${date.toISOString().slice(0, 10)}`, item.order.id, item.quantity, netLineTotal);
+    addToPeriod(`week:${weekKey(date)}`, item.order.id, item.quantity, netLineTotal);
   }
 
   const today = new Date();
@@ -200,7 +212,14 @@ export async function getAdminSalesReport(
             },
           },
         },
-        order: { select: { id: true, placedAt: true } },
+        order: {
+          select: {
+            id: true,
+            placedAt: true,
+            subtotal: true,
+            discountTotal: true,
+          },
+        },
       },
       orderBy: { order: { placedAt: "asc" } },
     }),
@@ -249,9 +268,14 @@ export async function getAdminSalesReport(
         ? date.toISOString().slice(0, 7)
         : date.toISOString().slice(0, 10);
     const group = groups.get(key) ?? { orders: new Set<string>(), units: 0, revenue: 0 };
+    const netLineTotal = discountedLineTotal(
+      item.lineTotal,
+      item.order.subtotal,
+      item.order.discountTotal,
+    );
     group.orders.add(item.order.id);
     group.units += item.quantity;
-    group.revenue += item.lineTotal;
+    group.revenue += netLineTotal;
     groups.set(key, group);
 
     const productKey = `${item.variant.product.id}:${item.variant.sku}`;
@@ -267,7 +291,7 @@ export async function getAdminSalesReport(
     };
     product.orders.add(item.order.id);
     product.units += item.quantity;
-    product.revenue += item.lineTotal;
+    product.revenue += netLineTotal;
     productGroups.set(productKey, product);
   }
 
@@ -325,12 +349,20 @@ export async function getAdminSalesReport(
 }
 
 export async function getAdminDashboard() {
-  const [paid, openOrders, awaitingConfirmation, awaitingAllocation, shipmentsTotal, returnsTotal, refundsTotal, orders, returns, refunds, inventory, movements, shipments] =
+  const [paid, netSales, openOrders, awaitingConfirmation, awaitingAllocation, shipmentsTotal, returnsTotal, refundsTotal, orders, returns, refunds, inventory, movements, shipments] =
     await Promise.all([
       prisma.order.aggregate({
         where: { paymentStatus: { in: ["PAID", "PARTIALLY_REFUNDED"] } },
-        _sum: { grandTotal: true },
         _count: true,
+      }),
+      prisma.orderItem.findMany({
+        where: { order: { status: { not: "CANCELLED" } } },
+        select: {
+          lineTotal: true,
+          order: {
+            select: { subtotal: true, discountTotal: true },
+          },
+        },
       }),
       prisma.order.count({ where: { status: { notIn: ["DELIVERED", "CANCELLED"] } } }),
       prisma.order.count({ where: { status: "PLACED" } }),
@@ -394,7 +426,16 @@ export async function getAdminDashboard() {
 
   return {
     stats: {
-      revenue: paid._sum.grandTotal ?? 0,
+      revenue: netSales.reduce(
+        (sum, item) =>
+          sum +
+          discountedLineTotal(
+            item.lineTotal,
+            item.order.subtotal,
+            item.order.discountTotal,
+          ),
+        0,
+      ),
       paidOrders: paid._count,
       openOrders,
       shipments: shipmentsTotal,
@@ -465,7 +506,14 @@ export async function getSellerSales(range?: { from?: Date; to?: Date }) {
         quantity: true,
         lineTotal: true,
         variant: { select: { product: { select: { vendorId: true } } } },
-        order: { select: { id: true, placedAt: true } },
+        order: {
+          select: {
+            id: true,
+            placedAt: true,
+            subtotal: true,
+            discountTotal: true,
+          },
+        },
       },
     }),
   ]);
@@ -475,6 +523,11 @@ export async function getSellerSales(range?: { from?: Date; to?: Date }) {
     { units: number; revenue: number; orders: Set<string>; last: Date | null }
   >();
   for (const item of items) {
+    const netLineTotal = discountedLineTotal(
+      item.lineTotal,
+      item.order.subtotal,
+      item.order.discountTotal,
+    );
     const vendorId = item.variant.product.vendorId;
     const row = sales.get(vendorId) ?? {
       units: 0,
@@ -483,7 +536,7 @@ export async function getSellerSales(range?: { from?: Date; to?: Date }) {
       last: null,
     };
     row.units += item.quantity;
-    row.revenue += item.lineTotal;
+    row.revenue += netLineTotal;
     row.orders.add(item.order.id);
     if (!row.last || item.order.placedAt > row.last) row.last = item.order.placedAt;
     sales.set(vendorId, row);
@@ -492,7 +545,10 @@ export async function getSellerSales(range?: { from?: Date; to?: Date }) {
   const rows: SellerSalesRow[] = vendors.map((vendor) => {
     const s = sales.get(vendor.id);
     const revenue = s?.revenue ?? 0;
-    const commission = Math.round((revenue * vendor.commissionPercent) / 100);
+    const { commission, payout } = sellerPayout(
+      revenue,
+      vendor.commissionPercent,
+    );
     return {
       id: vendor.id,
       seller: vendor.businessName,
@@ -504,7 +560,7 @@ export async function getSellerSales(range?: { from?: Date; to?: Date }) {
       orders: s?.orders.size ?? 0,
       revenue,
       commission,
-      payout: revenue - commission,
+      payout,
       lastOrderAt: s?.last ?? null,
     };
   });

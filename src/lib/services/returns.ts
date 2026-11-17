@@ -83,7 +83,8 @@ export async function qcReturn(returnId: string, pass: boolean, notes: string | 
             returnId: r.id,
             paymentId: payment.id,
             amount: Math.round(
-              item.unitPrice * r.quantity * (item.order.subtotal > 0 ? (item.order.grandTotal - item.order.shippingFee) / item.order.subtotal : 1),
+              (item.lineTotal * r.quantity * (item.order.grandTotal - item.order.shippingFee)) /
+                (item.quantity * (item.order.subtotal || 1)),
             ),
             method: item.order.paymentMethod === "COD" ? "BANK_TRANSFER" : "ORIGINAL_SOURCE",
             reason: r.reason,
@@ -91,6 +92,22 @@ export async function qcReturn(returnId: string, pass: boolean, notes: string | 
           },
         });
       }
+    } else {
+      if (!item.allocatedWarehouseId) {
+        throw new ApiError(409, "Original warehouse unknown for this item.");
+      }
+      await moveStock(tx, {
+        variantId: item.variantId,
+        warehouseId: item.allocatedWarehouseId,
+        from: "shipped",
+        to: null,
+        qty: r.quantity,
+        reason: "ADJUSTMENT",
+        referenceType: "RETURN",
+        referenceId: r.returnNumber,
+        actorId: actor.id,
+        note: "Removed from sellable stock after failed return QC",
+      });
     }
 
     await tx.return.update({

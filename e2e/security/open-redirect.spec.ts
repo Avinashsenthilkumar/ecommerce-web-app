@@ -17,6 +17,18 @@ test.describe("Security: Open Redirect Vulnerability Prevention", () => {
     expect(new URL(page.url()).hostname).toBe("localhost");
   });
 
+  test("Encoded backslash URL is blocked from external redirect", async ({ page }) => {
+    await page.goto("/login?next=/%5Cevil.com");
+
+    await page.fill(SELECTORS.auth.emailInput, DEMO_CREDENTIALS.customer.email);
+    await page.fill(SELECTORS.auth.passwordInput, DEMO_CREDENTIALS.customer.password);
+    await page.click(SELECTORS.auth.submitButton);
+
+    await page.waitForURL((url) => !url.pathname.includes("/login"));
+    expect(new URL(page.url()).hostname).toBe("localhost");
+    expect(page.url()).not.toContain("evil.com");
+  });
+
   test("Absolute external URL is blocked on staff login redirect", async ({ page }) => {
     await page.goto("/staff/login?next=https://malicious-external-site.com");
 

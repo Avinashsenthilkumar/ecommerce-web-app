@@ -51,8 +51,9 @@ export default async function OrderDetailPage({
                 Your order is placed!
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate">
-                Thanks for shopping with us. Your order is confirmed, and you
-                can follow its progress below as it is prepared and delivered.
+                {order.status === "PLACED"
+                  ? "Thanks for shopping with us. Your order has been received and is waiting for confirmation. You can follow its progress below."
+                  : "Thanks for shopping with us. Your order is being prepared, and you can follow its progress below."}
               </p>
             </div>
           </div>

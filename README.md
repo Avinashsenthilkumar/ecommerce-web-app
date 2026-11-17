@@ -123,7 +123,7 @@ All responses are `{ ok: true, data }` or `{ ok: false, error }` with a proper H
 | POST | `/api/vendor/products/:id` | seller | `{action: resubmit}` a rejected listing |
 | POST | `/api/admin/sellers/:id` | admin | `{action: approve\|reject\|suspend\|reinstate, reason?}` |
 | POST | `/api/admin/listings/:id` | admin | `{action: approve\|reject, reason?}` |
-| POST | `/api/reviews` | customer | `{productId, rating, comment?}` verified buyers only |
+| POST | `/api/reviews` | customer | `{productId, rating, comment?}`; delivered purchases receive a verified badge |
 | POST | `/api/vendor/restock` | vendor | `{variantId, warehouseId, quantity}` |
 | POST | `/api/auth/register` | public | `{fullName, email, phone, password}` new customer, signed in |
 | POST | `/api/auth/login` | public | `{email, password, portal: customer\|vendor\|staff}` |
@@ -141,15 +141,16 @@ All responses are `{ ok: true, data }` or `{ ok: false, error }` with a proper H
 - **COD**: cash is split per parcel (shipping fee on the first). The courier must enter the exact amount; the order becomes Paid once all cash is collected.
 - **Proof of delivery**: QR match + customer OTP. Three failed attempts mark the parcel Failed.
 - **Warehouse product labels**: The warehouse console can print Code 128 barcode labels for stocked product SKUs, individually or in batches, with a configurable number of copies. Scanning the printed barcode returns the SKU used by the pick workflow.
-- **Returns**: 7-day window from delivery, quantity-aware. QC pass restocks the original warehouse and raises a refund (original source for prepaid, bank transfer for COD).
+- **Returns**: configurable window from delivery, quantity-aware. QC pass restocks the original warehouse and raises a refund (original source for prepaid, bank transfer for COD); QC failure records removal from sellable stock.
 - **Order status** is derived from its shipments after every step, so it never drifts.
-- **Bag pricing**: subtotal − discount %, + GST % on the discounted amount, + shipping (free above a threshold). Defaults: 5%, 18%, free from ₹999 else ₹99 — ₹23,298 → −₹1,165 → +₹3,984 GST → ₹26,117. All four are editable in **Admin → Settings → Store rules** (no code change).
+- **Bag pricing**: subtotal − discount %, + GST % on the discounted amount, + shipping (free when the discounted subtotal reaches the threshold). Defaults: 5%, 18%, free from ₹999 else ₹99 — ₹23,298 → −₹1,165 → +₹3,984 GST → ₹26,117. All four are editable in **Admin → Settings → Store rules** (no code change).
+- **Sales reporting**: product revenue is line sales after the store discount, excluding GST and delivery charges. Admin, seller and vendor reports use that same basis; seller commission and payout are calculated on the discounted line sales.
 - Payment methods: UPI, Card, Netbanking (simulated gateway) and COD. "Save for later" moves a bag item to the wishlist.
 - Money is stored as whole rupees (Int).
 
 ## Mobile app (PWA)
 
-On phones the store uses an app layout with a bottom tab bar, and it can be installed to the home screen (`src/app/manifest.ts`, `public/sw.js`, icons in `public/icons/`). The service worker only runs in production builds, so test installation with `npm run build && npm start` on `localhost`, or on the live HTTPS deployment.
+On phones the store uses an app layout with a bottom tab bar, and it can be installed to the home screen (`src/app/manifest.ts`, `public/sw.js`, icons in `public/icons/`). The service worker caches build assets and icons, not product photos; photos require a network connection. It shows an offline screen when navigation fails. The service worker only runs in production builds, so test installation with `npm run build && npm start` on `localhost`, or on the live HTTPS deployment.
 
 ## Admin settings (no-code configuration)
 

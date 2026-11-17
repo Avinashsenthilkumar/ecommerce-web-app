@@ -5,10 +5,18 @@ export class ApiClientError extends Error {
 }
 
 /** Client-side fetch helper: returns data or throws ApiClientError with the server's message and status. */
-export async function callApi<T = unknown>(url: string, method: "GET" | "POST" | "PATCH" | "DELETE" = "POST", body?: unknown): Promise<T> {
+export async function callApi<T = unknown>(
+  url: string,
+  method: "GET" | "POST" | "PATCH" | "DELETE" = "POST",
+  body?: unknown,
+  extraHeaders?: Record<string, string>,
+): Promise<T> {
   const res = await fetch(url, {
     method,
-    headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+    headers: {
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+      ...extraHeaders,
+    },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   let json: { ok: boolean; data?: T; error?: string };

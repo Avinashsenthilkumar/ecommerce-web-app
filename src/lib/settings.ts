@@ -50,7 +50,7 @@ export const DEFAULTS = {
   "home.featuredHref": "/shop?category=all",
   "home.fulfilTitle": "Every parcel is scanned, not guessed.",
   "home.fulfilText":
-    "Orders split automatically across our Chennai and Thanjavur fulfilment centres. Each package carries a unique QR that is verified at pick, pack, hub intake and handover.",
+    "Orders can ship from Chennai and Thanjavur fulfilment centres. Each package carries a unique QR that is verified at pick, pack, hub intake and handover.",
   "home.fulfilPrimaryCta": "Track an order",
   "home.fulfilPrimaryHref": "/orders",
   "home.fulfilSecondaryCta": "Shop all products",
@@ -74,7 +74,7 @@ export const DEFAULTS = {
   "contact.email": "support@subsel.demo",
   "contact.phone": "+91 79040 06912",
   "contact.address": "Chennai & Thanjavur, Tamil Nadu",
-  "footer.note": "Prices include GST",
+  "footer.note": "GST calculated at checkout",
 } as const;
 
 export type SettingKey = keyof typeof DEFAULTS;
@@ -97,6 +97,7 @@ const STOREFRONT_ROUTES = [
   "/product",
   "/cart",
   "/orders",
+  "/track",
   "/account",
   "/wishlist",
   "/login",

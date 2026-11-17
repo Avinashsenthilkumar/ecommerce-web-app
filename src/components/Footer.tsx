@@ -5,6 +5,7 @@ import { getSettings } from "@/lib/settings";
 const linksFor = (storeName: string): [string, string][] => [
   ["Shop", "/shop?category=all"],
   ["My orders", "/orders"],
+  ["Track an order", "/track"],
   ["Wishlist", "/wishlist"],
   ["Your account", "/account"],
   [`Sell on ${storeName}`, "/vendor/login"],

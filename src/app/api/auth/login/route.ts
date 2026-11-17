@@ -3,6 +3,7 @@ import { ApiError, handle, parseBody } from "@/lib/api";
 import { createSession, ROLE_HOME, STAFF_ROLES } from "@/lib/auth";
 import { verifyPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   email: z.string().trim().toLowerCase().email("Enter a valid email"),
@@ -12,6 +13,7 @@ const schema = z.object({
 
 // POST /api/auth/login  { email, password, portal }
 export const POST = handle(async (req) => {
+  await enforceRateLimit(req, "login", 10, 15 * 60 * 1000);
   const { email, password, portal } = await parseBody(req, schema);
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !verifyPassword(password, user.passwordHash)) throw new ApiError(401, "Email or password is incorrect.");

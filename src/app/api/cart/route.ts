@@ -13,14 +13,14 @@ export const GET = handle(async () => {
 // POST /api/cart  { variantId, quantity }
 export const POST = handle(async (req) => {
   const user = await requireCustomer();
-  const body = await parseBody(req, z.object({ variantId: z.string().min(1), quantity: z.number().int().min(1).max(20).default(1) }));
+  const body = await parseBody(req, z.object({ variantId: z.string().min(1), quantity: z.number().int().min(1).default(1) }));
   return addToCart(user.id, body.variantId, body.quantity);
 });
 
 // PATCH /api/cart  { itemId, quantity }  (quantity 0 removes)
 export const PATCH = handle(async (req) => {
   const user = await requireCustomer();
-  const body = await parseBody(req, z.object({ itemId: z.string().min(1), quantity: z.number().int().min(0).max(20) }));
+  const body = await parseBody(req, z.object({ itemId: z.string().min(1), quantity: z.number().int().min(0) }));
   return setCartItemQty(user.id, body.itemId, body.quantity);
 });
 

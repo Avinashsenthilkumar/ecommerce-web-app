@@ -8,7 +8,7 @@ export const POST = handle(async (req, { params }) => {
   const admin = await requireRole(["ADMIN"]);
   const { action } = await parseBody(req, z.object({ action: z.enum(["confirm", "allocate", "cancel"]) }));
   if (action === "confirm") return confirmOrder(params.id);
-  if (action === "allocate") return allocateOrder(params.id, admin);
+  if (action === "allocate") return allocateOrder(params.id);
   return cancelOrder(params.id, admin);
 });
 

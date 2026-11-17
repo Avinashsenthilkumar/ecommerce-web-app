@@ -7,6 +7,7 @@ import {
   shipmentNumber,
   trackingNumber,
 } from "../codes";
+import { allocateProportionally } from "./cart";
 import { moveStock } from "./inventory";
 import { recomputeOrderStatus } from "./orders";
 import type { CurrentUser } from "../auth";
@@ -112,10 +113,9 @@ async function buildRoute(tx: Tx, warehouseId: string) {
 }
 
 /**
- * Allocates stock for a confirmed order and creates one shipment containing every order item.
- * Existing checkout reservations are consolidated at one active warehouse when possible.
+ * Creates one shipment for each warehouse already reserved at checkout.
  */
-export async function allocateOrder(orderId: string, actor: CurrentUser) {
+export async function allocateOrder(orderId: string) {
   return prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: { id: orderId },
@@ -141,113 +141,84 @@ export async function allocateOrder(orderId: string, actor: CurrentUser) {
       throw new ApiError(409, "Order status changed. Refresh and try again.");
 
     for (const item of order.items) {
-      if (!item.allocatedWarehouseId) continue;
+      if (!item.allocatedWarehouseId)
+        throw new ApiError(409, `No warehouse was reserved for ${item.sku}.`);
       const reservation = item.variant.inventory.find(
         (inv) => inv.warehouseId === item.allocatedWarehouseId,
       );
-      if (!reservation || reservation.reserved < item.quantity) {
+      if (
+        !reservation ||
+        !reservation.warehouse.isActive ||
+        reservation.reserved < item.quantity
+      ) {
         throw new ApiError(
           409,
-          `The stock reservation for ${item.sku} is missing.`,
+          `The active stock reservation for ${item.sku} is missing.`,
         );
       }
     }
 
-    const warehouseCandidates = order.items[0]?.variant.inventory
-      .filter((inventory) => inventory.warehouse.isActive)
-      .filter((candidate) =>
-        order.items.every((item) => {
-          const inventory = item.variant.inventory.find(
-            (stock) => stock.warehouseId === candidate.warehouseId,
-          );
-          const ownReservation =
-            item.allocatedWarehouseId === candidate.warehouseId
-              ? item.quantity
-              : 0;
-          return inventory && inventory.available + ownReservation >= item.quantity;
-        }),
-      )
-      .sort((a, b) => {
-        const existingReservationCount = (warehouseId: string) =>
-          order.items.filter((item) => item.allocatedWarehouseId === warehouseId).length;
-        const existingDifference =
-          existingReservationCount(b.warehouseId) -
-          existingReservationCount(a.warehouseId);
-        if (existingDifference !== 0) return existingDifference;
-        const availableAt = (warehouseId: string) =>
-          order.items.reduce(
-            (sum, item) =>
-              sum +
-              (item.variant.inventory.find(
-                (stock) => stock.warehouseId === warehouseId,
-              )?.available ?? 0),
-            0,
-          );
-        return availableAt(b.warehouseId) - availableAt(a.warehouseId);
-      });
-    const warehouseId = warehouseCandidates?.[0]?.warehouseId;
-    if (!warehouseId) {
-      throw new ApiError(
-        409,
-        "This order cannot be shipped in one parcel because no single active fulfilment centre has every item in stock.",
-      );
-    }
-
-    const route = await buildRoute(tx, warehouseId);
-    const shipment = await tx.shipment.create({
-      data: {
-        shipmentNumber: await shipmentNumber(tx),
-        trackingNumber: trackingNumber(),
-        deliveryOtp: deliveryOtp(),
-        orderId,
-        warehouseId,
-        deliveryHubId: route[route.length - 1].id,
-        paymentType: order.paymentMethod === "COD" ? "COD" : "PREPAID",
-        codAmount: order.paymentMethod === "COD" ? order.grandTotal : 0,
-        legs: {
-          create: route.map((hub, index) => ({
-            sequence: index + 1,
-            hubId: hub.id,
-          })),
-        },
-      },
-    });
-
+    const groups = new Map<string, typeof order.items>();
     for (const item of order.items) {
-      if (item.allocatedWarehouseId !== warehouseId) {
-        if (item.allocatedWarehouseId) {
-          await moveStock(tx, {
-            variantId: item.variantId,
-            warehouseId: item.allocatedWarehouseId,
-            from: "reserved",
-            to: "available",
-            qty: item.quantity,
-            reason: "RELEASE",
-            referenceType: "ORDER",
-            referenceId: order.orderNumber,
-            actorId: actor.id,
-            note: "Reservation moved to consolidate order shipment",
-          });
-        }
-        await moveStock(tx, {
-          variantId: item.variantId,
+      const warehouseId = item.allocatedWarehouseId!;
+      const group = groups.get(warehouseId) ?? [];
+      group.push(item);
+      groups.set(warehouseId, group);
+    }
+
+    const warehouseGroups = [...groups.entries()];
+    const itemDiscounts = allocateProportionally(
+      order.discountTotal,
+      order.items.map((item) => item.lineTotal),
+    );
+    const discountedTotals = new Map(
+      order.items.map((item, index) => [
+        item.id,
+        item.lineTotal - itemDiscounts[index],
+      ]),
+    );
+    const taxShares = allocateProportionally(
+      order.taxTotal,
+      warehouseGroups.map(([, items]) =>
+        items.reduce((sum, item) => sum + (discountedTotals.get(item.id) ?? 0), 0),
+      ),
+    );
+
+    for (const [index, [warehouseId, items]] of warehouseGroups.entries()) {
+      const route = await buildRoute(tx, warehouseId);
+      const itemSubtotal = items.reduce(
+        (sum, item) => sum + (discountedTotals.get(item.id) ?? 0),
+        0,
+      );
+      const shippingFee = index === 0 ? order.shippingFee : 0;
+      const shipment = await tx.shipment.create({
+        data: {
+          shipmentNumber: await shipmentNumber(tx),
+          trackingNumber: trackingNumber(),
+          deliveryOtp: deliveryOtp(),
+          orderId,
           warehouseId,
-          from: "available",
-          to: "reserved",
-          qty: item.quantity,
-          reason: "ALLOCATION",
-          referenceType: "SHIPMENT",
-          referenceId: shipment.shipmentNumber,
-          actorId: actor.id,
-        });
-      }
-      await tx.orderItem.update({
-        where: { id: item.id },
-        data: { allocatedWarehouseId: warehouseId, shipmentId: shipment.id },
+          deliveryHubId: route[route.length - 1].id,
+          paymentType: order.paymentMethod === "COD" ? "COD" : "PREPAID",
+          codAmount:
+            order.paymentMethod === "COD"
+              ? itemSubtotal + taxShares[index] + shippingFee
+              : 0,
+          legs: {
+            create: route.map((hub, legIndex) => ({
+              sequence: legIndex + 1,
+              hubId: hub.id,
+            })),
+          },
+        },
+      });
+      await tx.orderItem.updateMany({
+        where: { id: { in: items.map((item) => item.id) } },
+        data: { shipmentId: shipment.id },
       });
     }
 
-    return { shipments: 1 };
+    return { shipments: warehouseGroups.length };
   }, TX);
 }
 
@@ -483,7 +454,7 @@ async function loadShipment(tx: Tx, id: string) {
   const s = await tx.shipment.findUnique({
     where: { id },
     include: {
-      items: true,
+      items: { include: { variant: { select: { sku: true } } } },
       warehouse: true,
       legs: { orderBy: { sequence: "asc" } },
     },
@@ -514,10 +485,16 @@ export async function scanPick(
       throw new ApiError(409, "This shipment is already picked.");
     const sku = skuInput.trim().toUpperCase();
     const item = s.items.find(
-      (i) => i.sku.toUpperCase() === sku && i.pickedQty < i.quantity,
+      (i) =>
+        (i.sku.toUpperCase() === sku ||
+          i.variant.sku.toUpperCase() === sku) &&
+        i.pickedQty < i.quantity,
     );
     if (!item) {
-      const known = s.items.some((i) => i.sku.toUpperCase() === sku);
+      const known = s.items.some(
+        (i) =>
+          i.sku.toUpperCase() === sku || i.variant.sku.toUpperCase() === sku,
+      );
       throw new ApiError(
         422,
         known

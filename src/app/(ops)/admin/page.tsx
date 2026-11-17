@@ -416,6 +416,15 @@ export default async function AdminPage({
                       </p>
                     </div>
                     <StatusBadge status={shipment.status} />
+                    {shipment.otpLockedAt && (
+                      <ActionButton
+                        url={`/api/admin/shipments/${shipment.id}/unlock-otp`}
+                        label="Unlock delivery OTP"
+                        pendingLabel="Unlocking…"
+                        variant="outline"
+                        confirmText={`Unlock delivery OTP for ${shipment.shipmentNumber}?`}
+                      />
+                    )}
                   </li>
                 ))}
               </ul>

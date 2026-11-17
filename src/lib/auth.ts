@@ -99,5 +99,15 @@ export async function staffGate(need: Role) {
 
 /** Only allow same-site relative redirects after login. */
 export function safeNext(next: string | null | undefined, fallback: string) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : fallback;
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("\\")) {
+    return fallback;
+  }
+  try {
+    const decoded = decodeURIComponent(next);
+    if (decoded.startsWith("//") || decoded.includes("\\")) return fallback;
+    const target = new URL(next, "https://subsel.invalid");
+    return target.origin === "https://subsel.invalid" ? next : fallback;
+  } catch {
+    return fallback;
+  }
 }

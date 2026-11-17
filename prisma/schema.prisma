@@ -342,33 +342,35 @@ model Payment {
 
 /// One parcel. An order is split into one shipment per warehouse.
 model Shipment {
-  id               String            @id @default(cuid())
-  shipmentNumber   String            @unique
-  trackingNumber   String            @unique
-  qrCode           String?           @unique
-  deliveryOtp      String
-  orderId          String
-  warehouseId      String
-  deliveryHubId    String?
-  currentHubId     String?
-  courierId        String?
-  paymentType      PaymentType
-  codAmount        Int               @default(0)
-  status           ShipmentStatus    @default(ALLOCATED)
-  labelGeneratedAt DateTime?
-  dispatchedAt     DateTime?
-  deliveredAt      DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  attempts         DeliveryAttempt[]
-  items            OrderItem[]
-  scans            ScanEvent[]
-  courier          Courier?          @relation(fields: [courierId], references: [id])
-  currentHub       Hub?              @relation("ShipmentCurrentHub", fields: [currentHubId], references: [id])
-  deliveryHub      Hub?              @relation("ShipmentDeliveryHub", fields: [deliveryHubId], references: [id])
-  order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  warehouse        Warehouse         @relation(fields: [warehouseId], references: [id])
-  legs             ShipmentLeg[]
+  id                String            @id @default(cuid())
+  shipmentNumber    String            @unique
+  trackingNumber    String            @unique
+  qrCode            String?           @unique
+  deliveryOtp       String
+  otpFailedAttempts Int               @default(0)
+  otpLockedAt       DateTime?
+  orderId           String
+  warehouseId       String
+  deliveryHubId     String?
+  currentHubId      String?
+  courierId         String?
+  paymentType       PaymentType
+  codAmount         Int               @default(0)
+  status            ShipmentStatus    @default(ALLOCATED)
+  labelGeneratedAt  DateTime?
+  dispatchedAt      DateTime?
+  deliveredAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  attempts          DeliveryAttempt[]
+  items             OrderItem[]
+  scans             ScanEvent[]
+  courier           Courier?          @relation(fields: [courierId], references: [id])
+  currentHub        Hub?              @relation("ShipmentCurrentHub", fields: [currentHubId], references: [id])
+  deliveryHub       Hub?              @relation("ShipmentDeliveryHub", fields: [deliveryHubId], references: [id])
+  order             Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  warehouse         Warehouse         @relation(fields: [warehouseId], references: [id])
+  legs              ShipmentLeg[]
 
   @@index([status])
 }
@@ -617,6 +619,7 @@ enum ScanType {
   DELIVERY_FAILED
   RETURN_PICKUP
   RETURN_QC
+  OTP_UNLOCK
 }
 
 enum AttemptStatus {

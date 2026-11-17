@@ -1,4 +1,4 @@
-import { handle, parseBody } from "@/lib/api";
+import { ApiError, handle, parseBody } from "@/lib/api";
 import { requireCustomer } from "@/lib/auth";
 import { listOrdersForUser, placeOrder, placeOrderSchema } from "@/lib/services/orders";
 
@@ -12,7 +12,11 @@ export const GET = handle(async () => {
 export const POST = handle(async (req) => {
   const user = await requireCustomer();
   const body = await parseBody(req, placeOrderSchema);
-  return placeOrder(user.id, body);
+  const idempotencyKey = req.headers.get("Idempotency-Key")?.trim();
+  if (!idempotencyKey || !/^[A-Za-z0-9._:-]{16,128}$/.test(idempotencyKey)) {
+    throw new ApiError(400, "A valid Idempotency-Key header is required for checkout.");
+  }
+  return placeOrder(user.id, body, idempotencyKey);
 });
 
 export const dynamic = "force-dynamic";

@@ -53,7 +53,7 @@ export function lineUnitPrice(line: CartLine) {
 
 /**
  * Bag pricing, using the percentages saved in admin settings:
- * subtotal − discount = taxable, + GST, + shipping (free above the threshold).
+ * subtotal − discount = taxable, + GST, + shipping (free when taxable reaches the threshold).
  * Default example: ₹23,298 − 5% = ₹22,133, + 18% GST = ₹26,117.
  */
 export function priceBreakdown(subtotal: number, r: StoreRules) {
@@ -69,7 +69,7 @@ export function priceBreakdown(subtotal: number, r: StoreRules) {
   const taxable = Math.max(0, safeSubtotal - discountTotal);
   const taxTotal = Math.round(taxable * safeGstRate);
   const shippingFee =
-    safeSubtotal === 0 || safeSubtotal >= r.freeShippingFrom ? 0 : r.shippingFee;
+    taxable === 0 || taxable >= r.freeShippingFrom ? 0 : r.shippingFee;
 
   return {
     subtotal: safeSubtotal,
@@ -77,6 +77,54 @@ export function priceBreakdown(subtotal: number, r: StoreRules) {
     taxTotal,
     shippingFee,
     grandTotal: taxable + taxTotal + shippingFee,
+  };
+}
+
+export function allocateProportionally(total: number, weights: number[]) {
+  if (weights.length === 0) return [];
+  const safeTotal = Math.max(0, Math.trunc(total));
+  const safeWeights = weights.map((weight) => Math.max(0, Math.trunc(weight)));
+  const weightTotal = safeWeights.reduce((sum, weight) => sum + weight, 0);
+  if (weightTotal === 0) {
+    const each = Math.floor(safeTotal / weights.length);
+    const remainder = safeTotal - each * weights.length;
+    return weights.map((_, index) => each + Number(index < remainder));
+  }
+
+  const shares = safeWeights.map((weight, index) => {
+    const exact = (safeTotal * weight) / weightTotal;
+    const amount = Math.floor(exact);
+    return { index, amount, remainder: exact - amount };
+  });
+  let remaining = safeTotal - shares.reduce((sum, share) => sum + share.amount, 0);
+  shares
+    .slice()
+    .sort((a, b) => b.remainder - a.remainder || a.index - b.index)
+    .forEach((share) => {
+      if (remaining > 0) {
+        shares[share.index].amount += 1;
+        remaining -= 1;
+      }
+    });
+  return shares.map((share) => share.amount);
+}
+
+export function discountedLineTotal(
+  lineTotal: number,
+  subtotal: number,
+  discountTotal: number,
+) {
+  if (subtotal <= 0) return 0;
+  const taxable = Math.max(0, subtotal - discountTotal);
+  // Keep the proportional share precise until the UI or report rounds its total.
+  return (lineTotal * taxable) / subtotal;
+}
+
+export function sellerPayout(revenue: number, commissionPercent: number) {
+  const commission = Math.round((revenue * commissionPercent) / 100);
+  return {
+    commission,
+    payout: Math.round(revenue - commission),
   };
 }
 
