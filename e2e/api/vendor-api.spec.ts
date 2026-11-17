@@ -92,25 +92,34 @@ test.describe("API: Vendor Central (/api/vendor/*)", () => {
   test("POST /api/vendor/products - Create new product listing", async ({ page }) => {
     await loginVendor(page);
 
-    // Dynamically retrieve real category and warehouse IDs from DB
+    // Dynamically retrieve real category and warehouse IDs from DB with API fallback
     const [category, warehouse] = await Promise.all([
       prisma.category.findFirst({ select: { id: true } }),
       prisma.warehouse.findFirst({ select: { id: true } }),
     ]);
+
+    let categoryId = category?.id;
+    if (!categoryId) {
+      const prodRes = await page.request.get("/api/products?page=1");
+      const prodJson = await prodRes.json();
+      categoryId = prodJson?.data?.[0]?.categoryId;
+    }
+
+    const warehouseId = warehouse?.id;
 
     const start = Date.now();
     const rand = Math.floor(Math.random() * 8999 + 1000);
     const res = await page.request.post("/api/vendor/products", {
       data: {
         name: `Artisan Linen Shirt ${rand}`,
-        categoryId: category?.id,
+        categoryId,
         brandName: "Aurelia Handlooms",
         shortDescription: "Finest breathable artisanal organic linen shirt.",
         description: "Crafted with lightweight breathable linen for effortless style.",
         mrp: 2999,
         sellingPrice: 1999,
         skuPrefix: `L${rand}`,
-        warehouseId: warehouse?.id,
+        warehouseId,
         variants: [
           { label: "M / Navy Blue", stock: 20 },
           { label: "L / Olive Green", stock: 15 },
