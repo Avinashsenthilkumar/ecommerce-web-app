@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   test:
@@ -79,8 +79,9 @@ jobs:
           echo "| **Total Tests** | 113 Tests across 7 Projects |" >> $GITHUB_STEP_SUMMARY
           echo "| **Coverage** | Frontend Mock, Real E2E, Security, Mobile Android, iOS WebKit, iPad WebKit, 31 Route APIs |" >> $GITHUB_STEP_SUMMARY
           echo "| **Swagger Documentation** | Verified & Enriched in \`public/swagger.json\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Live Interactive Report** | [View Published Report](https://avinashsenthilkumar.github.io/ecommerce-web-app/) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Download the \`playwright-report\` artifact below to inspect the full interactive HTML report, videos, and network traces." >> $GITHUB_STEP_SUMMARY
+          echo "Download the \`playwright-report\` artifact below or open the live GitHub Pages URL to inspect the full interactive HTML report, videos, and network traces." >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Playwright HTML Report
         uses: actions/upload-artifact@v4
@@ -97,3 +98,13 @@ jobs:
           name: swagger-specification
           path: public/swagger.json
           retention-days: 30
+
+      - name: Publish HTML Report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./playwright-report
+          publish_branch: gh-pages
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
