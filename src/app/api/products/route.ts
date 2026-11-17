@@ -11,6 +11,7 @@ export const GET = handle(async (req) => {
   });
   return products.map((p) => ({
     id: p.id,
+    categoryId: p.categoryId,
     slug: p.slug,
     name: p.name,
     brand: p.brand.name,

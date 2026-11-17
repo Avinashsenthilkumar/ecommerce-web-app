@@ -2721,8 +2721,8 @@
           }
         },
         "x-test-status": "passed",
-        "x-tested-at": "2026-11-17T09:17:18.792Z",
-        "x-test-duration-ms": 753
+        "x-tested-at": "2026-11-17T10:04:27.253Z",
+        "x-test-duration-ms": 6439
       }
     },
     "/api/vendor/products": {
@@ -2758,7 +2758,7 @@
                 "example": {
                   "ok": true,
                   "data": {
-                    "slug": "artisan-linen-shirt-4168"
+                    "slug": "artisan-linen-shirt-5412"
                   }
                 }
               }
@@ -2766,8 +2766,8 @@
           }
         },
         "x-test-status": "passed",
-        "x-tested-at": "2026-11-17T09:17:29.254Z",
-        "x-test-duration-ms": 705
+        "x-tested-at": "2026-11-17T10:04:58.043Z",
+        "x-test-duration-ms": 740
       }
     },
     "/api/vendor/products/{id}": {
@@ -2839,8 +2839,8 @@
           }
         },
         "x-test-status": "passed",
-        "x-tested-at": "2026-11-17T09:17:32.708Z",
-        "x-test-duration-ms": 696
+        "x-tested-at": "2026-11-17T10:05:07.924Z",
+        "x-test-duration-ms": 6672
       }
     },
     "/api/vendor/restock": {
@@ -2904,8 +2904,8 @@
           }
         },
         "x-test-status": "passed",
-        "x-tested-at": "2026-11-17T09:17:25.568Z",
-        "x-test-duration-ms": 757
+        "x-tested-at": "2026-11-17T10:04:53.787Z",
+        "x-test-duration-ms": 924
       }
     },
     "/api/vendor/analytics/report": {
@@ -2958,8 +2958,8 @@
           }
         },
         "x-test-status": "passed",
-        "x-tested-at": "2026-11-17T09:17:22.087Z",
-        "x-test-duration-ms": 782
+        "x-tested-at": "2026-11-17T10:04:42.006Z",
+        "x-test-duration-ms": 1060
       }
     },
     "/api/admin/overview": {

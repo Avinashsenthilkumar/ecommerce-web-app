@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { recordApiTestResult } from "./swagger-enricher";
 import { loginVendor } from "../helpers/auth-helper";
+import { prisma } from "../../src/lib/prisma";
 
 test.describe("API: Vendor Central (/api/vendor/*)", () => {
   test("POST /api/vendor/register - Seller onboarding registration", async ({ request }) => {
@@ -56,18 +57,22 @@ test.describe("API: Vendor Central (/api/vendor/*)", () => {
   test("POST /api/vendor/restock - Restock variant inventory at warehouse", async ({ page }) => {
     await loginVendor(page);
 
-    // Retrieve active product variant
-    const prodRes = await page.request.get("/api/products?page=1");
-    const prodJson = await prodRes.json();
-    const sampleVariant = prodJson?.data?.products?.[0]?.variants?.[0];
+    // Retrieve active warehouse and product variant dynamically from DB
+    const [warehouse, vendorProduct] = await Promise.all([
+      prisma.warehouse.findFirst({ select: { id: true } }),
+      prisma.product.findFirst({
+        where: { vendor: { user: { email: "aureli@subsel.demo" } } },
+        include: { variants: true },
+      }),
+    ]);
+    const sampleVariant = vendorProduct?.variants?.[0];
 
     const start = Date.now();
-    // Restock with warehouse ID
     const res = await page.request.post("/api/vendor/restock", {
       data: {
-        variantId: sampleVariant?.id || "cmv5qiswp002d3gk2nrgelg9s",
+        variantId: sampleVariant?.id || "fallback-variant-id",
         quantity: 10,
-        warehouseId: "cmv5qistj00063gk2ksfmhnb5",
+        warehouseId: warehouse?.id || "fallback-warehouse-id",
       },
     });
 
@@ -87,24 +92,25 @@ test.describe("API: Vendor Central (/api/vendor/*)", () => {
   test("POST /api/vendor/products - Create new product listing", async ({ page }) => {
     await loginVendor(page);
 
-    const prodRes = await page.request.get("/api/products?page=1");
-    const prodJson = await prodRes.json();
-    const list = Array.isArray(prodJson?.data) ? prodJson.data : prodJson?.data?.products || [];
-    const sampleProduct = list?.[0];
+    // Dynamically retrieve real category and warehouse IDs from DB
+    const [category, warehouse] = await Promise.all([
+      prisma.category.findFirst({ select: { id: true } }),
+      prisma.warehouse.findFirst({ select: { id: true } }),
+    ]);
 
     const start = Date.now();
     const rand = Math.floor(Math.random() * 8999 + 1000);
     const res = await page.request.post("/api/vendor/products", {
       data: {
         name: `Artisan Linen Shirt ${rand}`,
-        categoryId: sampleProduct?.categoryId || "cmv5qisuv000v3gk2sa194flb",
+        categoryId: category?.id,
         brandName: "Aurelia Handlooms",
         shortDescription: "Finest breathable artisanal organic linen shirt.",
         description: "Crafted with lightweight breathable linen for effortless style.",
         mrp: 2999,
         sellingPrice: 1999,
         skuPrefix: `L${rand}`,
-        warehouseId: "cmv5qistj00063gk2ksfmhnb5",
+        warehouseId: warehouse?.id,
         variants: [
           { label: "M / Navy Blue", stock: 20 },
           { label: "L / Olive Green", stock: 15 },
